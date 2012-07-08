@@ -25,9 +25,12 @@ for root, dirs, files in os.walk('inform/plugins'):
     for filename in files:
         if not filename.startswith("__") and filename.endswith('.py'):
             modname = filename[:-3]
+
             try:
                 mod = __import__("plugins.%s" % modname, globals(), locals(), ['InformPlugin'], -1)
                 modules[modname] = mod.InformPlugin()
+                print "Loaded plugin: %s" % modname
+
             except (ImportError, AttributeError):
                 print "Bad plugin: %s" % modname
                 pass
