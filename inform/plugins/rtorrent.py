@@ -210,24 +210,26 @@ RTORRENT_XMLRPC = "scgi://localhost:5000"
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
 
-    def process(self, view="inform"):
+    def process(self):
         data = []
 
         try:
             # connect to rtorrent over SCGI
             server = SCGIServerProxy(RTORRENT_XMLRPC)
-            torrents = server.d.multicall(view,
+            torrents = server.d.multicall("main",
                                           'd.complete=',
                                           'd.size_bytes=',
                                           'd.completed_bytes=',
-                                          'd.get_name=')
+                                          'd.get_name=',
+                                          'd.get_custom1=')
 
             for t in torrents:
-                # calculate % done
-                data.append({
-                    'name': t[3],
-                    'done': "{0:.1f}%".format(float(t[2]) / float(t[1]) * 100),
-                })
+                if t[4] == "inform":
+                    # calculate % done
+                    data.append({
+                        'name': t[3],
+                        'done': "{0:.1f}%".format(float(t[2]) / float(t[1]) * 100),
+                    })
 
         except xmlrpclib.Fault as e:
             return {}
