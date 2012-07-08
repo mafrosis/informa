@@ -18,9 +18,10 @@ class InformPlugin(InformBasePlugin):
     run_every = timedelta(days=1)
 
     def process(self):
+        driver = webdriver.Firefox()
+
         try:
             # load the iframe in selenium
-            driver = webdriver.Firefox()
             driver.get(PREM_LISTING_URL)
             time.sleep(5)
 
@@ -60,9 +61,10 @@ class InformPlugin(InformBasePlugin):
 
 
     def lfc(self, match_id):
+        driver = webdriver.Firefox()
+
         try:
             # load the match details URL in selenium
-            driver = webdriver.Firefox()
             driver.get(MATCH_URL % match_id)
             time.sleep(1)
 
