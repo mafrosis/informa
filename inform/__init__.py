@@ -1,26 +1,18 @@
+# setup Celery
+from inform.celery import celery
+
+# setup Flask
 from flask import Flask
-from flask.ext.celery import Celery
-
-BROKER_HOST = "localhost"
-BROKER_PORT = 5672
-BROKER_VHOST = "/"
-BROKER_USER = "guest"
-BROKER_PASSWORD = "guest"
-
-CELERY_RESULT_BACKEND = "amqp"
-CELERY_IGNORE_RESULT = True
-
 app = Flask(__name__)
 app.config.from_pyfile("../config/flask.conf.py")
 
-modules = {}
 
-celery = Celery(app)
+# find and import all plugins
+modules = {}
 
 import os
 import views
 
-# find and import all plugins
 for root, dirs, files in os.walk('inform/plugins'):
     for filename in files:
         if not filename.startswith("__") and filename.endswith('.py'):
