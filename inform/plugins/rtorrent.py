@@ -202,6 +202,8 @@ class SCGIServerProxy(xmlrpclib.ServerProxy):
 
 from lib.plugin import InformBasePlugin
 
+from socket import error as SocketError
+
 from datetime import timedelta
 
 RTORRENT_XMLRPC = "scgi://localhost:5000"
@@ -231,7 +233,7 @@ class InformPlugin(InformBasePlugin):
                         'done': "{0:.1f}%".format(float(t[2]) / float(t[1]) * 100),
                     })
 
-        except xmlrpclib.Fault as e:
+        except (xmlrpclib.Fault, SocketError) as e:
             return {}
 
         self.store(__name__, data)
