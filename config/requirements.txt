@@ -1,7 +1,8 @@
 BeautifulSoup==3.2.1
-Flask==0.8
-celery==3.0.1
-gunicorn==0.14.5
+Flask==0.9
+Flask-Script==0.3.3
+celery==3.0.7
+gunicorn==0.14.6
 python-memcached==1.48
-requests==0.13.1
+requests==0.13.9
 selenium==2.24.0
