@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from celery import Celery
 
-celery = Celery(broker="amqp://guest@localhost:5672//")
+celery = Celery(broker="amqp://guest@localhost:5672/")
 
 celery.conf.update(
     CELERY_DEFAULT_QUEUE = "inform",
