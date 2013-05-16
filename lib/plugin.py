@@ -12,12 +12,16 @@ class InformBasePlugin(PeriodicTask):
     def run(self, **kwargs):
         self.process()
 
-    def load(self, key):
-        return cache.get(key)
+    def load(self, key, default=None):
+        data = cache.get(key)
+        if data is None:
+            return default
+        return data
 
     def store(self, key, value):
-        print {key[15:]: value}
-        cache.set(key[15:], value)
+        if key.startswith("inform.plugins."):
+            key = key[15:]
+        cache.set(key, value)
 
     @abstractmethod
     def process(self):
