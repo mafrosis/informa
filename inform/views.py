@@ -29,11 +29,13 @@ def poll():
     return _make_json_response({'OK': True})
 
 
-def _make_json_response(content):
+def _make_json_response(content, html=False):
     if app.debug:
-        response = make_response(json.dumps(content, indent=4))
+        response = make_response(json.dumps(content, indent=2))
     else:
         response = make_response(content)
 
-    response.headers['Content-Type'] = 'application/json'
+    if html == False:
+        response.headers['Content-Type'] = 'application/json'
+
     return response
