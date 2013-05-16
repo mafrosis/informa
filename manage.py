@@ -3,16 +3,24 @@
 from __future__ import absolute_import
 from flask.ext.script import Manager
 
+import json
+
 from inform import app, modules, views
 
 manager = Manager(app)
 
+
 @manager.command
-def get():
+def get(name):
     """
     Inspect the data in memcache
     """
-    print views.get().data
+    data = {}
+    for m in modules.keys():
+        data[m] = modules[m].load(m)
+
+    print json.dumps(data, indent=2)
+
 
 @manager.command
 def load(name):
@@ -21,6 +29,9 @@ def load(name):
     """
     if name in modules.keys():
         modules[name].process()
+        data = modules[name].load(str(name))
+        print json.dumps(data, indent=2)
+
 
 @manager.command
 def forcepoll():
@@ -28,6 +39,7 @@ def forcepoll():
     Load new data for each plugin now
     """
     views.poll()
+
 
 @manager.command
 def check_pip():
@@ -49,6 +61,7 @@ def check_pip():
             msg = 'up to date'
         pkg_info = '{dist.project_name} {dist.version}'.format(dist=dist)
         print '{pkg_info:40} {msg}'.format(pkg_info=pkg_info, msg=msg)
+
 
 if __name__ == "__main__":
     manager.run()
