@@ -1,7 +1,13 @@
-from inform import app, modules
+import json
+
 from flask import make_response
 
-import json
+from inform import app
+
+
+def noop():
+    pass
+
 
 @app.route("/")
 def index():
@@ -13,8 +19,8 @@ def get():
     data = {}
 
     # load each module's data from memcache
-    for m in modules.keys():
-        data[m] = modules[m].load(m)
+    for m in app.config['modules'].keys():
+        data[m] = app.config['modules'][m].load()
 
     # response with formatted json
     return _make_json_response(data)
@@ -23,8 +29,8 @@ def get():
 @app.route("/force-poll")
 def poll():
     # force start of all plugins
-    for m in modules.keys():
-        modules[m].delay()
+    for m in app.config['modules'].keys():
+        app.config['modules'][m].delay()
 
     return _make_json_response({'OK': True})
 

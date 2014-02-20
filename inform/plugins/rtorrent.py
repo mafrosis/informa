@@ -200,7 +200,7 @@ class SCGIServerProxy(xmlrpclib.ServerProxy):
         raise AttributeError("Attribute %r not found" % (attr,))
 
 
-from lib.plugin import InformBasePlugin
+from ..base_plugin import InformBasePlugin
 
 from socket import error as SocketError
 
@@ -211,6 +211,8 @@ RTORRENT_XMLRPC = "scgi://localhost:5000"
 
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
+    plugin_name = "rtorrent"
+    enabled = False
 
     def process(self):
         data = []
@@ -236,5 +238,5 @@ class InformPlugin(InformBasePlugin):
         except (xmlrpclib.Fault, SocketError) as e:
             return {}
 
-        self.store(__name__, data)
+        self.store(data)
         return data

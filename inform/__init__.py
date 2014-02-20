@@ -1,17 +1,18 @@
-# setup Celery
-from inform.celery import celery
+from __future__ import absolute_import
 
 # setup Flask
 from flask import Flask
 app = Flask(__name__)
 app.config.from_pyfile("../config/flask.conf.py")
 
+from .celery import celery
 
 # find and import all plugins
-modules = {}
+app.config['modules'] = {}
 
 import os
-import views
+from . import views
+views.noop()
 
 for root, dirs, files in os.walk('inform/plugins'):
     for filename in files:
@@ -20,11 +21,18 @@ for root, dirs, files in os.walk('inform/plugins'):
 
             try:
                 mod = __import__("plugins.%s" % modname, globals(), locals(), ['InformPlugin'], -1)
-                modules[modname] = mod.InformPlugin()
-                print "Loaded plugin: %s" % modname
 
-            except (ImportError, AttributeError):
-                print "Bad plugin: %s" % modname
+                if getattr(mod.InformPlugin, 'enabled', True):
+                    m = mod.InformPlugin()
+                    m.plugin_name = modname
+                    app.config['modules'][modname] = m
+                    print "Active plugin: {0}".format(modname)
+                else:
+                    print "Inactive plugin: {0}".format(modname)
+
+            except (ImportError, AttributeError) as e:
+                # TODO add debug param
+                print "Bad plugin: {0} ({1})".format(modname, e)
                 pass
 
 

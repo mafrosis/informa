@@ -1,4 +1,4 @@
-from lib.plugin import InformBasePlugin
+from ..base_plugin import InformBasePlugin
 
 from datetime import timedelta
 
@@ -16,6 +16,7 @@ PARAMS = {
 
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
+    plugin_name = "tramtracker"
 
     def process(self):
         try:
@@ -29,5 +30,5 @@ class InformPlugin(InformBasePlugin):
             print "Failed loading from tramtracker"
             return {}
 
-        self.store(__name__, data)
+        self.store(data)
         return data

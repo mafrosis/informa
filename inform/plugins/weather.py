@@ -1,4 +1,4 @@
-from lib.plugin import InformBasePlugin
+from ..base_plugin import InformBasePlugin
 
 import requests
 import json
@@ -53,6 +53,10 @@ MET_CODES = {
 
 
 class InformPlugin(InformBasePlugin):
+    run_every = timedelta(days=1)
+    plugin_name = "weather"
+    enabled = False
+
 
     def process(self):
         data = {
@@ -62,7 +66,7 @@ class InformPlugin(InformBasePlugin):
             'bri-forecast': self.metf(),
             'mel-astro': self.astro(),
         }
-        self.store(__name__, data)
+        self.store(data)
         return data
 
 

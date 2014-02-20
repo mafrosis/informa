@@ -5,21 +5,17 @@ from flask.ext.script import Manager
 
 import json
 
-from inform import app, modules, views
+from inform import app, views
 
 manager = Manager(app)
 
 
 @manager.command
-def get(name):
+def get():
     """
     Inspect the data in memcache
     """
-    data = {}
-    for m in modules.keys():
-        data[m] = modules[m].load(m)
-
-    print json.dumps(data, indent=2)
+    print views.get().data
 
 
 @manager.command
@@ -27,10 +23,10 @@ def load(name):
     """
     Foreground load data via a single plugin
     """
-    if name in modules.keys():
-        modules[name].process()
-        data = modules[name].load(str(name))
-        print json.dumps(data, indent=2)
+    output = {}
+    if name in app.config['modules'].keys():
+        output[name] = app.config['modules'][name].run(force=True)
+    print json.dumps(output, indent=2)
 
 
 @manager.command

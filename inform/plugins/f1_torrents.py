@@ -1,4 +1,4 @@
-from lib.plugin import InformBasePlugin
+from ..base_plugin import InformBasePlugin
 
 from datetime import timedelta
 
@@ -16,6 +16,8 @@ MAX_TORRENTS = 10
 
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(minutes=60)
+    plugin_name = "f1_torrents"
+    enabled = False
 
     def process(self):
         # load last known torrent id
@@ -113,5 +115,5 @@ class InformPlugin(InformBasePlugin):
             print "Failed loading F1 torrents {0}".format(e)
             return {}
 
-        self.store(__name__, data)
+        self.store(data)
         return data

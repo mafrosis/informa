@@ -12,6 +12,5 @@ celery.conf.update(
 
     CELERY_RESULT_BACKEND = "cache",
     CELERY_CACHE_BACKEND = "memcached://127.0.0.1:11211/",
+    CELERY_TASK_RESULT_EXPIRES = None,
 )
-
-
