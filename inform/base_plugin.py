@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 
 from celery.task import PeriodicTask
-import datetime
-import time
-from socket import socket
 import collections
+import datetime
+from socket import socket
+import sys
+import time
+import traceback
 
 from . import app
 from .memcache_wrapper import cache
@@ -62,6 +64,11 @@ class InformBasePlugin(PeriodicTask):
 
     def log(self, msg):
         print "[%s] %s" % (self.plugin_name, msg)
+
+    def format_excp(self):
+        ex_type, ex, tb = sys.exc_info()
+        tb = traceback.extract_tb(tb)
+        return "{}: {}\n{}".format(ex.__class__.__name__, ex, tb)
 
 
     @abstractmethod
