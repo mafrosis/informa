@@ -4,5 +4,6 @@ Flask-Script==0.5.1
 celery==3.0.19
 gunicorn==0.17.4
 python-memcached==1.48
+pytz==2013.9
 requests==1.2.0
 selenium==2.25.0
