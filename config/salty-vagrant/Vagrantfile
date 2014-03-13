@@ -1,7 +1,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "wheezy64au"
+  config.vm.box = "mafro/wheezy64-salt-au"
 
   # salt source directory & shared dir in /tmp
   config.vm.synced_folder "..", "/srv/salt"
