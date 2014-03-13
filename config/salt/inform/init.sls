@@ -64,3 +64,19 @@ inform-service:
 
 memcached:
   pkg.installed
+
+/etc/nginx/sites-available/inform.conf:
+  file.managed:
+    - source: salt://inform/nginx.conf
+    - template: jinja
+    - context:
+        hostname: {{ pillar['hostname'] }}
+        gunicorn_port: {{ pillar['gunicorn_port'] }}
+    - require:
+      - pkg: nginx
+
+/etc/nginx/sites-enabled/inform.conf:
+  file.symlink:
+    - target: /etc/nginx/sites-available/inform.conf
+    - require:
+      - file: /etc/nginx/sites-available/inform.conf
