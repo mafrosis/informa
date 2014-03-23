@@ -6,4 +6,3 @@ gunicorn==18.0
 python-memcached==1.53
 pytz==2013.9
 requests==2.2.1
-selenium==2.39.0
