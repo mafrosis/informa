@@ -2,7 +2,7 @@ app_name: inform
 app_user: vagrant
 login_user: vagrant
 
-hostname: localhost
+gunicorn_host: localhost
 gunicorn_port: 8003
 
 rabbitmq_host: localhost

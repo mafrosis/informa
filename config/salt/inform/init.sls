@@ -70,7 +70,7 @@ memcached:
     - source: salt://inform/nginx.conf
     - template: jinja
     - context:
-        hostname: {{ pillar['hostname'] }}
+        gunicorn_host: {{ pillar['gunicorn_host'] }}
         gunicorn_port: {{ pillar['gunicorn_port'] }}
     - require:
       - pkg: nginx
