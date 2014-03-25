@@ -1,6 +1,7 @@
 base:
   '*':
     - common
+    - salt-backports
     - inform
 
   'env:dev':
