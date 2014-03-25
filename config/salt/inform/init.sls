@@ -1,6 +1,8 @@
 include:
   - gunicorn
   - github
+  - hostname
+  - locale
   - logs
   - nginx
   - rabbitmq

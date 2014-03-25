@@ -5,6 +5,9 @@ login_user: vagrant
 gunicorn_host: localhost
 gunicorn_port: 8003
 
+hostname: inform
+locale: Australia/Melbourne
+
 rabbitmq_host: localhost
 rabbitmq_vhost: dev
 rabbitmq_user: dev
