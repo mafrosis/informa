@@ -5,7 +5,6 @@ include:
   - locale
   - logs
   - nginx
-  - rabbitmq
   - supervisor
   - virtualenv-base
 
@@ -50,7 +49,22 @@ app-virtualenv:
         app_user: {{ pillar['app_user'] }}
     - require:
       - user: {{ pillar['app_user'] }}
-      - cmd: rabbitmq-server-running
+    - require_in:
+      - service: supervisor
+
+sqlite3:
+  pkg.installed
+
+sqlitedb-init:
+  cmd.run:
+    - name: /home/{{ pillar['app_user'] }}/.virtualenvs/inform/bin/python manage.py init_db
+    - unless: test -f /srv/inform/inform.sqlitedb
+    - cwd: /srv/inform
+    - user: {{ pillar['app_user'] }}
+    - group: {{ pillar['app_user'] }}
+    - require:
+      - pkg: sqlite3
+      - file: flask-app-config
     - require_in:
       - service: supervisor
 
@@ -60,6 +74,7 @@ inform-service:
     - update: true
     - require:
       - service: supervisor
+      - cmd: sqlitedb-init
     - watch:
       - file: /etc/supervisor/conf.d/inform.conf
       - file: /etc/gunicorn.d/{{ pillar['app_name'] }}.conf.py

@@ -6,14 +6,13 @@ gunicorn_host: localhost
 gunicorn_port: 8003
 
 hostname: inform
-locale: Australia/Melbourne
+timezone: Australia/Melbourne
+locale: en_AU
 
 rabbitmq_host: localhost
 rabbitmq_vhost: dev
 rabbitmq_user: dev
 rabbitmq_pass: dev
-
-timezone: "Australia/Melbourne"
 
 # get dotfiles from github
 github_username: mafrosis
