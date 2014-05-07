@@ -14,6 +14,11 @@ extend:
       - require:
         - virtualenv: app-virtualenv
 
+  nginx:
+    service.running:
+      - watch:
+        - file: /etc/nginx/sites-enabled/inform.conf
+
 /srv/inform:
   file.directory:
     - user: {{ pillar['app_user'] }}
