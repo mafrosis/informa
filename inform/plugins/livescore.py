@@ -1,4 +1,4 @@
-from ..base_plugin import InformBasePlugin
+from ..base_plugins import InformBasePlugin
 
 from selenium import webdriver
 from datetime import datetime, timedelta

@@ -8,8 +8,8 @@ import sys
 import time
 import traceback
 
-from . import app
-from .memcache_wrapper import cache
+from .. import app
+from ..memcache_wrapper import cache
 
 from abc import abstractmethod
 

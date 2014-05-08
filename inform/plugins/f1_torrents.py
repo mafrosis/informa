@@ -1,4 +1,4 @@
-from ..base_plugin import InformBasePlugin
+from ..base_plugins import InformBasePlugin
 
 from datetime import timedelta
 

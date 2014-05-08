@@ -200,7 +200,7 @@ class SCGIServerProxy(xmlrpclib.ServerProxy):
         raise AttributeError("Attribute %r not found" % (attr,))
 
 
-from ..base_plugin import InformBasePlugin
+from ..base_plugins import InformBasePlugin
 
 from socket import error as SocketError
 
