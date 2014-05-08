@@ -4,7 +4,6 @@ from datetime import timedelta
 from itertools import groupby
 
 import datetime
-import json
 import pytz
 import requests
 
@@ -30,7 +29,7 @@ class InformPlugin(InformBasePlugin):
             return {}
 
         try:
-            trains = json.loads(r.text)
+            trains = r.json()
         except:
             print "Bad JSON response from ptv.vic.gov.au"
             return {}
