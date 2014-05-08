@@ -16,23 +16,23 @@ views.noop()
 
 for root, dirs, files in os.walk('inform/plugins'):
     for filename in files:
-        if not filename.startswith("__") and filename.endswith('.py'):
+        if not filename.startswith('__') and filename.endswith('.py'):
             modname = filename[:-3]
 
             try:
-                mod = __import__("plugins.%s" % modname, globals(), locals(), ['InformPlugin'], -1)
+                mod = __import__('plugins.{}'.format(modname), globals(), locals(), ['InformPlugin'], -1)
 
                 if getattr(mod.InformPlugin, 'enabled', True):
                     m = mod.InformPlugin()
                     m.plugin_name = modname
                     app.config['modules'][modname] = m
-                    print "Active plugin: {0}".format(modname)
+                    print 'Active plugin: {}'.format(modname)
                 else:
-                    print "Inactive plugin: {0}".format(modname)
+                    print 'Inactive plugin: {}'.format(modname)
 
             except (ImportError, AttributeError) as e:
                 # TODO add debug param
-                print "Bad plugin: {0} ({1})".format(modname, e)
+                print 'Bad plugin: {} ({})'.format(modname, e)
                 pass
 
 
