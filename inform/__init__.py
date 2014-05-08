@@ -3,7 +3,7 @@ from __future__ import absolute_import
 # setup Flask
 from flask import Flask
 app = Flask(__name__)
-app.config.from_pyfile("../config/flask.conf.py")
+app.config.from_pyfile('flask.conf.py')
 
 from .celery import celery
 

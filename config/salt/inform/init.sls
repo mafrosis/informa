@@ -57,6 +57,14 @@ app-virtualenv:
     - require_in:
       - service: supervisor
 
+flask-app-config:
+  file.managed:
+    - name: /srv/inform/inform/flask.conf.py
+    - source: salt://inform/flask.conf.py
+    - template: jinja
+    - user: {{ pillar['app_user'] }}
+    - group: {{ pillar['app_user'] }}
+
 sqlite3:
   pkg.installed
 
