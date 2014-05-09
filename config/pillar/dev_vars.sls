@@ -1,6 +1,10 @@
 app_name: inform
 app_user: vagrant
+app_repo: mafrosis/inform
 login_user: vagrant
+
+flask_debug: true
+zapier_email_webhook_id: ""
 
 gunicorn_host: localhost
 gunicorn_port: 8003
