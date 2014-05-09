@@ -6,7 +6,7 @@ from datetime import timedelta
 
 class PCCaseGearPlugin(HttpGrepPlugin):
     run_every = timedelta(minutes=10)
-    plugin_name = "pccasegear"
+    enabled = True
 
     url = 'http://www.pccasegear.com/index.php?main_page=index&cPath=207_23'
     terms = ['NH-D14', 'NH-D15']

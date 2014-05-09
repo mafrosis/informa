@@ -16,7 +16,6 @@ MAX_TORRENTS = 10
 
 class F1Plugin(InformBasePlugin):
     run_every = timedelta(minutes=60)
-    plugin_name = "f1_torrents"
     enabled = False
 
     def process(self):

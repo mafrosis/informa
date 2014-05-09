@@ -16,7 +16,6 @@ TEAM = "Liverpool"
 
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(days=1)
-    plugin_name = "livescore"
     enabled = False
 
     def process(self):

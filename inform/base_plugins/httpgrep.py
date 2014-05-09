@@ -7,7 +7,7 @@ import requests
 
 class HttpGrepPlugin(InformBasePlugin):
     run_every = timedelta(minutes=10)
-    plugin_name = "httpgrep"
+    enabled = False
 
     url = 'www.google.com'
     terms = ['google']

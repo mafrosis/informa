@@ -211,7 +211,6 @@ RTORRENT_XMLRPC = "scgi://localhost:5000"
 
 class RTorrentPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
-    plugin_name = "rtorrent"
     enabled = False
 
     def process(self):

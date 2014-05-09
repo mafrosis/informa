@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from celery.task import PeriodicTask
 import collections
 import datetime
+import inspect
 from socket import socket
 import sys
 import time
@@ -21,9 +22,11 @@ class InformBasePlugin(PeriodicTask):
     sort_output = False
 
     def run(self, **kwargs):
-        # handle this class being run as a periodictask
+        # plugin_name is not set when run via PeriodicTask
         if self.plugin_name is None:
-            return
+            self.plugin_name = inspect.getmodule(self).__name__[
+                len(inspect.getmodule(self).__package__)+1:
+            ]
 
         self.log("Running plugin")
         data = self.process()

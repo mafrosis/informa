@@ -17,7 +17,6 @@ EXPRESS_TRAIN_STATION_SKIP_FILTER = 3
 
 class MelMetroPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
-    plugin_name = "melmetro"
 
     local_tz = pytz.timezone('Australia/Melbourne')
 
