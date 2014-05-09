@@ -4,6 +4,7 @@ app_repo: mafrosis/inform
 login_user: vagrant
 
 flask_debug: true
+secret_key: ssh_its_a_secret
 zapier_email_webhook_id: ""
 
 gunicorn_host: localhost
