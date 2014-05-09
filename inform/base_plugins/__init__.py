@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from celery.task import PeriodicTask
+from abc import abstractmethod
 import collections
 import datetime
 import inspect
@@ -9,10 +9,10 @@ import sys
 import time
 import traceback
 
+from celery.task import PeriodicTask
+
 from .. import app
 from ..memcache_wrapper import cache
-
-from abc import abstractmethod
 
 
 class InformBasePlugin(PeriodicTask):
@@ -28,10 +28,10 @@ class InformBasePlugin(PeriodicTask):
                 len(inspect.getmodule(self).__package__)+1:
             ]
 
-        self.log("Running plugin")
+        self.log('Running plugin')
         data = self.process()
         if data is None:
-            raise Exception("Plugin '%s' didn't return anything" % self.plugin_name)
+            raise Exception("Plugin '{}' didn't return anything".format(self.plugin_name))
 
         self.store(data)
         return data
@@ -55,23 +55,23 @@ class InformBasePlugin(PeriodicTask):
         try:
             sock = socket()
             sock.connect((app.config['GRAPHITE_HOST'], app.config['GRAPHITE_PORT']))
-            sock.sendall("{0} {1} {2}\n".format(metric, value, int(time.time())))
-            self.log("Logged to Graphite {0} {1}".format(metric, value))
+            sock.sendall('{} {} {}\n'.format(metric, value, int(time.time())))
+            self.log('Logged to Graphite {} {}'.format(metric, value))
 
         except KeyError:
-            self.log("Graphite server not configured")
+            self.log('Graphite server not configured')
         except IOError:
-            self.log("Error logging to Graphite")
+            self.log('Error logging to Graphite')
         finally:
             sock.close()
 
     def log(self, msg):
-        print "[%s] %s" % (self.plugin_name, msg)
+        print '[{}] {}'.format(self.plugin_name, msg)
 
     def format_excp(self):
         ex_type, ex, tb = sys.exc_info()
         tb = traceback.extract_tb(tb)
-        return "{}: {}\n{}".format(ex.__class__.__name__, ex, tb)
+        return '{}: {}\n{}'.format(ex.__class__.__name__, ex, tb)
 
 
     @abstractmethod
