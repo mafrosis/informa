@@ -15,7 +15,7 @@ STATION_ID = 10001118
 EXPRESS_TRAIN_STATION_SKIP_FILTER = 3
 
 
-class InformPlugin(InformBasePlugin):
+class MelMetroPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
     plugin_name = "melmetro"
 

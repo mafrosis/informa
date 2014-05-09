@@ -14,7 +14,7 @@ PARAMS = {
 }
 
 
-class InformPlugin(InformBasePlugin):
+class TramtrackerPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
     plugin_name = "tramtracker"
     enabled = False

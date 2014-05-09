@@ -4,7 +4,7 @@ from ..alerts.zapier import ZapierWebHook
 from datetime import timedelta
 
 
-class InformPlugin(HttpGrepPlugin):
+class PCCaseGearPlugin(HttpGrepPlugin):
     run_every = timedelta(minutes=10)
     plugin_name = "pccasegear"
 
@@ -13,7 +13,7 @@ class InformPlugin(HttpGrepPlugin):
 
 
     def process(self):
-        data = super(InformPlugin, self).process()
+        data = super(PCCaseGearPlugin, self).process()
 
         if data['NH-D15'] is True:
             alert = ZapierWebHook.prepare()

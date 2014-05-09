@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+import inspect
+import importlib
+
 # setup Flask
 from flask import Flask
 app = Flask(__name__)
@@ -14,26 +17,50 @@ import os
 from . import views
 views.noop()
 
-for root, dirs, files in os.walk('inform/plugins'):
-    for filename in files:
-        if not filename.startswith('__') and filename.endswith('.py'):
-            modname = filename[:-3]
+from .base_plugins import InformBasePlugin
 
-            try:
-                mod = __import__('plugins.{}'.format(modname), globals(), locals(), ['InformPlugin'], -1)
 
-                if getattr(mod.InformPlugin, 'enabled', True):
-                    m = mod.InformPlugin()
-                    m.plugin_name = modname
-                    app.config['modules'][modname] = m
-                    print 'Active plugin: {}'.format(modname)
-                else:
-                    print 'Inactive plugin: {}'.format(modname)
+def load_plugin(mod, attr_name, modname):
+    # initialise the plugin and store it in global app state
+    cls = getattr(mod, attr_name)
+    if getattr(cls, 'enabled', True):
+        m = cls()
+        m.plugin_name = modname
+        app.config['modules'][modname] = m
+        print 'Active plugin: {}'.format(modname)
+    else:
+        print 'Inactive plugin: {}'.format(modname)
 
-            except (ImportError, AttributeError) as e:
-                # TODO add debug param
-                print 'Bad plugin: {} ({})'.format(modname, e)
-                pass
+
+def load_directory(path):
+    # iterate python files
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            if not filename.startswith('__') and filename.endswith('.py'):
+                modname = filename[:-3]
+
+                try:
+                    # dynamic import of python modules
+                    mod = importlib.import_module(
+                        '{}.{}'.format(path.replace('/', '.'), modname)
+                    )
+
+                    # iterate module attributes
+                    for attr_name in dir(mod):
+                        attr = getattr(mod, attr_name)
+                        # only load subclasses of InformBase plugin ..
+                        if inspect.isclass(attr) and issubclass(attr, InformBasePlugin):
+                            # .. that were defined in the python module
+                            if inspect.getmodule(attr) is mod:
+                                load_plugin(mod, attr_name, modname)
+
+                except (ImportError, AttributeError) as e:
+                    print 'Bad plugin: {} ({})'.format(modname, e)
+
+
+# load plugins from plugins directory
+load_directory('inform/plugins')
+load_directory('inform/alerts')
 
 
 if __name__ == '__main__':

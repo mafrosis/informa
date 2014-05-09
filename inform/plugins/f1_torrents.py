@@ -14,7 +14,7 @@ UA = "curl/7.24.0 (x86_64-apple-darwin12.0) libcurl/7.24.0 OpenSSL/0.9.8r zlib/1
 MAX_TORRENTS = 10
 
 
-class InformPlugin(InformBasePlugin):
+class F1Plugin(InformBasePlugin):
     run_every = timedelta(minutes=60)
     plugin_name = "f1_torrents"
     enabled = False
