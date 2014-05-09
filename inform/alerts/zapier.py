@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 
 from .. import app
+from ..base_plugins.heartbeat import HeartbeatPlugin
 
+import datetime
 import requests
 
 EMAIL_WEBHOOK_URL = 'https://zapier.com/hooks/catch/{}/'.format(
@@ -25,3 +27,16 @@ class ZapierWebHook:
             params['subject'] = subject
 
         requests.post(self.url, params=params)
+
+
+class ZapierHeartbeatPlugin(HeartbeatPlugin):
+    run_every = datetime.timedelta(days=1)
+    enabled = app.config.get('ZAPIER_EMAIL_HEARTBEAT', False)
+
+    def process(self):
+        # dump all plugin data into an alert via Zapier
+        alert_content = super(ZapierHeartbeatPlugin, self).process()
+
+        alert = ZapierWebHook.prepare()
+        alert.send(alert_content, subject='Zapier heartbeat')
+        return {'heartbeat': datetime.datetime.now().isoformat()}
