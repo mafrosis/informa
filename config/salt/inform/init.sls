@@ -3,8 +3,6 @@ include:
   - app.supervisor
   - github
   - gunicorn
-  - hostname
-  - locale
   - logs
   - nginx.config
 
@@ -19,7 +17,7 @@ extend:
       - watch:
         - file: /etc/nginx/conf.d/http.conf
         - file: /etc/nginx/conf.d/proxy.conf
-        - file: /etc/nginx/sites-enabled/inform.conf
+        - file: /etc/nginx/sites-available/inform.conf
 
   app-virtualenv:
     virtualenv.managed:
@@ -35,6 +33,19 @@ extend:
       - watch:
         - file: /etc/supervisor/conf.d/inform.conf
         - file: /etc/gunicorn.d/inform.conf.py
+
+  gunicorn-config:
+    file.managed:
+      - context:
+          gunicorn_port: {{ pillar['gunicorn_port'] }}
+
+  {% if grains.get('env', '') == 'prod' %}
+  /etc/nginx/sites-available/inform.conf:
+    file.managed:
+      - context:
+          server_name: {{ pillar['hostname'] }}
+          root: /srv/inform
+  {% endif %}
 
 
 flask-app-config:
