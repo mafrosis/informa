@@ -16,7 +16,6 @@ TEAM = "Liverpool"
 
 class InformPlugin(InformBasePlugin):
     run_every = timedelta(days=1)
-    enabled = False
 
     def process(self):
         driver = webdriver.Firefox()

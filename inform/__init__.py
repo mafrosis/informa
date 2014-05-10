@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import inspect
 import importlib
+import yaml
 
 # setup Flask
 from flask import Flask
@@ -26,23 +27,24 @@ from .base_plugins import InformBasePlugin
 
 
 def load_plugin(mod, attr_name, modname):
-    # check if the plugin class is marked as enabled
-    cls = getattr(mod, attr_name)
-    if getattr(cls, 'enabled', True):
-        # initialise the plugin and store it in global app state
-        m = cls()
-        app.config['modules'][modname] = m
-        print 'Active plugin: {}'.format(modname)
-    else:
-        print 'Inactive plugin: {}'.format(modname)
+    # initialise the plugin and store it in global app state
+    m = getattr(mod, attr_name)()
+    app.config['modules'][modname] = m
+    print 'Active plugin: {}'.format(modname)
 
 
-def load_directory(path):
+def load_directory(path, enabled_plugins=None):
     # iterate python files
     for root, dirs, files in os.walk(path):
         for filename in files:
             if not filename.startswith('__') and filename.endswith('.py'):
                 modname = filename[:-3]
+
+                # skip plugins not defined as enabled
+                if enabled_plugins:
+                    if modname not in enabled_plugins:
+                        print 'Inactive plugin: {}'.format(modname)
+                        continue
 
                 try:
                     # dynamic import of python modules
@@ -63,8 +65,21 @@ def load_directory(path):
                     print 'Bad plugin: {} ({})'.format(modname, e)
 
 
-# load plugins from plugins directory
-load_directory('inform/plugins')
+# load a list of enabled plugins from config
+if os.path.exists('plugins.yaml') is False:
+    print 'No plugins enabled! You must create plugins.yaml'
+else:
+    try:
+        with open('plugins.yaml', 'r') as f:
+            plugins = yaml.load(f.read())
+    except:
+        print 'Bad plugins.yaml file'
+        plugins = {'enabled': []}
+
+    # load plugins from plugins directory
+    load_directory('inform/plugins', enabled_plugins=plugins['enabled'])
+
+# always load plugins defined as part of alerts
 load_directory('inform/alerts')
 
 

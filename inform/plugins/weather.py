@@ -54,8 +54,6 @@ MET_CODES = {
 
 class WeatherPlugin(InformBasePlugin):
     run_every = timedelta(days=1)
-    enabled = False
-
 
     def process(self):
         data = {

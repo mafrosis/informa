@@ -16,7 +16,6 @@ PARAMS = {
 
 class TramtrackerPlugin(InformBasePlugin):
     run_every = timedelta(minutes=1)
-    enabled = False
 
     def process(self):
         try:
