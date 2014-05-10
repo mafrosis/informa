@@ -9,7 +9,6 @@ import yaml
 
 class HeartbeatPlugin(InformBasePlugin):
     run_every = timedelta(weeks=1)
-    enabled = False
 
     def process(self):
         # dump all plugin data for a heartbeat alert

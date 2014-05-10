@@ -8,21 +8,37 @@ import sys
 import time
 import traceback
 
-from celery.task import PeriodicTask
+from celery import Task
 
 from .. import app
+from ..celery import celery
 from ..memcache_wrapper import cache
 
 
-class InformBasePlugin(PeriodicTask):
-    enabled = True
+class InformBasePlugin(Task):
+    enabled = False
     plugin_name = None
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
 
     def __init__(self):
+        # never register periodic tasks for any base plugin
+        if 'base_plugins' in self.__module__:
+            return
+
         # set an internal plugin_name
         self.plugin_name = str(self)
+
+        if self.enabled is True:
+            # add task to the celerybeat schedule
+            celery.conf.CELERYBEAT_SCHEDULE[str(self)] = {
+                'task': str(self),
+                'schedule': self.run_every,
+                'args': (),
+                'relative': False,
+                'kwargs': {},
+                'options': {},
+            }
 
     def __str__(self):
         # determine the full classpath for this plugin
