@@ -5,7 +5,7 @@ from datetime import timedelta
 
 
 class PCCaseGearPlugin(HttpGrepPlugin):
-    run_every = timedelta(minutes=10)
+    run_every = timedelta(hours=6)
     enabled = True
 
     url = 'http://www.pccasegear.com/index.php?main_page=index&cPath=207_23'
