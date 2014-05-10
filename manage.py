@@ -5,7 +5,7 @@ from flask.ext.script import Manager
 
 import json
 
-from inform import app, views
+from inform import app, db, views
 
 manager = Manager(app)
 
@@ -35,6 +35,14 @@ def forcepoll():
     Load new data for each plugin now
     """
     views.poll()
+
+
+@manager.command
+def init_db():
+    """
+    Initialise the DB with the SQLAlchumy schema
+    """
+    db.create_all()
 
 
 @manager.command

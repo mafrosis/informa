@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from abc import abstractmethod
 import collections
 import datetime
+import json
 from socket import socket
 import sys
 import time
@@ -10,8 +11,9 @@ import traceback
 
 from celery import Task
 
-from .. import app
+from .. import app, db
 from ..celery import celery
+from ..schema import ObjectStore
 from ..memcache_wrapper import cache
 
 
@@ -54,10 +56,13 @@ class InformBasePlugin(Task):
         self.store(data)
         return data
 
-    def load(self):
+    def load(self, persistent=False):
+        if persistent is True:
+            return self._load_persistent()
+
         return cache.get(self.plugin_name)
 
-    def store(self, data):
+    def store(self, data, persistent=False):
         # sort the data
         if self.sort_output is True:
             if type(data) is list:
@@ -65,8 +70,31 @@ class InformBasePlugin(Task):
             elif type(data) is dict:
                 data = dict_sort(data)
 
+        # persist in the DB
+        if persistent is True:
+            self._store_persistent(data)
+
         # store into memcache
         cache.set(self.plugin_name, data)
+
+    def _load_persistent(self):
+        # load persisted data from DB
+        obj = ObjectStore.query.filter_by(plugin_name=self.plugin_name).first()
+        if obj is None:
+            return None
+        return json.loads(obj.data)
+
+    def _store_persistent(self, data):
+        # check object exists; create or update
+        obj = ObjectStore.query.filter_by(plugin_name=self.plugin_name).first()
+        if obj is None:
+            obj = ObjectStore(self.plugin_name, data=json.dumps(data))
+        else:
+            obj.data = json.dumps(data)
+
+        # store persisted data in DB
+        db.session.add(obj)
+        db.session.commit()
 
 
     def log_to_graphite(self, metric, value=0):

@@ -52,13 +52,12 @@ flask-app-config:
 sqlite3:
   pkg.installed
 
-sqlitedb-init:
+sqlalchemy-init:
   cmd.run:
     - name: /home/{{ pillar['app_user'] }}/.virtualenvs/inform/bin/python manage.py init_db
     - unless: test -f /srv/inform/inform.sqlitedb
     - cwd: /srv/inform
     - user: {{ pillar['app_user'] }}
-    - group: {{ pillar['app_user'] }}
     - require:
       - pkg: sqlite3
       - file: flask-app-config

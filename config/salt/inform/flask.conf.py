@@ -7,3 +7,5 @@ SECRET_KEY = '{{ pillar['secret_key'] }}'
 ZAPIER_EMAIL_WEBHOOK_ID = '{{ pillar['zapier_email_webhook_id'] }}'
 ZAPIER_EMAIL_HEARTBEAT = True
 {% endif %}
+
+SQLALCHEMY_DATABASE_URI = 'sqlite:////srv/inform/inform.sqlitedb'

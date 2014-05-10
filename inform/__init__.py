@@ -10,6 +10,11 @@ app.config.from_pyfile('flask.conf.py')
 
 from .celery import celery
 
+# load SQLAlchemy for persisted data
+from flask.ext.sqlalchemy import SQLAlchemy
+db = SQLAlchemy(app)
+from . import schema
+
 # find and import all plugins
 app.config['modules'] = {}
 
