@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from abc import abstractmethod
 import collections
 import datetime
-import inspect
 from socket import socket
 import sys
 import time
@@ -21,13 +20,16 @@ class InformBasePlugin(PeriodicTask):
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
 
-    def run(self, **kwargs):
-        # plugin_name is not set when run via PeriodicTask
-        if self.plugin_name is None:
-            self.plugin_name = inspect.getmodule(self).__name__[
-                len(inspect.getmodule(self).__package__)+1:
-            ]
+    def __init__(self):
+        # set an internal plugin_name
+        self.plugin_name = str(self)
 
+    def __str__(self):
+        # determine the full classpath for this plugin
+        return '{}.{}'.format(self.__module__, self.__class__.__name__)
+
+
+    def run(self, **kwargs):
         self.log('Running plugin')
         data = self.process()
         if data is None:

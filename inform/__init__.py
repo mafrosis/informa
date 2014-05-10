@@ -21,11 +21,11 @@ from .base_plugins import InformBasePlugin
 
 
 def load_plugin(mod, attr_name, modname):
-    # initialise the plugin and store it in global app state
+    # check if the plugin class is marked as enabled
     cls = getattr(mod, attr_name)
     if getattr(cls, 'enabled', True):
+        # initialise the plugin and store it in global app state
         m = cls()
-        m.plugin_name = modname
         app.config['modules'][modname] = m
         print 'Active plugin: {}'.format(modname)
     else:
