@@ -31,8 +31,16 @@ class InformBasePlugin(Task):
         # set an internal plugin_name
         self.plugin_name = str(self)
 
+        # set the friendly module name as defined in plugins.yaml
+        self.friendly_name = self.__module__[7:][self.__module__[7:].index('.')+1:]
+
+        # handle plugins enabled with a definition in plugins.yaml
+        if self.friendly_name in app.config['plugins'].keys():
+            app.config['plugins'][self.friendly_name] = self
+            self.enabled = True
+
+        # add task to the celerybeat schedule
         if self.enabled is True:
-            # add task to the celerybeat schedule
             celery.conf.CELERYBEAT_SCHEDULE[str(self)] = {
                 'task': str(self),
                 'schedule': self.run_every,
