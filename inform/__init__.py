@@ -26,12 +26,6 @@ views.noop()
 from .base_plugins import InformBasePlugin
 
 
-def load_plugin(mod, attr_name, modname):
-    # initialise the plugin and store it in global app state
-    m = getattr(mod, attr_name)()
-    app.config['modules'][modname] = m
-    print 'Active plugin: {}'.format(modname)
-
 
 def load_directory(path, enabled_plugins=None):
     # iterate python files
@@ -51,15 +45,7 @@ def load_directory(path, enabled_plugins=None):
                     mod = importlib.import_module(
                         '{}.{}'.format(path.replace('/', '.'), modname)
                     )
-
-                    # iterate module attributes
-                    for attr_name in dir(mod):
-                        attr = getattr(mod, attr_name)
-                        # only load subclasses of InformBase plugin ..
-                        if inspect.isclass(attr) and issubclass(attr, InformBasePlugin):
-                            # .. that were defined in the python module
-                            if inspect.getmodule(attr) is mod:
-                                load_plugin(mod, attr_name, modname)
+                    print 'Active plugin: {}'.format(modname)
 
                 except (ImportError, AttributeError) as e:
                     print 'Bad plugin: {} ({})'.format(modname, e)
