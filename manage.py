@@ -19,13 +19,15 @@ def get():
 
 
 @manager.command
-def load(name):
+def load(plugin_name):
     """
     Foreground load data via a single plugin
     """
-    output = {}
-    if name in app.config['modules'].keys():
-        output[name] = app.config['modules'][name].run(force=True)
+    if plugin_name in app.config['plugins'].keys():
+        output = {
+            plugin_name: app.config['plugins'][plugin_name].run(force=True)
+        }
+
     print json.dumps(output, indent=2)
 
 

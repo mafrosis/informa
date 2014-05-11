@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 from . import schema
 
 # find and import all plugins
-app.config['modules'] = {}
+app.config['plugins'] = {}
 
 import os
 from . import views
@@ -62,7 +62,10 @@ else:
         print 'Bad plugins.yaml file'
         plugins = {'enabled': []}
 
-    # load plugins from plugins directory
+    # store the enabled plugins in global app config
+    app.config['plugins'] = {p: None for p in plugins['enabled']}
+
+    # load enabled plugins from plugins directory
     load_directory('inform/plugins', enabled_plugins=plugins['enabled'])
 
 # always load plugins defined as part of alerts

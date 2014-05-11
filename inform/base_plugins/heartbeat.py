@@ -13,6 +13,6 @@ class HeartbeatPlugin(InformBasePlugin):
     def process(self):
         # dump all plugin data for a heartbeat alert
         alert_data = {}
-        for m in app.config['modules'].keys():
-            alert_data[m] = app.config['modules'][m].load()
+        for m in app.config['plugins'].keys():
+            alert_data[m] = app.config['plugins'][m].load()
         return yaml.dump(alert_data)
