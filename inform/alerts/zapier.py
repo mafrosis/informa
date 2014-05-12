@@ -7,7 +7,7 @@ import datetime
 import requests
 
 EMAIL_WEBHOOK_URL = 'https://zapier.com/hooks/catch/{}/'.format(
-    app.config['ZAPIER_EMAIL_WEBHOOK_ID']
+    app.config.get('ZAPIER_EMAIL_WEBHOOK_ID', '')
 )
 
 
