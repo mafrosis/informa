@@ -41,7 +41,7 @@ def _make_json_response(content, html=False):
     if app.debug:
         response = make_response(json.dumps(content, indent=2))
     else:
-        response = make_response(content)
+        response = make_response(json.dumps(content))
 
     if html == False:
         response.headers['Content-Type'] = 'application/json'
