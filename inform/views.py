@@ -28,6 +28,8 @@ def get():
 
 @app.route("/force-poll")
 def poll():
+    data = {}
+
     # force start of all plugins
     for name, plugin in app.config['plugins'].items():
         data[name] = plugin.delay()
