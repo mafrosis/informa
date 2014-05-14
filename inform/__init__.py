@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import inspect
 import importlib
 import yaml
 
@@ -21,10 +20,6 @@ app.config['plugins'] = {}
 
 import os
 from . import views
-views.noop()
-
-from .base_plugins import InformBasePlugin
-
 
 
 def load_directory(path, enabled_plugins=None):
@@ -41,7 +36,7 @@ def load_directory(path, enabled_plugins=None):
 
                 try:
                     # dynamic import of python modules
-                    mod = importlib.import_module(
+                    importlib.import_module(
                         '{}.{}'.format(path.replace('/', '.'), modname)
                     )
                     print 'Active plugin: {}'.format(modname)

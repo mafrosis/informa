@@ -5,10 +5,6 @@ from flask import make_response
 from inform import app
 
 
-def noop():
-    pass
-
-
 @app.route("/")
 def index():
     return get()
