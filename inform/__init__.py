@@ -38,7 +38,6 @@ def load_directory(path, enabled_plugins=None):
                 if enabled_plugins:
                     if modname not in enabled_plugins:
                         print 'Inactive plugin: {}'.format(modname)
-                        continue
 
                 try:
                     # dynamic import of python modules

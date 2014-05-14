@@ -25,7 +25,7 @@ def load(plugin_name):
     """
     if plugin_name in app.config['plugins'].keys():
         output = {
-            plugin_name: app.config['plugins'][plugin_name].run(force=True)
+            plugin_name: app.config['plugins'][plugin_name]['plugin'].run(force=True)
         }
 
     print json.dumps(output, indent=2)

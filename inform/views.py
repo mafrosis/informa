@@ -19,8 +19,9 @@ def get():
     data = {}
 
     # load each module's data from memcache
-    for name, plugin in app.config['plugins'].items():
-        data[name] = plugin.load()
+    for name, item in app.config['plugins'].items():
+        if item['enabled'] is True:
+            data[name] = item['plugin'].load()
 
     # response with formatted json
     return _make_json_response(data)
@@ -31,8 +32,9 @@ def poll():
     data = {}
 
     # force start of all plugins
-    for name, plugin in app.config['plugins'].items():
-        data[name] = plugin.delay()
+    for name, item in app.config['plugins'].items():
+        if item['enabled'] is True:
+            data[name] = item['plugin'].delay()
 
     return _make_json_response({'OK': True})
 

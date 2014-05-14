@@ -36,7 +36,6 @@ class InformBasePlugin(Task):
 
         # handle plugins enabled with a definition in plugins.yaml
         if self.friendly_name in app.config['plugins'].keys():
-            app.config['plugins'][self.friendly_name] = self
             self.enabled = True
 
         # add task to the celerybeat schedule
@@ -49,6 +48,16 @@ class InformBasePlugin(Task):
                 'kwargs': {},
                 'options': {},
             }
+
+        # hide alerts from /get; but only after they're registered to celerybeat
+        if 'alerts' in self.__module__:
+            self.enabled = False
+
+        # store refs to all plugins in Flask
+        app.config['plugins'][self.friendly_name] = {
+            'plugin': self,
+            'enabled': self.enabled,
+        }
 
     def __str__(self):
         # determine the full classpath for this plugin
