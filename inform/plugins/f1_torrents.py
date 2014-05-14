@@ -36,7 +36,7 @@ class F1Plugin(InformBasePlugin):
                 if 'Formula.1' in title and '720p' in title:
                     # break on the first 720p F1 entry
                     data['latest_race'] = n.find('title').text
-                    data['magnet_url'] = n.find('link').text
+                    data['url'] = n.find('guid').text
                     break
 
         except Exception as e:
