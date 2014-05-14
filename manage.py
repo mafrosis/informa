@@ -11,11 +11,11 @@ manager = Manager(app)
 
 
 @manager.command
-def get():
+def get(show_all=False):
     """
     Inspect the data in memcache
     """
-    print views.get().data
+    print views.get(show_all).data
 
 
 @manager.command

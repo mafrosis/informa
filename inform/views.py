@@ -11,13 +11,15 @@ def index():
 
 
 @app.route("/get")
-def get():
+def get(show_all=False):
     data = {}
 
     # load each module's data from memcache
     for name, item in app.config['plugins'].items():
-        if item['enabled'] is True:
-            data[name] = item['plugin'].load()
+        if show_all is False and item['enabled'] is False:
+            continue
+
+        data[name] = item['plugin'].load()
 
     # response with formatted json
     return _make_json_response(data)
