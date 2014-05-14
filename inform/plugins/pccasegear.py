@@ -14,7 +14,7 @@ class PCCaseGearPlugin(HttpGrepPlugin):
     def process(self):
         data = super(PCCaseGearPlugin, self).process()
 
-        if data['NH-D15'] is True:
+        if 'NH-D15' in data and data['NH-D15'] is True:
             alert = ZapierWebHook.prepare()
             alert.send('ND-15 now available', subject='ND-15')
             self.log('Zapier Webhook called')
