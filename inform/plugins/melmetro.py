@@ -35,7 +35,13 @@ class MelMetroPlugin(InformBasePlugin):
 
         try:
             # filter for only trains heading to the city
-            trains = [t for t in trains['values'] if t['platform']['direction']['direction_id'] == 1]
+            try:
+                trains = [t for t in trains['values'] if t['platform']['direction']['direction_id'] == 1]
+            except KeyError:
+                raise Exception('JSON format has changed!!')
+
+            if len(trains) == 0:
+                raise Exception('No train times found!!')
 
             # tag trains as express/normal
             for t in trains:
