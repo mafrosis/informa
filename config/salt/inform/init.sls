@@ -3,7 +3,6 @@ include:
   - app.supervisor
   - github
   - gunicorn
-  - logs
   - nginx.config
 
 extend:
@@ -22,11 +21,6 @@ extend:
   app-virtualenv:
     virtualenv.managed:
       - requirements: /srv/inform/config/requirements.txt
-
-  app-log-directory:
-    file.directory:
-      - require_in:
-        - service: supervisor
 
   inform-supervisor-service:
     supervisord.running:
