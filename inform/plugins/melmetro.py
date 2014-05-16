@@ -35,7 +35,7 @@ class MelMetroPlugin(InformBasePlugin):
 
         try:
             # filter for only trains heading to the city
-            trains = [t for t in trains['values'] if t['platform']['direction']['direction_id'] == 0]
+            trains = [t for t in trains['values'] if t['platform']['direction']['direction_id'] == 1]
 
             # tag trains as express/normal
             for t in trains:
