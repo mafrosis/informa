@@ -1,6 +1,7 @@
 app_name: inform
 app_user: vagrant
 app_repo: mafrosis/inform
+app_repo_rev: develop
 login_user: vagrant
 
 flask_debug: true

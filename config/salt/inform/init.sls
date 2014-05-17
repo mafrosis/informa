@@ -11,13 +11,6 @@ extend:
       - require:
         - virtualenv: app-virtualenv
 
-  nginx:
-    service.running:
-      - watch:
-        - file: /etc/nginx/conf.d/http.conf
-        - file: /etc/nginx/conf.d/proxy.conf
-        - file: /etc/nginx/sites-available/inform.conf
-
   app-virtualenv:
     virtualenv.managed:
       - requirements: /srv/inform/config/requirements.txt
@@ -32,6 +25,8 @@ extend:
     file.managed:
       - context:
           gunicorn_port: {{ pillar['gunicorn_port'] }}
+          workers: 1
+          timeout: 60
 
   {% if grains.get('env', '') == 'prod' %}
   /etc/nginx/sites-available/inform.conf:

@@ -5,15 +5,8 @@ extend:
   gunicorn-config:
     file.managed:
       - context:
-          bind_hostname: "0.0.0.0"
           gunicorn_port: {{ pillar['gunicorn_port'] }}
-          timeout: 300
-          loglevel: info
-
-  #supervisor-config:
-  #  file.managed:
-  #    - context:
-  #        socket_mode: 0777
+          loglevel: debug
 
   supervisor-log-dir:
     file.directory:
