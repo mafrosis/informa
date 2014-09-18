@@ -1,45 +1,46 @@
-app_name: inform
-app_user: vagrant
-app_repo: mafrosis/inform
-app_repo_rev: develop
-login_user: vagrant
+{% import_yaml "default_vars.sls" as defaults %}
 
 flask_debug: true
 secret_key: ssh_its_a_secret
 zapier_email_webhook_id: ""
 
-gunicorn_host: localhost
-gunicorn_port: 8003
+app_name: inform
+app_user: {{ defaults.app_user }}
+app_repo: mafrosis/inform
+app_repo_rev: {{ defaults.app_repo_rev }}
+login_user: {{ defaults.login_user }}
 
+gunicorn_host: {{ defaults.gunicorn_host }}
+gunicorn_port: {{ defaults.gunicorn_port }}
+
+timezone: {{ defaults.timezone }}
 hostname: inform
-timezone: Australia/Melbourne
-locale: en_AU
+locale: {{ defaults.locale }}
 
-rabbitmq_host: localhost
-rabbitmq_vhost: dev
-rabbitmq_user: dev
-rabbitmq_pass: dev
+rabbitmq_host: {{ defaults.rabbitmq_host }}
+rabbitmq_vhost: {{ defaults.rabbitmq_vhost }}
+rabbitmq_user: {{ defaults.rabbitmq_user }}
+rabbitmq_pass: {{ defaults.rabbitmq_pass }}
 
 # get dotfiles from github
-github_username: mafrosis
+github_username: {{ defaults.github_username }}
 
 # install zsh and set as default login shell
-shell: zsh
+shell: {{ defaults.shell }}
 
 # install extras from apt and install dotfiles
 extras:
-  - vim
-  - zsh
-  - git
-  - tmux
+{% for name in defaults.extras %}
+  - {{ name }}
+{% endfor %}
 
 # install extras from pip
 pip:
-  - pyflakes
-  - virtualenvwrapper
+{% for name in defaults.pip %}
+  - {{ name }}
+{% endfor %}
 
 # set backports to AU in bit.ly/19Nso9M
-deb_mirror_prefix: ftp.au
+deb_mirror_prefix: {{ defaults.deb_mirror_prefix }}
 
-# set the path to your github private key, from the salt file_roots directory
-github_key_path: github.dev.pky
+github_key: |
