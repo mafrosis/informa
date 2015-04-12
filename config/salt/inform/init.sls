@@ -14,6 +14,8 @@ extend:
   app-virtualenv:
     virtualenv.managed:
       - requirements: /srv/inform/config/requirements.txt
+      - require:
+        - git: git-clone-app
 
   inform-supervisor-service:
     supervisord.running:
