@@ -1,6 +1,3 @@
-include:
-  - tmux-segments
-
 extend:
   gunicorn-config:
     file.managed:
@@ -16,13 +13,7 @@ extend:
     file.managed:
       - user: {{ pillar['login_user'] }}
 
-  /etc/supervisor/conf.d/inform.conf:
+  /etc/supervisor/conf.d/informa.conf:
     file.managed:
       - context:
           purge: true
-
-  tmux-powerline-theme:
-    file.managed:
-      - context:
-          gunicorn: true
-          celeryd: true

@@ -4,17 +4,17 @@ flask_debug: true
 secret_key: ssh_its_a_secret
 zapier_email_webhook_id: ""
 
-app_name: inform
+app_name: informa
 app_user: {{ defaults.app_user }}
-app_repo: mafrosis/inform
-app_repo_rev: {{ defaults.app_repo_rev }}
+app_repo: mafrosis/informa
+app_repo_rev: dev
 login_user: {{ defaults.login_user }}
 
 gunicorn_host: {{ defaults.gunicorn_host }}
 gunicorn_port: {{ defaults.gunicorn_port }}
 
 timezone: {{ defaults.timezone }}
-hostname: inform
+hostname: informa
 locale: {{ defaults.locale }}
 
 rabbitmq_host: {{ defaults.rabbitmq_host }}

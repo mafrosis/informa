@@ -2,7 +2,7 @@ import json
 
 from flask import make_response
 
-from inform import app
+from informa import app
 
 
 @app.route("/")

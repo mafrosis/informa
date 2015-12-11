@@ -1,11 +1,11 @@
-from . import InformBasePlugin
+from . import InformaBasePlugin
 
 from datetime import timedelta
 
 import yaml
 
 
-class HeartbeatPlugin(InformBasePlugin):
+class HeartbeatPlugin(InformaBasePlugin):
     run_every = timedelta(weeks=1)
 
     def process(self):

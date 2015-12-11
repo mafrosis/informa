@@ -5,7 +5,7 @@ from flask.ext.script import Manager
 
 import json
 
-from inform import app, db, views
+from informa import app, db, views
 
 manager = Manager(app)
 

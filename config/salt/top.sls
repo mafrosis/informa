@@ -1,7 +1,7 @@
 base:
   '*':
     - common
-    - inform
+    - informa
 
   'env:prod':
     - match: grain

@@ -1,11 +1,11 @@
-from . import InformBasePlugin
+from . import InformaBasePlugin
 
 from datetime import timedelta
 
 import requests
 
 
-class HttpGrepPlugin(InformBasePlugin):
+class HttpGrepPlugin(InformaBasePlugin):
     run_every = timedelta(minutes=10)
 
     url = 'www.google.com'

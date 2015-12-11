@@ -1,4 +1,4 @@
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 
 from datetime import timedelta
 from itertools import groupby
@@ -15,7 +15,7 @@ STATION_ID = 10001118
 EXPRESS_TRAIN_STATION_SKIP_FILTER = 3
 
 
-class MelMetroPlugin(InformBasePlugin):
+class MelMetroPlugin(InformaBasePlugin):
     run_every = timedelta(minutes=1)
 
     local_tz = pytz.timezone('Australia/Melbourne')

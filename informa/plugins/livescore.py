@@ -1,4 +1,4 @@
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 
 from selenium import webdriver
 from datetime import datetime, timedelta
@@ -14,7 +14,7 @@ MATCH_URL = "http://www.livescore.in/match/%s/#match-summary"
 TEAM = "Liverpool"
 
 
-class InformPlugin(InformBasePlugin):
+class InformPlugin(InformaBasePlugin):
     run_every = timedelta(days=1)
 
     def process(self):

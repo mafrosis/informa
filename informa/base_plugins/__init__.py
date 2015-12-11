@@ -17,7 +17,7 @@ from ..schema import ObjectStore
 from ..memcache_wrapper import cache
 
 
-class InformBasePlugin(Task):
+class InformaBasePlugin(Task):
     enabled = False
     plugin_name = None
     run_every = datetime.timedelta(minutes=30)

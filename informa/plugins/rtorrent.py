@@ -200,7 +200,7 @@ class SCGIServerProxy(xmlrpclib.ServerProxy):
         raise AttributeError("Attribute %r not found" % (attr,))
 
 
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 
 from socket import error as SocketError
 
@@ -209,7 +209,7 @@ from datetime import timedelta
 RTORRENT_XMLRPC = "scgi://localhost:5000"
 
 
-class RTorrentPlugin(InformBasePlugin):
+class RTorrentPlugin(InformaBasePlugin):
     run_every = timedelta(minutes=1)
 
     def process(self):
@@ -226,7 +226,7 @@ class RTorrentPlugin(InformBasePlugin):
                                           'd.get_custom1=')
 
             for t in torrents:
-                if t[4] == "inform":
+                if t[4] == "informa":
                     # calculate % done
                     data.append({
                         'name': t[3],

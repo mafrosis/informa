@@ -1,4 +1,4 @@
-from ..base_plugins.httpgrep import InformBasePlugin
+from ..base_plugins.httpgrep import InformaBasePlugin
 from ..alerts.zapier import ZapierWebHook
 
 from datetime import timedelta
@@ -10,7 +10,7 @@ from xml.etree import ElementTree
 FEED_RSS = 'https://github.com/mitchellh/vagrant/releases.atom'
 
 
-class VagrantupPlugin(InformBasePlugin):
+class VagrantupPlugin(InformaBasePlugin):
     run_every = timedelta(days=1)
 
     def process(self):

@@ -60,10 +60,10 @@ else:
     app.config['plugins'] = {p: None for p in plugins['enabled']}
 
     # load enabled plugins from plugins directory
-    load_directory('inform/plugins', enabled_plugins=plugins['enabled'])
+    load_directory('informa/plugins', enabled_plugins=plugins['enabled'])
 
 # always load plugins defined as part of alerts
-load_directory('inform/alerts')
+load_directory('informa/alerts')
 
 
 if __name__ == '__main__':

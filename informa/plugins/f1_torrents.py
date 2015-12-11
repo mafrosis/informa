@@ -1,4 +1,4 @@
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 from ..alerts.zapier import ZapierWebHook
 
 from datetime import timedelta
@@ -11,7 +11,7 @@ from xml.etree import ElementTree
 TORRENT_RSS = "http://rss.thepiratebay.se/user/73e91b52f5f52aecb389b8f233aa1323"
 
 
-class F1Plugin(InformBasePlugin):
+class F1Plugin(InformaBasePlugin):
     run_every = timedelta(hours=6)
 
     def process(self):

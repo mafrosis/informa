@@ -1,13 +1,13 @@
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 
 import requests
 import json
 
-from datetime import datetime
+import datetime
 
 from BeautifulSoup import BeautifulSoup
 
-from inform.utils import soupselect
+from informa.utils import soupselect
 soupselect.monkeypatch()
 
 
@@ -52,8 +52,8 @@ MET_CODES = {
 }
 
 
-class WeatherPlugin(InformBasePlugin):
-    run_every = timedelta(days=1)
+class WeatherPlugin(InformaBasePlugin):
+    run_every = datetime.timedelta(days=1)
 
     def process(self):
         data = {

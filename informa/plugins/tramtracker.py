@@ -1,4 +1,4 @@
-from ..base_plugins import InformBasePlugin
+from ..base_plugins import InformaBasePlugin
 
 from datetime import timedelta
 
@@ -14,7 +14,7 @@ PARAMS = {
 }
 
 
-class TramtrackerPlugin(InformBasePlugin):
+class TramtrackerPlugin(InformaBasePlugin):
     run_every = timedelta(minutes=1)
 
     def process(self):

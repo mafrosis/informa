@@ -1,12 +1,12 @@
 # this file provides defaults for dev_vars.sls
 app_user: vagrant
-app_repo_rev: develop
+app_repo_rev: master
 login_user: vagrant
 
 gunicorn_host: localhost
 gunicorn_port: 8003
 
-hostname: inform
+hostname: informa
 timezone: Australia/Melbourne
 locale: en_AU
 

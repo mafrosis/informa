@@ -1,7 +1,7 @@
 include:
   - app.virtualenv
+  - app.source
   - app.supervisor
-  - github
   - gunicorn
   - nginx.config
 
@@ -13,15 +13,15 @@ extend:
 
   app-virtualenv:
     virtualenv.managed:
-      - requirements: /srv/inform/config/requirements.txt
+      - requirements: /srv/informa/config/requirements.txt
       - require:
         - git: git-clone-app
 
-  inform-supervisor-service:
+  informa-supervisor-service:
     supervisord.running:
       - watch:
-        - file: /etc/supervisor/conf.d/inform.conf
-        - file: /etc/gunicorn.d/inform.conf.py
+        - file: /etc/supervisor/conf.d/informa.conf
+        - file: /etc/gunicorn.d/informa.conf.py
 
   gunicorn-config:
     file.managed:
@@ -31,18 +31,18 @@ extend:
           timeout: 60
 
   {% if grains.get('env', '') == 'prod' %}
-  /etc/nginx/sites-available/inform.conf:
+  /etc/nginx/sites-available/informa.conf:
     file.managed:
       - context:
           server_name: {{ pillar['hostname'] }}
-          root: /srv/inform
+          root: /srv/informa
   {% endif %}
 
 
 flask-app-config:
   file.managed:
-    - name: /srv/inform/inform/flask.conf.py
-    - source: salt://inform/flask.conf.py
+    - name: /srv/informa/informa/flask.conf.py
+    - source: salt://informa/flask.conf.py
     - template: jinja
     - user: {{ pillar['app_user'] }}
     - group: {{ pillar['app_user'] }}
@@ -56,9 +56,9 @@ sqlite3:
 
 sqlalchemy-init:
   cmd.run:
-    - name: /home/{{ pillar['app_user'] }}/.virtualenvs/inform/bin/python manage.py init_db
-    - unless: test -f /srv/inform/inform.sqlitedb
-    - cwd: /srv/inform
+    - name: /home/{{ pillar['app_user'] }}/.virtualenvs/informa/bin/python manage.py init_db
+    - unless: test -f /srv/informa/informa.sqlitedb
+    - cwd: /srv/informa
     - user: {{ pillar['app_user'] }}
     - require:
       - pkg: sqlite3
