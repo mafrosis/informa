@@ -1,3 +1,0 @@
-[submodule "config/salt-formulae"]
-	path = config/salt-formulae
-	url = git@github.com:mafrosis/salt-formulae.git
