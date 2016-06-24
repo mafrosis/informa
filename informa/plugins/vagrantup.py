@@ -17,7 +17,7 @@ class VagrantupPlugin(InformaBasePlugin):
         try:
             r = requests.get(FEED_RSS)
         except:
-            print "Failed loading from {}".format(FEED_RSS)
+            print("Failed loading from {}".format(FEED_RSS))
             return {}
 
         data = {}
@@ -32,7 +32,7 @@ class VagrantupPlugin(InformaBasePlugin):
             data['latest_version'] = nodes[0].text
 
         except Exception as e:
-            print "Error parsing XML: {}".format(e)
+            print("Error parsing XML: {}".format(e))
             return {}
 
         # load previous entry

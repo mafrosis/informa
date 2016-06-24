@@ -18,7 +18,7 @@ class F1Plugin(InformaBasePlugin):
         try:
             r = requests.get(TORRENT_RSS)
         except:
-            print "Failed loading from {}".format(TORRENT_RSS)
+            print("Failed loading from {}".format(TORRENT_RSS))
             return {}
 
         data = {}
@@ -40,7 +40,7 @@ class F1Plugin(InformaBasePlugin):
                     break
 
         except Exception as e:
-            print "Error parsing XML: {}".format(e)
+            print("Error parsing XML: {}".format(e))
             return {}
 
         # load previous entry

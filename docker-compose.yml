@@ -1,0 +1,53 @@
+version: '2'
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 80:80
+    depends_on:
+      - informa
+      - celery
+
+  redis:
+    image: redis:3.2.6-alpine
+    volumes:
+      - redis-data:/data
+    ports:
+      - 6379:6379
+
+  celery:
+    image: mafrosis/informa:dev
+    command: make run-celery-worker
+    volumes:
+      - ./:/srv/app
+      - /srv/app/.git
+    depends_on:
+      - redis
+
+  celerybeat:
+    image: mafrosis/informa:dev
+    command: celery beat -A informa:celery
+    volumes:
+      - ./:/srv/app
+      - /srv/app/.git
+    depends_on:
+      - redis
+      - celery
+
+  informa:
+    image: mafrosis/informa:dev
+    build:
+      dockerfile: config/Dockerfile
+      context: .
+      args:
+        - BUILD_TAG=${BUILD_TAG}
+    volumes:
+      - ./:/srv/app
+      - /srv/app/.git
+    ports:
+      - 8003:8003
+    depends_on:
+      - celery

@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-from __future__ import absolute_import
 from flask.ext.script import Manager
 
 import json
@@ -15,20 +14,22 @@ def get(show_all=False):
     """
     Inspect the data in memcache
     """
-    print views.get(show_all).data
+    print(views.get(show_all).data)
 
 
 @manager.command
-def load(plugin_name):
+def load(name):
     """
     Foreground load data via a single plugin
     """
-    if plugin_name in app.config['plugins'].keys():
+    plugin = app.config['plugins'].get('plugins.{}'.format(name))
+
+    if plugin and plugin['enabled']:
         output = {
-            plugin_name: app.config['plugins'][plugin_name]['plugin'].run(force=True)
+            name: plugin['cls'].run(force=True)
         }
 
-    print json.dumps(output, indent=2)
+    print(json.dumps(output, indent=2))
 
 
 @manager.command
@@ -40,19 +41,11 @@ def forcepoll():
 
 
 @manager.command
-def init_db():
-    """
-    Initialise the DB with the SQLAlchumy schema
-    """
-    db.create_all()
-
-
-@manager.command
 def check_pip():
-    import xmlrpclib
+    import xmlrpc
     import pip
 
-    pypi = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+    pypi = xmlrpc.client.ServerProxy('https://pypi.python.org/pypi')
     for dist in pip.get_installed_distributions():
         available = pypi.package_releases(dist.project_name)
         if not available:
@@ -66,7 +59,7 @@ def check_pip():
         else:
             msg = 'up to date'
         pkg_info = '{dist.project_name} {dist.version}'.format(dist=dist)
-        print '{pkg_info:40} {msg}'.format(pkg_info=pkg_info, msg=msg)
+        print('{pkg_info:40} {msg}'.format(pkg_info=pkg_info, msg=msg))
 
 
 if __name__ == "__main__":

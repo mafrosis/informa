@@ -12,7 +12,7 @@ class PCCaseGearPlugin(HttpGrepPlugin):
 
 
     def process(self):
-        data = super(PCCaseGearPlugin, self).process()
+        data = super().process()
 
         if 'NH-D15' in data and data['NH-D15'] is True:
             alert = ZapierWebHook.prepare()

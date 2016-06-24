@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from abc import abstractmethod
 import collections
 import datetime
@@ -55,7 +53,7 @@ class InformaBasePlugin(Task):
 
         # store refs to all plugins in Flask
         app.config['plugins'][self.friendly_name] = {
-            'plugin': self,
+            'cls': self,
             'enabled': self.enabled,
         }
 
@@ -65,13 +63,17 @@ class InformaBasePlugin(Task):
 
 
     def run(self, **kwargs):
-        self.log('Running plugin')
         data = self.process()
         if data is None:
             raise Exception("Plugin '{}' didn't return anything".format(self.plugin_name))
 
         self.store(data)
         return data
+
+    @abstractmethod
+    def process(self):
+        pass
+
 
     def load(self, persistent=False):
         if persistent is True:
@@ -129,17 +131,12 @@ class InformaBasePlugin(Task):
             sock.close()
 
     def log(self, msg):
-        print '[{}] {}'.format(self.plugin_name, msg)
+        print('[{}] {}'.format(self.plugin_name, msg))
 
     def format_excp(self):
         ex_type, ex, tb = sys.exc_info()
         tb = traceback.extract_tb(tb)
         return '{}: {}\n{}'.format(ex.__class__.__name__, ex, tb)
-
-
-    @abstractmethod
-    def process(self):
-        pass
 
 
 def dict_sort(data):

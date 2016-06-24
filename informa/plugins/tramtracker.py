@@ -26,7 +26,7 @@ class TramtrackerPlugin(InformaBasePlugin):
                 'second': trams['TramTrackerResponse']['ArrivalsPages'][0][1]['Arrival'],
             }
         except:
-            print "Failed loading from tramtracker"
+            print("Failed loading from tramtracker")
             return {}
 
         self.store(data)

@@ -14,5 +14,5 @@ class SNSAlert:
         return alert
 
     def send(self, message, subject=None):
-        print 'SNSAlert: {0}'.format(message)
+        print('SNSAlert: {0}'.format(message))
         self.conn.publish(self.topic, message, subject)

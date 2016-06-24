@@ -122,7 +122,7 @@ class SCGITransport(xmlrpclib.Transport):
         response_header, response_body = re.split(r'\n\s*?\n', response_body, maxsplit=1)
 
         if self.verbose:
-            print 'body:', repr(response_body)
+            print('body:', repr(response_body))
 
         p.feed(response_body)
         p.close()
