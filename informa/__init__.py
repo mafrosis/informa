@@ -1,4 +1,5 @@
 import importlib
+import sys
 import yaml
 
 import sqlalchemy
@@ -69,11 +70,17 @@ else:
         print('Bad plugins.yaml file')
         plugins = {'enabled': []}
 
+    # override disabled for plugin called via CLI load command
+    plugins['enabled'].append(sys.argv[-1])
+
     # store the enabled plugins in global app config
     app.config['plugins'] = {'plugins.{}'.format(p): None for p in plugins['enabled']}
 
     # load enabled plugins from plugins directory
     load_directory('informa/plugins', enabled_plugins=plugins['enabled'])
+
+    # remove bullshit plugins created from sys.argv[-1]
+    app.config['plugins'] = {k:v for k,v in app.config['plugins'].items() if v is not None}
 
 # always load plugins defined as part of alerts
 load_directory('informa/alerts')
