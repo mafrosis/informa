@@ -8,11 +8,11 @@ import time
 import traceback
 
 from celery import Task
+import memcache
 import redis
 
 from ... import app
 from ...celery import celery
-from ...memcache_wrapper import cache
 
 
 class InformaBasePlugin(Task):
@@ -20,6 +20,7 @@ class InformaBasePlugin(Task):
     plugin_name = None
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
+    persist = False
 
     def __init__(self):
         # never register periodic tasks for any base plugin
@@ -57,6 +58,12 @@ class InformaBasePlugin(Task):
             'enabled': self.enabled,
         }
 
+        # create memcache interface
+        self.memcache = memcache.Client(
+            ['{MEMCACHE_HOST}:{MEMCACHE_PORT}'.format(**app.config)], debug=0
+        )
+
+
     def __str__(self):
         # determine the full classpath for this plugin
         return '{}.{}'.format(self.__module__, self.__class__.__name__)
@@ -75,21 +82,32 @@ class InformaBasePlugin(Task):
         pass
 
 
-    def load(self, persistent=False):
-        if persistent is True:
+    def load(self):
+        # get from memcache
+        data = self.memcache.get(self.plugin_name)
+
+        if not data:
+            # attempt to load data from cold storage
             redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
             obj = None
+
             try:
                 obj = redis_.get(self.plugin_name)
             except redis.exceptions.ConnectionError:
                 pass
+
             if obj is None:
                 return
-            return json.loads(obj)
 
-        return cache.get(self.plugin_name)
+            # parse JSON
+            data = json.loads(obj.decode('utf8'))
 
-    def store(self, data, persistent=False):
+            # add to memcache
+            self.memcache.set(self.plugin_name, data)
+
+        return data
+
+    def store(self, data):
         # sort the data
         if self.sort_output is True:
             if type(data) is list:
@@ -98,7 +116,7 @@ class InformaBasePlugin(Task):
                 data = dict_sort(data)
 
         # persist in the DB
-        if persistent is True:
+        if self.persist is True:
             try:
                 redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
                 redis_.set(self.plugin_name, json.dumps(data))
@@ -106,7 +124,7 @@ class InformaBasePlugin(Task):
                 pass
 
         # store into memcache
-        cache.set(self.plugin_name, data)
+        self.memcache.set(self.plugin_name, data)
 
 
     def log_to_graphite(self, metric, value=0):

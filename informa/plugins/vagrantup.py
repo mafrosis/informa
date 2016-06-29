@@ -12,6 +12,7 @@ FEED_RSS = 'https://github.com/mitchellh/vagrant/releases.atom'
 
 class VagrantupPlugin(InformaBasePlugin):
     run_every = timedelta(days=1)
+    persist = True
 
     def process(self):
         try:
@@ -36,7 +37,7 @@ class VagrantupPlugin(InformaBasePlugin):
             return {}
 
         # load previous entry
-        previous = self.load(persistent=True)
+        previous = self.load()
 
         # raise alert when new Vagrant version released
         if previous is not None and data['latest_version'] != previous['latest_version']:
@@ -44,6 +45,5 @@ class VagrantupPlugin(InformaBasePlugin):
             alert.send('Goto http://www.vagrantup.com/downloads.html', subject='Vagrant {} released'.format(data['latest_version']))
             self.log('Zapier Webhook called')
 
-        # store in memcache and persist for next run
-        self.store(data, persistent=True)
+        self.store(data)
         return data

@@ -15,6 +15,7 @@ WATCH_DIR = '/var/app/watch'
 
 class F1Plugin(InformaBasePlugin):
     run_every = datetime.timedelta(hours=6)
+    persist = True
 
     def process(self):
         try:
@@ -24,7 +25,7 @@ class F1Plugin(InformaBasePlugin):
             return {}
 
         # load previous run data
-        data = self.load(persistent=True)
+        data = self.load()
         if not data:
             data = {
                 'latest_race': 0,
@@ -98,6 +99,5 @@ class F1Plugin(InformaBasePlugin):
                     self.log('Created torrent for {}'.format(filename))
                     part_data['done'] = True
 
-        # store in memcache and persist for next run
-        self.store(data, persistent=True)
+        self.store(data)
         return data

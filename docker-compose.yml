@@ -14,6 +14,11 @@ services:
       - informa
       - celery
 
+  memcache:
+    image: memcached:alpine
+    ports:
+      - 11211:11211
+
   redis:
     image: redis:3.2.6-alpine
     volumes:
