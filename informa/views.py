@@ -1,49 +1,37 @@
-import json
-
-from flask import make_response
+from flask import jsonify
 
 from informa import app
 
 
-@app.route("/")
+@app.route('/')
 def index():
     return get()
 
 
-@app.route("/get")
-def get(show_all=False):
+@app.route('/get')
+@app.route('/get/<plugin>')
+def get(plugin=None):
     data = {}
 
-    # load each module's data from memcache
-    for name, item in app.config['plugins'].items():
-        if show_all is False and item['enabled'] is False:
-            continue
+    if not plugin:
+        # load each module's latest data
+        for name, plugin in app.config['plugins'].items():
+            if plugin['enabled'] is False:
+                continue
 
-        data[name] = item['plugin'].load()
-
-    # response with formatted json
-    return _make_json_response(data)
-
-
-@app.route("/force-poll")
-def poll():
-    data = {}
-
-    # force start of all plugins
-    for name, item in app.config['plugins'].items():
-        if item['enabled'] is True:
-            data[name] = item['plugin'].delay()
-
-    return _make_json_response({'OK': True})
-
-
-def _make_json_response(content, html=False):
-    if app.debug:
-        response = make_response(json.dumps(content, indent=2))
+            data[name.replace('plugins.','')] = plugin['cls'].load()
     else:
-        response = make_response(json.dumps(content))
+        plugin = app.config['plugins'].get('plugins.{}'.format(plugin))
+        data = plugin['cls'].load()
 
-    if html == False:
-        response.headers['Content-Type'] = 'application/json'
+    return jsonify(data=data)
 
-    return response
+
+@app.route('/force-poll')
+def poll():
+    # force background load of all plugins
+    for name, plugin in app.config['plugins'].items():
+        if plugin['enabled'] is True:
+            plugin['cls'].delay()
+
+    return jsonify({'OK': True})

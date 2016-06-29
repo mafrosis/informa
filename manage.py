@@ -10,26 +10,22 @@ manager = Manager(app)
 
 
 @manager.command
-def get(show_all=False):
-    """
-    Inspect the data in memcache
-    """
-    print(views.get(show_all).data)
-
-
-@manager.command
 def load(name):
     """
     Foreground load data via a single plugin
     """
     plugin = app.config['plugins'].get('plugins.{}'.format(name))
 
-    if plugin and plugin['enabled']:
-        output = {
-            name: plugin['cls'].run(force=True)
-        }
+    if not plugin:
+        print('Unknown plugin')
+        return
 
-    print(json.dumps(output, indent=2))
+    if plugin['enabled']:
+        print(
+            json.dumps({name: plugin['cls'].run(force=True)}, indent=2)
+        )
+    else:
+        print('Plugin disabled')
 
 
 @manager.command
