@@ -11,4 +11,5 @@ CELERY_DEFAULT_ROUTING_KEY = 'informa'
 ZAPIER_EMAIL_WEBHOOK_ID = 'q9du3'
 ZAPIER_EMAIL_HEARTBEAT = True
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:////srv/app/informa.sqlitedb'
+REDIS_HOST = 'redis'
+REDIS_PORT = 6379

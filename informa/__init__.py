@@ -2,8 +2,6 @@ import importlib
 import sys
 import yaml
 
-import sqlalchemy
-
 # setup Flask
 from flask import Flask
 app = Flask(__name__)
@@ -11,11 +9,6 @@ app.config.from_pyfile('../config/flask.conf.py')
 
 from .celery import celery
 assert celery
-
-# load SQLAlchemy for persisted data
-from flask.ext.sqlalchemy import SQLAlchemy
-db = SQLAlchemy(app)
-from . import schema
 
 # find and import all plugins
 app.config['plugins'] = {}
@@ -47,16 +40,6 @@ def load_directory(path, enabled_plugins=None):
 
                 except (ImportError, AttributeError) as e:
                     print('Bad plugin: {} ({})'.format(modname, e))
-
-
-def db_exists(config):
-    engine = sqlalchemy.create_engine(config['SQLALCHEMY_DATABASE_URI'])
-    return engine.dialect.has_table(engine.connect(), schema.ObjectStore.__tablename__)
-
-
-# bootstrap DB
-if not db_exists(app.config):
-    db.create_all()
 
 
 # load a list of enabled plugins from config

@@ -8,10 +8,10 @@ import time
 import traceback
 
 from celery import Task
+import redis
 
-from ... import app, db
+from ... import app
 from ...celery import celery
-from ...schema import ObjectStore
 from ...memcache_wrapper import cache
 
 
@@ -77,7 +77,15 @@ class InformaBasePlugin(Task):
 
     def load(self, persistent=False):
         if persistent is True:
-            return self._load_persistent()
+            redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
+            obj = None
+            try:
+                obj = redis_.get(self.plugin_name)
+            except redis.exceptions.ConnectionError:
+                pass
+            if obj is None:
+                return
+            return json.loads(obj)
 
         return cache.get(self.plugin_name)
 
@@ -91,29 +99,14 @@ class InformaBasePlugin(Task):
 
         # persist in the DB
         if persistent is True:
-            self._store_persistent(data)
+            try:
+                redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
+                redis_.set(self.plugin_name, json.dumps(data))
+            except redis.exceptions.ConnectionError:
+                pass
 
         # store into memcache
         cache.set(self.plugin_name, data)
-
-    def _load_persistent(self):
-        # load persisted data from DB
-        obj = ObjectStore.query.filter_by(plugin_name=self.plugin_name).first()
-        if obj is None:
-            return None
-        return json.loads(obj.data)
-
-    def _store_persistent(self, data):
-        # check object exists; create or update
-        obj = ObjectStore.query.filter_by(plugin_name=self.plugin_name).first()
-        if obj is None:
-            obj = ObjectStore(self.plugin_name, data=json.dumps(data))
-        else:
-            obj.data = json.dumps(data)
-
-        # store persisted data in DB
-        db.session.add(obj)
-        db.session.commit()
 
 
     def log_to_graphite(self, metric, value=0):
