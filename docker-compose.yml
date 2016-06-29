@@ -1,5 +1,8 @@
 version: '2'
 
+volumes:
+  redis-data: {}
+
 services:
   nginx:
     image: nginx:stable-alpine
