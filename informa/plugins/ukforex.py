@@ -9,6 +9,8 @@ from ..alerts.zapier import ZapierWebHook
 UKFOREX_GBP_AUD = 'http://www.ukforex.co.uk/forex-tools/chart-data/GBP/AUD/168/day/true'
 ALERT_THRESHOLD = 1.5
 
+EMAIL_TEMPLATE = 'Exchange rate hit {rate} on {date}\n\nPrevious week trend:\n\n{trend}'
+
 
 class UKForexPlugin(InformaBasePlugin):
     run_every = datetime.timedelta(hours=4)
@@ -25,14 +27,10 @@ class UKForexPlugin(InformaBasePlugin):
 
         # alert when exchange rate over threshold
         if data[0][1] > ALERT_THRESHOLD:
-            alert = ZapierWebHook.prepare()
-            alert.send(
-                'Exchange rate hit {} on {}\n\nPrevious week trend:\n\n{}'.format(
-                    data[0][1],
-                    datetime.datetime.strptime(data[0][0], "%Y-%m-%dT%H:%M:%S").strftime("%A %d %B %Y"),
-                    '\n'.join(['{:.3f}'.format(d[1]) for d in data[1:8]]),
-                ),
-                subject='AUD at {} to GBP'.format('{:.3f}'.format(data[0][1]))
+            email_data = self.format_for_email(data)
+            ZapierWebHook.send(
+                EMAIL_TEMPLATE.format(**email_data),
+                subject=email_data['subject']
             )
 
             # invert numbers for Gina
@@ -50,3 +48,12 @@ class UKForexPlugin(InformaBasePlugin):
 
         self.store(data)
         return data
+
+    def format_for_email(self, data):
+        # format data for email
+        return {
+            'subject': 'AUD at {} to GBP'.format('{:.3f}'.format(data[0][1])),
+            'rate': data[0][1],
+            'date': datetime.datetime.strptime(data[0][0], "%Y-%m-%dT%H:%M:%S").strftime("%A %d %B %Y"),
+            'trend': '\n'.join(['{:.3f}'.format(d[1]) for d in data[1:8]]),
+        }

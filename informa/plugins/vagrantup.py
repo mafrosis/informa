@@ -41,8 +41,10 @@ class VagrantupPlugin(InformaBasePlugin):
 
         # raise alert when new Vagrant version released
         if previous is not None and data['latest_version'] != previous['latest_version']:
-            alert = ZapierWebHook.prepare()
-            alert.send('Goto http://www.vagrantup.com/downloads.html', subject='Vagrant {} released'.format(data['latest_version']))
+            ZapierWebHook.send(
+                'Goto http://www.vagrantup.com/downloads.html',
+                subject='Vagrant {} released'.format(data['latest_version'])
+            )
             self.log('Zapier Webhook called')
 
         self.store(data)

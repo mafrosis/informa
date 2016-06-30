@@ -12,21 +12,15 @@ EMAIL_WEBHOOK_URL = 'https://zapier.com/hooks/catch/{}/'.format(
 
 
 class ZapierWebHook:
-    @staticmethod
-    def prepare(webhook_url=None):
-        alert = ZapierWebHook()
-        if webhook_url is not None:
-            alert.url = webhook_url
-        else:
-            alert.url = EMAIL_WEBHOOK_URL
-        return alert
+    @classmethod
+    def send(cls, message, subject=None, webhook_url=None):
+        if webhook_url is None:
+            webhook_url = EMAIL_WEBHOOK_URL
 
-    def send(self, message, subject=None):
-        params = {'message': message}
-        if subject is not None:
-            params['subject'] = subject
-
-        requests.post(self.url, params=params)
+        requests.post(webhook_url, params={
+            'message': message,
+            'subject': subject if subject else 'Informa Notification',
+        })
 
 
 class ZapierHeartbeatPlugin(HeartbeatPlugin):
@@ -37,6 +31,5 @@ class ZapierHeartbeatPlugin(HeartbeatPlugin):
         # dump all plugin data into an alert via Zapier
         alert_content = super().process()
 
-        alert = ZapierWebHook.prepare()
-        alert.send(alert_content, subject='Zapier heartbeat')
+        ZapierWebHook.send(alert_content, subject='Zapier heartbeat')
         return {'heartbeat': datetime.datetime.now().isoformat()}
