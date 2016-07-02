@@ -1,4 +1,4 @@
-from ..base_plugins import InformaBasePlugin
+from .base import InformaBasePlugin
 
 from datetime import timedelta
 from itertools import groupby

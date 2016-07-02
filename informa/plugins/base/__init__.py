@@ -9,10 +9,10 @@ import traceback
 
 from celery import Task
 
-from .. import app, db
-from ..celery import celery
-from ..schema import ObjectStore
-from ..memcache_wrapper import cache
+from ... import app, db
+from ...celery import celery
+from ...schema import ObjectStore
+from ...memcache_wrapper import cache
 
 
 class InformaBasePlugin(Task):
@@ -23,7 +23,7 @@ class InformaBasePlugin(Task):
 
     def __init__(self):
         # never register periodic tasks for any base plugin
-        if 'base_plugins' in self.__module__:
+        if 'plugins.base' in self.__module__:
             return
 
         # set an internal plugin_name

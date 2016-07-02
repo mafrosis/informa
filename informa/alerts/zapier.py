@@ -1,7 +1,7 @@
 import datetime
 
 from .. import app
-from ..base_plugins.heartbeat import HeartbeatPlugin
+from ..plugins.base.heartbeat import HeartbeatPlugin
 
 import requests
 

@@ -1,4 +1,4 @@
-from ..base_plugins import InformaBasePlugin
+from .base import InformaBasePlugin
 
 import requests
 import json

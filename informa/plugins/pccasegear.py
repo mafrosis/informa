@@ -1,4 +1,4 @@
-from ..base_plugins.httpgrep import HttpGrepPlugin
+from ..plugins.base.httpgrep import HttpGrepPlugin
 from ..alerts.zapier import ZapierWebHook
 
 from datetime import timedelta

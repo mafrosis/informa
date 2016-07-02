@@ -1,11 +1,10 @@
-from ..base_plugins import InformaBasePlugin
+from .base import InformaBasePlugin
 
 from selenium import webdriver
 from datetime import datetime, timedelta
 
 import os
 import time
-import json
 
 os.environ['DISPLAY'] = ":99"
 
