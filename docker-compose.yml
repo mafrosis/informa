@@ -28,7 +28,9 @@ services:
 
   celery:
     image: mafrosis/informa:dev
-    command: make run-celery-worker
+    command: celery worker -A manage.celery --workdir=/srv/app --purge
+    environment:
+      - C_FORCE_ROOT=1
     volumes:
       - ./:/srv/app
       - /srv/app/.git
@@ -47,6 +49,7 @@ services:
 
   informa:
     image: mafrosis/informa:dev
+    command: ./manage.py runserver --host 0.0.0.0 --port 8003
     build:
       dockerfile: config/Dockerfile
       context: .

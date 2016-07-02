@@ -17,4 +17,4 @@ RUN pip3 install -r config/requirements-dev.txt
 
 EXPOSE 80
 
-CMD ["make", "run"]
+CMD ["bash"]
