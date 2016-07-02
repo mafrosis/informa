@@ -22,4 +22,4 @@ else
 endif
 
 run-celery-worker:
-	C_FORCE_ROOT=1 celery worker -A informa:celery -l warning --workdir=/srv/app --purge
+	C_FORCE_ROOT=1 celery worker -A manage.celery -l warning --workdir=/srv/app --purge

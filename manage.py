@@ -1,12 +1,15 @@
 #! /usr/bin/env python
-
-from flask.ext.script import Manager
-
 import json
 
-from informa import app, views
+from flask_script import Manager
 
+from informa.app import create_app
+
+app = create_app()
 manager = Manager(app)
+
+# convenient entrypoint for celery worker
+celery = app.celery
 
 
 @manager.command
@@ -33,6 +36,7 @@ def forcepoll():
     """
     Load new data for each plugin now
     """
+    import views
     views.poll()
 
 

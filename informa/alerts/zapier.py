@@ -1,21 +1,18 @@
 import datetime
 
-from .. import app
-from ..plugins.base.heartbeat import HeartbeatPlugin
-
+from flask import current_app as app
 import requests
 
-
-EMAIL_WEBHOOK_URL = 'https://zapier.com/hooks/catch/{}/'.format(
-    app.config.get('ZAPIER_EMAIL_WEBHOOK_ID', '')
-)
+from ..plugins.base.heartbeat import HeartbeatPlugin
 
 
 class ZapierWebHook:
     @classmethod
     def send(cls, message, subject=None, webhook_url=None):
         if webhook_url is None:
-            webhook_url = EMAIL_WEBHOOK_URL
+            webhook_url = 'https://zapier.com/hooks/catch/{}/'.format(
+                app.config.get('ZAPIER_EMAIL_WEBHOOK_ID', '')
+            )
 
         requests.post(webhook_url, params={
             'message': message,

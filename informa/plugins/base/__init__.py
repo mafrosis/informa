@@ -7,15 +7,12 @@ import sys
 import time
 import traceback
 
-from celery import Task
+from flask import current_app as app
 import memcache
 import redis
 
-from ... import app
-from ...celery import celery
 
-
-class InformaBasePlugin(Task):
+class InformaBasePlugin(app.celery.Task):
     enabled = False
     plugin_name = None
     run_every = datetime.timedelta(minutes=30)
@@ -39,7 +36,7 @@ class InformaBasePlugin(Task):
 
         # add task to the celerybeat schedule
         if self.enabled is True:
-            celery.conf.CELERYBEAT_SCHEDULE[str(self)] = {
+            self.app.conf.CELERYBEAT_SCHEDULE[str(self)] = {
                 'task': str(self),
                 'schedule': self.run_every,
                 'args': (),

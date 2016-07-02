@@ -37,7 +37,7 @@ services:
 
   celerybeat:
     image: mafrosis/informa:dev
-    command: celery beat -A informa:celery
+    command: celery beat -A manage.celery
     volumes:
       - ./:/srv/app
       - /srv/app/.git
