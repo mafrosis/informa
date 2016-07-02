@@ -3,7 +3,7 @@ import datetime
 from flask import current_app as app
 import requests
 
-from ..plugins.base.heartbeat import HeartbeatPlugin
+from ..plugins.base import InformaBasePlugin
 
 
 class ZapierWebHook:
@@ -20,13 +20,10 @@ class ZapierWebHook:
         })
 
 
-class ZapierHeartbeatPlugin(HeartbeatPlugin):
+class ZapierHeartbeatPlugin(InformaBasePlugin):
     run_every = datetime.timedelta(days=1)
     enabled = app.config.get('ZAPIER_EMAIL_HEARTBEAT', False)
 
     def process(self):
-        # dump all plugin data into an alert via Zapier
-        alert_content = super().process()
-
-        ZapierWebHook.send(alert_content, subject='Zapier heartbeat')
+        ZapierWebHook.send(self.load(), subject='Zapier heartbeat')
         return {'heartbeat': datetime.datetime.now().isoformat()}
