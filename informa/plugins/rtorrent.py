@@ -20,5 +20,4 @@ class RTorrentPlugin(InformaBasePlugin):
         if data is None:
             raise Exception
 
-        self.store(data)
         return data

@@ -99,5 +99,4 @@ class F1Plugin(InformaBasePlugin):
                     self.log('Created torrent for {}'.format(filename))
                     part_data['done'] = True
 
-        self.store(data)
         return data

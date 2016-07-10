@@ -78,5 +78,4 @@ class MelMetroPlugin(InformaBasePlugin):
             print('Failed parsing JSON into train times: "{}"'.format(self.format_excp()))
             return {}
 
-        self.store(data)
         return data

@@ -47,5 +47,4 @@ class VagrantupPlugin(InformaBasePlugin):
             )
             self.log('Zapier Webhook called')
 
-        self.store(data)
         return data

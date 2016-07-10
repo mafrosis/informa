@@ -29,5 +29,4 @@ class TramtrackerPlugin(InformaBasePlugin):
             print("Failed loading from tramtracker")
             return {}
 
-        self.store(data)
         return data

@@ -46,7 +46,6 @@ class UKForexPlugin(InformaBasePlugin):
             )
             self.log('Zapier Webhook called')
 
-        self.store(data)
         return data
 
     def format_for_email(self, data):

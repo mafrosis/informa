@@ -63,7 +63,6 @@ class WeatherPlugin(InformaBasePlugin):
             'bri-forecast': self.metf(),
             'mel-astro': self.astro(),
         }
-        self.store(data)
         return data
 
 

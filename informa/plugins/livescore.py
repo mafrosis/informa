@@ -52,7 +52,6 @@ class InformPlugin(InformaBasePlugin):
                         'scorers': scorers,
                     })
 
-            self.store(data)
             return data
 
         finally:
