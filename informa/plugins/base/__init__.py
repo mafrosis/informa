@@ -7,6 +7,7 @@ import sys
 import time
 import traceback
 
+import deepdiff
 from flask import current_app as app
 import memcache
 import redis
@@ -71,7 +72,11 @@ class InformaBasePlugin(app.celery.Task):
         if data is None:
             raise Exception("Plugin '{}' didn't return anything".format(self.plugin_name))
 
-        self.store(data)
+        # if data has changed since last run, log and store
+        if deepdiff.DeepDiff(self.load(), data):
+            self.log(data)
+            self.store(data)
+
         return data
 
     @abstractmethod
