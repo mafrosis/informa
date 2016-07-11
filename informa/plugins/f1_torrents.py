@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 from xml.etree import ElementTree
 
+from celery.schedules import crontab
 import requests
 
 from .base import InformaBasePlugin
@@ -14,7 +15,7 @@ WATCH_DIR = '/var/app/watch'
 
 
 class F1Plugin(InformaBasePlugin):
-    run_every = datetime.timedelta(hours=6)
+    run_every = crontab(minute='*/5', hour='13-20', day_of_week='sat,sun')
     persist = True
 
     def process(self):
