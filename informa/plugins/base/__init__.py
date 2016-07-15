@@ -2,9 +2,7 @@ from abc import abstractmethod
 import collections
 import datetime
 import json
-from socket import socket
 import sys
-import time
 import traceback
 
 import deepdiff
@@ -128,20 +126,6 @@ class InformaBasePlugin(app.celery.Task):
         # store into memcache
         self.memcache.set(self.plugin_name, data)
 
-
-    def log_to_graphite(self, metric, value=0):
-        try:
-            sock = socket()
-            sock.connect((app.config['GRAPHITE_HOST'], app.config['GRAPHITE_PORT']))
-            sock.sendall('{} {} {}\n'.format(metric, value, int(time.time())))
-            self.log('Logged to Graphite {} {}'.format(metric, value))
-
-        except KeyError:
-            self.log('Graphite server not configured')
-        except IOError:
-            self.log('Error logging to Graphite')
-        finally:
-            sock.close()
 
     def log(self, msg):
         print('[{}] {}'.format(self.plugin_name, msg))
