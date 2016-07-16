@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  celery:
+    command: celery worker -A manage.celery --workdir=/srv/app --no-color
+    restart: always
+    logging:
+      driver: syslog
+
+  celerybeat:
+    restart: always
+
+  informa:
+    command: ./manage.py runserver --host 0.0.0.0 --port 8003
+    restart: always
