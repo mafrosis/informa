@@ -44,7 +44,7 @@ class UKForexPlugin(InformaBasePlugin):
                 subject=email_data['subject'],
                 webhook_url='https://hooks.zapier.com/hooks/catch/74441/4ta8iy/'
             )
-            self.log('Zapier Webhook called')
+            self.logger.info('Zapier Webhook called')
 
         return data
 

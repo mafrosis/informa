@@ -1,4 +1,4 @@
-FROM python:3.4-slim
+FROM python:3.5-slim
 
 ARG BUILD_TAG=dev
 ENV BUILD_TAG=$BUILD_TAG

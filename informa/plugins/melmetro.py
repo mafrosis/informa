@@ -24,13 +24,13 @@ class MelMetroPlugin(InformaBasePlugin):
         try:
             r = requests.get(URL.format(STATION_ID))
         except:
-            print("Failed loading from ptv.vic.gov.au")
+            self.logger.error('Failed loading from ptv.vic.gov.au')
             return {}
 
         try:
             trains = r.json()
         except:
-            print("Bad JSON response from ptv.vic.gov.au")
+            self.logger.error('Bad JSON response from ptv.vic.gov.au')
             return {}
 
         try:
@@ -75,7 +75,7 @@ class MelMetroPlugin(InformaBasePlugin):
             ]
 
         except Exception:
-            print('Failed parsing JSON into train times: "{}"'.format(self.format_excp()))
+            self.logger.error('Failed parsing JSON into train times: "{}"'.format(self.format_excp()))
             return {}
 
         return data

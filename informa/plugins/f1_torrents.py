@@ -22,7 +22,7 @@ class F1Plugin(InformaBasePlugin):
         try:
             resp = requests.get(TORRENT_RSS, timeout=5)
         except:
-            self.log('Failed loading from {}'.format(TORRENT_RSS))
+            self.logger.error('Failed loading from {}'.format(TORRENT_RSS))
             return {}
 
         # load previous run data
@@ -70,7 +70,7 @@ class F1Plugin(InformaBasePlugin):
 
 
         except Exception as e:
-            self.log('Error parsing XML: {}'.format(e))
+            self.logger.error('Error parsing XML: {}'.format(e))
             return {}
 
         for race_id, race_data in data['races'].items():
@@ -96,8 +96,7 @@ class F1Plugin(InformaBasePlugin):
                     with open(os.path.join(WATCH_DIR, 'magnet-{}-{}.torrent'.format(filename, hash_)), 'wb') as f:
                         f.write(resp.content)
 
-                    # TODO proper logger for all plugins
-                    self.log('Created torrent for {}'.format(filename))
+                    self.logger.info('Created torrent for {}'.format(filename))
                     part_data['done'] = True
 
         return data

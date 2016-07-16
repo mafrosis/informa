@@ -2,8 +2,7 @@ from abc import abstractmethod
 import collections
 import datetime
 import json
-import sys
-import traceback
+import logging
 
 import deepdiff
 from flask import current_app as app
@@ -59,6 +58,9 @@ class InformaBasePlugin(app.celery.Task):
             ['{MEMCACHE_HOST}:{MEMCACHE_PORT}'.format(**app.config)], debug=0
         )
 
+        # init logger for this plugin
+        self.logger = logging.getLogger('informa').getChild(self.friendly_name)
+
 
     def __str__(self):
         # determine the full classpath for this plugin
@@ -68,11 +70,11 @@ class InformaBasePlugin(app.celery.Task):
     def run(self, **kwargs):
         data = self.process()
         if data is None:
-            raise Exception("Plugin '{}' didn't return anything".format(self.plugin_name))
+            raise Exception("Plugin '{}' didn't return anything".format(self.friendly_name))
 
         # if data has changed since last run, log and store
         if deepdiff.DeepDiff(self.load(), data):
-            self.log(data)
+            self.logger.info(data)
             self.store(data)
 
         return data
@@ -125,15 +127,6 @@ class InformaBasePlugin(app.celery.Task):
 
         # store into memcache
         self.memcache.set(self.plugin_name, data)
-
-
-    def log(self, msg):
-        print('[{}] {}'.format(self.plugin_name, msg))
-
-    def format_excp(self):
-        ex_type, ex, tb = sys.exc_info()
-        tb = traceback.extract_tb(tb)
-        return '{}: {}\n{}'.format(ex.__class__.__name__, ex, tb)
 
 
 def dict_sort(data):

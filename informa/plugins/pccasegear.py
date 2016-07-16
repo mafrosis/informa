@@ -16,6 +16,6 @@ class PCCaseGearPlugin(HttpGrepPlugin):
 
         if 'NH-D15' in data and data['NH-D15'] is True:
             ZapierWebHook.send('ND-15 now available', subject='ND-15')
-            self.log('Zapier Webhook called')
+            self.logger.info('Zapier Webhook called')
 
         return data

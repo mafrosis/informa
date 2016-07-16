@@ -1,9 +1,10 @@
 import importlib
+import logging
 import os
 import sys
 import yaml
 
-from celery import Celery
+from celery import Celery, signals
 from flask import Flask
 
 from .views import base
@@ -33,11 +34,28 @@ def create_app():
     # register views
     app.register_blueprint(base)
 
+    # setup application logger before tasks are imported
+    setup_logger()
+
     # import plugins, with a Flask context
     with app.app_context():
         find_plugins(app)
 
     return app
+
+
+def setup_logger():
+    # Flask app logging stays default, configure Python logging for celery
+    logger = logging.getLogger('informa')
+    logger.level = logging.INFO
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter('[%(asctime)s %(levelname)s/%(processName)s] %(name)s %(message)s'))
+    logger.addHandler(handler)
+
+# completely disable celery logging
+@signals.setup_logging.connect
+def setup_celery_logging(**kwargs):
+    pass
 
 
 def find_plugins(app):

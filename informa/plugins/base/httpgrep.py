@@ -15,7 +15,7 @@ class HttpGrepPlugin(InformaBasePlugin):
         try:
             r = requests.get(self.url)
         except:
-            print("Failed loading from {}".format(self.url))
+            self.logger.error('Failed loading from {}'.format(self.url))
             return {}
 
         data = {}
@@ -28,7 +28,7 @@ class HttpGrepPlugin(InformaBasePlugin):
                     data[t] = False
 
         except Exception as e:
-            print("Error grepping HTML: {}".format(e))
+            self.logger.error('Error grepping HTML: {}'.format(e))
             return {}
 
         self.store(data)

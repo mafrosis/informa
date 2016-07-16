@@ -18,7 +18,7 @@ class VagrantupPlugin(InformaBasePlugin):
         try:
             r = requests.get(FEED_RSS)
         except:
-            print("Failed loading from {}".format(FEED_RSS))
+            self.logger.error('Failed loading from {}'.format(FEED_RSS))
             return {}
 
         data = {}
@@ -33,7 +33,7 @@ class VagrantupPlugin(InformaBasePlugin):
             data['latest_version'] = nodes[0].text
 
         except Exception as e:
-            print("Error parsing XML: {}".format(e))
+            self.logger.error('Error parsing XML: {}'.format(e))
             return {}
 
         # load previous entry
@@ -45,6 +45,6 @@ class VagrantupPlugin(InformaBasePlugin):
                 'Goto http://www.vagrantup.com/downloads.html',
                 subject='Vagrant {} released'.format(data['latest_version'])
             )
-            self.log('Zapier Webhook called')
+            self.logger.info('Zapier Webhook called')
 
         return data

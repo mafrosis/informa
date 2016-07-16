@@ -1,4 +1,8 @@
+import logging
+
 import boto.sns
+
+logger = logging.getLogger('informa')
 
 
 class SNSAlert:
@@ -14,5 +18,5 @@ class SNSAlert:
         return alert
 
     def send(self, message, subject=None):
-        print('SNSAlert: {0}'.format(message))
+        logger.info('SNSAlert: {0}'.format(message))
         self.conn.publish(self.topic, message, subject)
