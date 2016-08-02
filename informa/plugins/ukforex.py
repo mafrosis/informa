@@ -7,17 +7,21 @@ from ..alerts.zapier import ZapierWebHook
 
 
 UKFOREX_GBP_AUD = 'http://www.ukforex.co.uk/forex-tools/chart-data/GBP/AUD/168/day/true'
-ALERT_THRESHOLD = 1.5
+ALERT_THRESHOLD = 1.8
 
 EMAIL_TEMPLATE = 'Exchange rate hit {rate} on {date}\n\nPrevious week trend:\n\n{trend}'
 
 
 class UKForexPlugin(InformaBasePlugin):
-    run_every = datetime.timedelta(hours=4)
+    run_every = datetime.timedelta(hours=1)
 
     def process(self):
         resp = requests.get(UKFOREX_GBP_AUD)
         raw_data = resp.json()
+
+        # always send daily alert at 7am
+        if datetime.datetime.now().hour == 7:
+            ALERT_THRESHOLD = 1
 
         # create list of tuples, converting timestamps to datetime (removing trailing zeros)
         data = [
