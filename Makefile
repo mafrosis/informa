@@ -6,4 +6,4 @@ celery:
 	C_FORCE_ROOT=1 celery worker -A manage.celery --workdir=/srv/app --purge
 
 flask:
-	python manage.py runserver --host 0.0.0.0 --port 8003 --debug
+	./manage.py runserver --host 0.0.0.0 --port 8003 --debug

@@ -37,7 +37,7 @@ services:
       - redis
       - celery
 
-  informa:
+  flask:
     image: mafrosis/informa:dev
     command: make flask
     build:
