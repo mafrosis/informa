@@ -44,7 +44,7 @@ services:
       dockerfile: config/Dockerfile
       context: .
       args:
-        - BUILD_TAG=${BUILD_TAG}
+        - BUILD_TAG=dev
     volumes:
       - ./:/srv/app
       - /srv/app/.git

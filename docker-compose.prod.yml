@@ -29,3 +29,7 @@ services:
   flask:
     command: ./manage.py runserver --host 0.0.0.0 --port 8003
     restart: always
+    build:
+      dockerfile: config/Dockerfile-prod
+      args:
+        - BUILD_TAG=prod
