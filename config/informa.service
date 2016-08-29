@@ -1,0 +1,15 @@
+[Unit]
+Description=Informa
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --no-recreate --no-color
+ExecStop=/usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop
+Restart=always
+RestartSec=1m
+TimeoutStartSec=1m
+WorkingDirectory=/home/pirate/informa
+
+[Install]
+WantedBy=local.target

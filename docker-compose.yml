@@ -4,17 +4,6 @@ volumes:
   redis-data: {}
 
 services:
-  nginx:
-    image: nginx:stable-alpine
-    restart: always
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      - 80:80
-    depends_on:
-      - informa
-      - celery
-
   memcache:
     image: memcached:alpine
     restart: always

@@ -1,6 +1,22 @@
 version: '2'
 
 services:
+  nginx:
+    image: akkerman/rpi-nginx
+    restart: always
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 80:80
+    depends_on:
+      - informa
+
+  memcache:
+    image: mafrosis/rpi-memcached
+
+  redis:
+    image: hypriot/rpi-redis
+
   celery:
     command: celery worker -A manage.celery --workdir=/srv/app --no-color
     restart: always
