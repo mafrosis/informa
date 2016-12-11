@@ -26,7 +26,9 @@ Then view the current state of all data via HTTP:
 
 Manually invoke a plugin with `docker-compose exec`:
 
-    docker-compose exec flask ./manage.py load f1_torrents    
+    docker-compose exec flask flask load melmetro
+
+(The first `flask` is the container name, the second is the `flask` binary).
 
 
 Plugins

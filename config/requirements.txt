@@ -1,8 +1,7 @@
 beautifulsoup4
 celery==3.1.23
 deepdiff
-Flask==0.10.1
-Flask-Script>=2.0.5,<3
+Flask>0.12,<0.13
 hiredis>=0.2,<0.3
 python-memcached
 pytz

@@ -1,22 +1,21 @@
-#! /usr/bin/env python3
 import json
 
-from flask_script import Manager
+import click
 
 from informa.app import create_app
 
 app = create_app()
-manager = Manager(app)
 
 # convenient entrypoint for celery worker
 celery = app.celery
 
 
-@manager.command
+@app.cli.command()
+@click.argument('name', required=True)
 def load(name):
-    """
+    '''
     Foreground load data via a single plugin
-    """
+    '''
     plugin = app.config['plugins'].get('plugins.{}'.format(name))
 
     if not plugin:
@@ -31,7 +30,7 @@ def load(name):
         print('Plugin disabled')
 
 
-@manager.command
+@app.cli.command()
 def forcepoll():
     """
     Load new data for each plugin now
@@ -40,7 +39,7 @@ def forcepoll():
     views.poll()
 
 
-@manager.command
+@app.cli.command()
 def check_pip():
     import xmlrpc
     import pip
@@ -60,7 +59,3 @@ def check_pip():
             msg = 'up to date'
         pkg_info = '{dist.project_name} {dist.version}'.format(dist=dist)
         print('{pkg_info:40} {msg}'.format(pkg_info=pkg_info, msg=msg))
-
-
-if __name__ == "__main__":
-    manager.run()

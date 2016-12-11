@@ -15,6 +15,8 @@ COPY config /srv/app/config
 
 RUN pip3 install -r config/requirements-dev.txt
 
+ENV FLASK_APP=entrypoint.py
+
 EXPOSE 80
 
 CMD ["bash"]
