@@ -3,17 +3,19 @@ FROM mafrosis/rpi-python3:jessie
 ARG BUILD_TAG=dev
 ENV BUILD_TAG=$BUILD_TAG
 
-RUN apt-get update && apt-get -y install \
+RUN apt-get update && \
+	apt-get -y --no-install-recommends install \
 	build-essential \
 	git \
 	memcached \
-	sqlite3
+	sqlite3 \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /srv/app
 
 COPY config /srv/app/config
 
-RUN pip3 install -r config/requirements-dev.txt
+RUN pip3 install -r config/requirements-prod.txt
 
 EXPOSE 80
 
