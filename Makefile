@@ -7,3 +7,6 @@ celery:
 
 flask:
 	./manage.py runserver --host 0.0.0.0 --port 8003 --debug
+
+gunicorn:
+	gunicorn manage:app -c /srv/app/config/gunicorn.conf.py

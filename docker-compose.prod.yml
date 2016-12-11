@@ -27,7 +27,7 @@ services:
     restart: always
 
   flask:
-    command: ./manage.py runserver --host 0.0.0.0 --port 8003
+    command: make gunicorn
     restart: always
     build:
       dockerfile: config/Dockerfile-prod
