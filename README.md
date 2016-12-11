@@ -3,63 +3,30 @@ Inform
 
 A python project for pulling information from the web (and elsewhere) and storing it locally in memcache. This is then offered as structured JSON via a simple HTTP webservice. 
 
-This was built to pull data from various website APIs and provide it for display on an LCD screen on my wall. The scheduled tasks provided by celery are great for consuming web APIs in the background, and memcache storage is perfect for storage of this transient data. A small flask app sits on top of the that to provide access to the memcache store.
+This was built to pull data from various website APIs and provide it for display on an LCD screen on my wall. The scheduled tasks provided by celery are great for consuming web APIs in the background, and memcache storage is perfect for storage of this transient data. A small flask app sits on top of the that to provide access to the memcache store. Data can also be persisted to Redis if necessary.
 
 
 Dependencies
 ============
 
-As ever, standing on the shoulders of giants:
-
-	aptitude install nginx rabbitmq-server virtualenvwrapper supervisor memcached
-
-
-Installation
-============
-
-	mkdir -p /srv/www
-	cd /srv/www
-	git clone git://github.com/mafrosis/inform.git
-
-Salt
-----
-
-[Salt](http://saltstack.org) is a great configuration management tool. If you have the time, run through their [install](http://docs.saltstack.org/en/latest/topics/installation/index.html) and set your machine as both master and a minion.
-
-	cd config
-	salt 'localhost' state.highstate 
-
-Manual
-------
-
-	mkvirtualenv inform
-	pip install -r config/requirements
-	sudo ln -s /srv/www/inform/config/supervisor.conf /etc/supervisor/conf.d/
-	sudo service supervisor stop
-	sudo service supervisor start
-
-Nginx
------
-
-Written for version 1.2.1.
-
-If you already have Nginx setup on your server, you'll want to have a look at **config/nginx.conf** and merge into your existing config file. Otherwise the following should be sufficient(note: if you want to serve externally you will need to configure that yourself):
-
-	sudo ln -s /srv/www/inform/config/nginx.conf /etc/nginx/sites-available/inform.conf
-	sudo ln -s /etc/nginx/sites-available/inform.conf /etc/nginx/sites-enabled/
-	sudo service nginx restart
+  - Docker
+  - Docker Compose
 
 
 Usage
 =====
 
-After install, the service should be running quietly in the background. Check with **supervisorctl** that gunicorn and celery have both started correctly:
+Docker Compose will pull/build containers at first run:
 
-	sudo supervisorctl status
+    docker-compose up
 
-Assuming both services are up, query the flask app to see what's been added to the memcache store:
+Then view the current state of all data via HTTP:
 
-	curl localhost:8004/get
+	  curl <informa-host>:8003/get
+
+Manually invoke a plugin with `docker-compose exec`:
+
+    docker-compose exec flask ./manage.py load f1_torrents    
 
 
 Plugins
