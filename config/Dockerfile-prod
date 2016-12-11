@@ -6,6 +6,7 @@ ENV BUILD_TAG=$BUILD_TAG
 RUN apt-get update && \
 	apt-get -y --no-install-recommends install \
 	build-essential \
+	libssl-dev \
 	git \
 	memcached \
 	sqlite3 \

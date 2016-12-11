@@ -6,6 +6,7 @@ import yaml
 
 from celery import Celery, signals
 from flask import Flask
+from flask_ask import Ask
 
 from .views import base
 
@@ -14,6 +15,9 @@ def create_app():
     # setup Flask
     app = Flask(__name__)
     app.config.from_pyfile('../config/flask.conf.py')
+
+    # init Flask-Ask
+    app.ask = Ask(app, '/alexa')
 
     # find and import all plugins
     app.config['plugins'] = {}
