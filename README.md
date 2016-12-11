@@ -31,6 +31,14 @@ Manually invoke a plugin with `docker-compose exec`:
 (The first `flask` is the container name, the second is the `flask` binary).
 
 
+Production
+==========
+
+Build for production on raspberry Pi with the following command:
+
+    BUILD_TAG=prod docker-compose -f docker-compose.yml -f docker-compose.prod.yml build flask
+
+
 Plugins
 =======
 
