@@ -9,6 +9,7 @@ from flask import Flask
 from flask_ask import Ask
 
 from .views import base
+from .exceptions import InactivePlugin, NotAPlugin
 
 
 def create_app():
@@ -91,24 +92,42 @@ def find_plugins(app):
 
 
 def load_directory(path, enabled_plugins=None):
-    # iterate python files
-    for root, dirs, files in os.walk(path):
-        for filename in files:
-            if not filename.startswith('__') and filename.endswith('.py'):
-                modname = filename[:-3]
+    for filename in os.listdir(path):
+        try:
+            # determine if file/dir is useable python module
+            modname = get_py_module(
+                os.path.join(path, filename),
+                enabled_plugins=enabled_plugins
+            )
+        except NotAPlugin as e:
+            continue
+        except InactivePlugin as e:
+            sys.stderr.write('Inactive plugin: {}\n'.format(e))
+            continue
 
-                # skip plugins not defined as enabled
-                if enabled_plugins:
-                    if modname not in enabled_plugins:
-                        sys.stderr.write('Inactive plugin: {}\n'.format(modname))
-                        continue
+        try:
+            # dynamic import of python modules
+            importlib.import_module(modname)
+            sys.stderr.write('Active plugin: {}\n'.format(modname))
 
-                try:
-                    # dynamic import of python modules
-                    importlib.import_module(
-                        '{}.{}'.format(path.replace('/', '.'), modname)
-                    )
-                    sys.stderr.write('Active plugin: {}\n'.format(modname))
+        except (ImportError, AttributeError) as e:
+            sys.stderr.write('Bad plugin: {} ({})\n'.format(modname, e))
 
-                except (ImportError, AttributeError) as e:
-                    sys.stderr.write('Bad plugin: {} ({})\n'.format(modname, e))
+
+def get_py_module(path, enabled_plugins=None):
+    if os.path.basename(path).startswith('__'):
+        raise NotAPlugin
+
+    if os.path.isfile(path) and path.endswith('.py'):
+        modname = os.path.basename(path)[:-3]
+    elif os.path.isdir(path) and not os.path.basename(path) == 'base' and '__init__.py' in os.listdir(path):
+        modname = os.path.basename(path)
+    else:
+        raise NotAPlugin
+
+    # skip plugins not defined as enabled
+    if enabled_plugins:
+        if modname not in enabled_plugins:
+            raise InactivePlugin(modname)
+
+    return '{}.{}'.format(os.path.dirname(path).replace('/', '.'), modname)
