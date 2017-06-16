@@ -3,6 +3,7 @@ build/
 dist/
 *.egg-info
 *.pyc
+.env
 
 .DS_Store
 celerybeat-schedule
