@@ -12,7 +12,6 @@ import redis
 
 class InformaBasePlugin(app.celery.Task):
     enabled = False
-    plugin_name = None
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
     persist = False
@@ -21,9 +20,6 @@ class InformaBasePlugin(app.celery.Task):
         # never register periodic tasks for any base plugin
         if 'plugins.base' in self.__module__:
             return
-
-        # set an internal plugin_name
-        self.plugin_name = str(self)
 
         # set the friendly module name as defined in plugins.yaml
         self.friendly_name = self.__module__[7:][self.__module__[7:].index('.')+1:]
@@ -59,7 +55,7 @@ class InformaBasePlugin(app.celery.Task):
         )
 
         # init logger for this plugin
-        self.logger = logging.getLogger('informa').getChild(self.friendly_name)
+        self.logger = logging.getLogger('informa').getChild(str(self))
 
 
     def __str__(self):
@@ -86,7 +82,7 @@ class InformaBasePlugin(app.celery.Task):
 
     def load(self):
         # get from memcache
-        data = self.memcache.get(self.plugin_name)
+        data = self.memcache.get(str(self))
 
         if not data:
             # attempt to load data from cold storage
@@ -94,7 +90,7 @@ class InformaBasePlugin(app.celery.Task):
             obj = None
 
             try:
-                obj = redis_.get(self.plugin_name)
+                obj = redis_.get(str(self))
             except redis.exceptions.ConnectionError:
                 pass
 
@@ -105,7 +101,7 @@ class InformaBasePlugin(app.celery.Task):
             data = json.loads(obj.decode('utf8'))
 
             # add to memcache
-            self.memcache.set(self.plugin_name, data)
+            self.memcache.set(str(self), data)
 
         return data
 
@@ -121,12 +117,12 @@ class InformaBasePlugin(app.celery.Task):
         if self.persist is True:
             try:
                 redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
-                redis_.set(self.plugin_name, json.dumps(data))
+                redis_.set(str(self), json.dumps(data))
             except redis.exceptions.ConnectionError:
                 pass
 
         # store into memcache
-        self.memcache.set(self.plugin_name, data)
+        self.memcache.set(str(self), data)
 
 
 def dict_sort(data):
