@@ -11,6 +11,8 @@ from flask_ask import Ask
 from .views import base
 from .exceptions import InactivePlugin, NotAPlugin
 
+logger = logging.getLogger('informa')
+
 
 def create_app():
     # setup Flask
@@ -66,13 +68,13 @@ def setup_celery_logging(**kwargs):
 def find_plugins(app):
     # load a list of enabled plugins from config
     if os.path.exists('plugins.yaml') is False:
-        sys.stderr.write('No plugins enabled! You must create plugins.yaml\n')
+        logger.critical('No plugins enabled! You must create plugins.yaml')
     else:
         try:
             with open('plugins.yaml', 'r') as f:
                 plugins = yaml.load(f.read())
         except:
-            sys.stderr.write('Bad plugins.yaml file\n')
+            logger.critical('Bad plugins.yaml file')
             plugins = {'enabled': []}
 
         # override disabled for plugin called via CLI load command
@@ -102,16 +104,16 @@ def load_directory(path, enabled_plugins=None):
         except NotAPlugin as e:
             continue
         except InactivePlugin as e:
-            sys.stderr.write('Inactive plugin: {}\n'.format(e))
+            logger.debug('Inactive plugin: {}'.format(e))
             continue
 
         try:
             # dynamic import of python modules
             importlib.import_module(modname)
-            sys.stderr.write('Active plugin: {}\n'.format(modname))
+            logger.info('Active plugin: {}'.format(modname))
 
         except (ImportError, AttributeError) as e:
-            sys.stderr.write('Bad plugin: {} ({})\n'.format(modname, e))
+            logger.error('Bad plugin: {} ({})'.format(modname, e))
 
 
 def get_py_module(path, enabled_plugins=None):
