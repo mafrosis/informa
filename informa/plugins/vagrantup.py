@@ -1,5 +1,5 @@
 from .base import InformaBasePlugin
-from ..alerts.zapier import ZapierWebHook
+from .base.alerts.zapier import ZapierWebHook
 
 from datetime import timedelta
 

@@ -88,7 +88,7 @@ def find_plugins(app):
         app.config['plugins'] = {k:v for k,v in app.config['plugins'].items() if v is not None}
 
     # always load plugins defined as part of alerts
-    load_directory('informa/alerts')
+    load_directory('informa/plugins/base/alerts')
 
 
 def load_directory(path, enabled_plugins=None):

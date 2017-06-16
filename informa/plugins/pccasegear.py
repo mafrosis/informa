@@ -1,5 +1,5 @@
-from ..plugins.base.httpgrep import HttpGrepPlugin
-from ..alerts.zapier import ZapierWebHook
+from .base.httpgrep import HttpGrepPlugin
+from .base.alerts.zapier import ZapierWebHook
 
 from datetime import timedelta
 

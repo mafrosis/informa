@@ -3,7 +3,7 @@ import datetime
 from flask import current_app as app
 import requests
 
-from ..plugins.base import InformaBasePlugin
+from .. import InformaBasePlugin
 
 
 class ZapierWebHook:

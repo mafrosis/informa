@@ -3,7 +3,7 @@ import datetime
 import requests
 
 from .base import InformaBasePlugin
-from ..alerts.zapier import ZapierWebHook
+from .base.alerts.zapier import ZapierWebHook
 
 
 UKFOREX_GBP_AUD = 'http://www.ukforex.co.uk/forex-tools/chart-data/GBP/AUD/168/day/true'
@@ -13,7 +13,7 @@ EMAIL_TEMPLATE = 'Exchange rate hit {rate} on {date}\n\nPrevious week trend:\n\n
 
 
 class UKForexPlugin(InformaBasePlugin):
-    run_every = datetime.timedelta(hours=1)
+    run_every = datetime.timedelta(minutes=1)
 
     def process(self):
         resp = requests.get(UKFOREX_GBP_AUD)
