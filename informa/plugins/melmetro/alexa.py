@@ -4,11 +4,12 @@ import humanize
 import pytz
 import requests
 
-from flask import abort, request
+from flask import abort
 from flask import current_app as app
 from flask_ask import statement
 
 from . import exceptions
+from informa.lib.alexa.decorators import alexa_validate
 
 
 ALEXA_APP_ID = 'amzn1.ask.skill.64868ca7-150d-4fe5-bdd0-033b88157da3'
@@ -44,10 +45,8 @@ ROUTES = {
     mapping={'line': 'Number', 'direction': 'Destination'},
     convert={'line': int}
 )
+@alexa_validate(ALEXA_APP_ID)
 def melmetro(line, direction):
-    if request.json['session']['application']['applicationId'] != ALEXA_APP_ID:
-        abort(403)
-
     if not line:
         if not direction:
             abort(400)
