@@ -10,7 +10,13 @@ import memcache
 import redis
 
 
-class InformaBasePlugin(app.celery.Task):
+# classmethod __str__
+class Meta(type):
+    def __repr__(self):
+        return '{}.{}'.format(self.__module__, self.__name__)
+
+
+class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     enabled = False
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
@@ -22,18 +28,20 @@ class InformaBasePlugin(app.celery.Task):
             ['{MEMCACHE_HOST}:{MEMCACHE_PORT}'.format(**app.config)], debug=0
         )
 
-        # init logger for this plugin
+        # create logger for this plugin
         self.logger = logging.getLogger('informa').getChild(str(self))
+        # display plugin name in logs
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter('%(levelname)s {} %(message)s'.format(self.__name__)))
+        self.logger.addHandler(sh)
 
-
-    def __str__(self):
-        # determine the full classpath for this plugin
-        return '{}.{}'.format(self.__module__, self.__class__.__name__)
-
+    def __repr__(self):
+        return str(self.__class__)
 
     @classmethod
     def on_bound(cls, app):
-        logger = logging.getLogger('informa').getChild(cls.__name__)
+        # log plugin active
+        logger = logging.getLogger('informa').getChild(str(cls))
         logger.info('active')
 
 

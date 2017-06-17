@@ -5,7 +5,7 @@ import os
 import sys
 import yaml
 
-from celery import Celery, signals
+from celery import Celery
 from flask import Flask
 from flask_ask import Ask
 
@@ -58,11 +58,6 @@ def setup_logger():
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter('[%(asctime)s %(levelname)s/%(processName)s] %(name)s %(message)s'))
     logger.addHandler(handler)
-
-# completely disable celery logging
-@signals.setup_logging.connect
-def setup_celery_logging(**kwargs):
-    pass
 
 
 def find_plugins(app):

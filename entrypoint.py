@@ -1,8 +1,12 @@
 import json
+import logging
 
 import click
 
 from informa.app import create_app, load_plugin
+
+logger = logging.getLogger('informa')
+logger.level = logging.INFO
 
 app = create_app()
 
@@ -12,10 +16,14 @@ celery = app.celery
 
 @app.cli.command()
 @click.argument('name', required=True)
-def load(name):
+@click.option('--debug', default=False, is_flag=True, show_default=True)
+def load(name, debug):
     '''
     Foreground load data via a single plugin
     '''
+    if debug:
+        logger.level = logging.DEBUG
+
     # if requested plugin is not already enabled, load it
     if name not in app.config['plugins']['enabled']:
         load_plugin(app, 'informa.plugins.{}'.format(name))
