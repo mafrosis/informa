@@ -17,38 +17,6 @@ class InformaBasePlugin(app.celery.Task):
     persist = False
 
     def __init__(self):
-        # never register periodic tasks for any base plugin
-        if 'plugins.base' in self.__module__:
-            return
-
-        # set the friendly module name as defined in plugins.yaml
-        self.friendly_name = self.__module__[7:][self.__module__[7:].index('.')+1:]
-
-        # handle plugins enabled with a definition in plugins.yaml
-        if self.friendly_name in app.config['plugins'].keys():
-            self.enabled = True
-
-        # add task to the celerybeat schedule
-        if self.enabled is True:
-            self.app.conf.CELERYBEAT_SCHEDULE[str(self)] = {
-                'task': str(self),
-                'schedule': self.run_every,
-                'args': (),
-                'relative': False,
-                'kwargs': {},
-                'options': {},
-            }
-
-        # hide alerts from /get; but only after they're registered to celerybeat
-        if 'alerts' in self.__module__:
-            self.enabled = False
-
-        # store refs to all plugins in Flask
-        app.config['plugins'][self.friendly_name] = {
-            'cls': self,
-            'enabled': self.enabled,
-        }
-
         # create memcache interface
         self.memcache = memcache.Client(
             ['{MEMCACHE_HOST}:{MEMCACHE_PORT}'.format(**app.config)], debug=0
@@ -66,7 +34,7 @@ class InformaBasePlugin(app.celery.Task):
     def run(self, **kwargs):
         data = self.process()
         if data is None:
-            raise Exception("Plugin '{}' didn't return anything".format(self.friendly_name))
+            raise Exception("Plugin '{}' didn't return anything".format(str(self)))
 
         # if data has changed since last run, log and store
         if deepdiff.DeepDiff(self.load(), data):

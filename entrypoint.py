@@ -16,18 +16,12 @@ def load(name):
     '''
     Foreground load data via a single plugin
     '''
-    plugin = app.config['plugins'].get('plugins.{}'.format(name))
-
-    if not plugin:
+    if name not in app.config['cls']:
         print('Unknown plugin')
         return
 
-    if plugin['enabled']:
-        print(
-            json.dumps({name: plugin['cls'].run(force=True)}, indent=2)
-        )
-    else:
-        print('Plugin disabled')
+    data = app.config['cls'][name].run(force=True)
+    print(json.dumps({name: data}, indent=2))
 
 
 @app.cli.command()

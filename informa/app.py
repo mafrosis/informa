@@ -1,3 +1,4 @@
+import inspect
 import importlib
 import logging
 import os
@@ -84,16 +85,16 @@ def find_plugins(app):
         app.config['plugins'] = {'plugins.{}'.format(p): None for p in plugins['enabled']}
 
         # load enabled plugins from plugins directory
-        load_directory('informa/plugins', enabled_plugins=plugins['enabled'])
+        load_directory(app, 'informa/plugins', enabled_plugins=plugins['enabled'])
 
         # remove bullshit plugins created from sys.argv[-1]
         app.config['plugins'] = {k:v for k,v in app.config['plugins'].items() if v is not None}
 
     # always load plugins defined as part of alerts
-    load_directory('informa/plugins/base/alerts')
+    load_directory(app, 'informa/plugins/base/alerts')
 
 
-def load_directory(path, enabled_plugins=None):
+def load_directory(app, path, enabled_plugins=None):
     for filename in os.listdir(path):
         try:
             # determine if file/dir is useable python module
@@ -109,9 +110,32 @@ def load_directory(path, enabled_plugins=None):
 
         try:
             # dynamic import of python modules
-            importlib.import_module(modname)
+            mod = importlib.import_module(modname)
+
+            # get class from module
+            cls = next(iter([
+                v for v in mod.__dict__.values()
+                if inspect.isclass(v)
+                and 'informa.plugins' in v.__module__
+                and 'base' not in v.__module__
+            ]))
+
+            # instantiate task and register as periodic
+            task = cls()
+            app.celery.add_periodic_task(task.run_every, task, str(task))
+
+            plugin_name = os.path.splitext(modname)[1][1:]
+
+            # store refs to all plugins in Flask.config for CLI access
+            if not 'cls' in app.config:
+                app.config['cls'] = {}
+            app.config['cls'][plugin_name] = task
+
             logger.info('Active plugin: {}'.format(modname))
 
+        except StopIteration:
+            # no valid plugin found in module
+            pass
         except (ImportError, AttributeError) as e:
             logger.error('Bad plugin: {} ({})'.format(modname, e))
 
