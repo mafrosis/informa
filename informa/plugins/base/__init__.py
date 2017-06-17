@@ -31,6 +31,12 @@ class InformaBasePlugin(app.celery.Task):
         return '{}.{}'.format(self.__module__, self.__class__.__name__)
 
 
+    @classmethod
+    def on_bound(cls, app):
+        logger = logging.getLogger('informa').getChild(cls.__name__)
+        logger.info('active')
+
+
     def run(self, **kwargs):
         data = self.process()
         if data is None:

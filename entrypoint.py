@@ -2,7 +2,7 @@ import json
 
 import click
 
-from informa.app import create_app
+from informa.app import create_app, load_plugin
 
 app = create_app()
 
@@ -16,6 +16,10 @@ def load(name):
     '''
     Foreground load data via a single plugin
     '''
+    # if requested plugin is not already enabled, load it
+    if name not in app.config['plugins']['enabled']:
+        load_plugin(app, 'informa.plugins.{}'.format(name))
+
     if name not in app.config['cls']:
         print('Unknown plugin')
         return

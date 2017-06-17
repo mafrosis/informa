@@ -33,7 +33,6 @@ def create_app():
     # http://flask.pocoo.org/docs/0.10/patterns/celery
     TaskBase = app.celery.Task
     class ContextTask(TaskBase):
-        abstract = True
         def __call__(self, *args, **kwargs):
             with app.app_context():
                 return TaskBase.__call__(self, *args, **kwargs)
@@ -67,80 +66,90 @@ def setup_celery_logging(**kwargs):
 
 
 def find_plugins(app):
-    # load a list of enabled plugins from config
+    """
+    Load plugins.yaml into flask_app.config and load plugin directories
+    """
     if os.path.exists('plugins.yaml') is False:
         logger.critical('No plugins enabled! You must create plugins.yaml')
-    else:
-        try:
-            with open('plugins.yaml', 'r') as f:
-                plugins = yaml.load(f.read())
-        except:
-            logger.critical('Bad plugins.yaml file')
-            plugins = {'enabled': []}
+        return
 
-        # override disabled for plugin called via CLI load command
-        plugins['enabled'].append(sys.argv[-1])
+    try:
+        with open('plugins.yaml', 'r') as f:
+            app.config['plugins'] = yaml.load(f.read())
+    except:
+        logger.critical('Bad plugins.yaml file')
+        sys.exit(44)
 
-        # store the enabled plugins in global app config
-        app.config['plugins'] = {'plugins.{}'.format(p): None for p in plugins['enabled']}
-
-        # load enabled plugins from plugins directory
-        load_directory(app, 'informa/plugins', enabled_plugins=plugins['enabled'])
-
-        # remove bullshit plugins created from sys.argv[-1]
-        app.config['plugins'] = {k:v for k,v in app.config['plugins'].items() if v is not None}
+    # load enabled plugins from plugins directory
+    load_directory(app, 'informa/plugins')
 
     # always load plugins defined as part of alerts
     load_directory(app, 'informa/plugins/base/alerts')
 
 
-def load_directory(app, path, enabled_plugins=None):
+def load_directory(app, path):
+    """
+    Load all Informa plugins from path
+    """
     for filename in os.listdir(path):
+        if filename == '__pycache__':
+            continue
+
         try:
             # determine if file/dir is useable python module
-            modname = get_py_module(
-                os.path.join(path, filename),
-                enabled_plugins=enabled_plugins
-            )
-        except NotAPlugin as e:
+            modname = get_py_module(os.path.join(path, filename))
+
+            # skip inactive plugins
+            plugin_name = os.path.splitext(modname)[1][1:]
+            if plugin_name not in app.config['plugins']['enabled']:
+                raise InactivePlugin(modname)
+
+        except NotAPlugin:
             continue
         except InactivePlugin as e:
-            logger.debug('Inactive plugin: {}'.format(e))
             continue
 
-        try:
-            # dynamic import of python modules
-            mod = importlib.import_module(modname)
+        load_plugin(app, modname)
 
-            # get class from module
-            cls = next(iter([
-                v for v in mod.__dict__.values()
-                if inspect.isclass(v)
+
+def load_plugin(app, modname):
+    """
+    Load a single plugin and register its celery task
+    """
+    try:
+        # dynamic import of python modules
+        mod = importlib.import_module(modname)
+
+        # get class from module
+        PluginClass = next(iter([
+            v for v in mod.__dict__.values()
+            if inspect.isclass(v)
                 and 'informa.plugins' in v.__module__
                 and 'base' not in v.__module__
-            ]))
+        ]))
 
-            # instantiate task and register as periodic
-            task = cls()
-            app.celery.add_periodic_task(task.run_every, task, str(task))
+        # instantiate task and register as periodic
+        task = app.celery.register_task(PluginClass())
+        app.celery.add_periodic_task(task.run_every, task.s(), name=task.__name__)
 
-            plugin_name = os.path.splitext(modname)[1][1:]
+        plugin_name = os.path.splitext(modname)[1][1:]
 
-            # store refs to all plugins in Flask.config for CLI access
-            if not 'cls' in app.config:
-                app.config['cls'] = {}
-            app.config['cls'][plugin_name] = task
+        # store refs to all plugins in Flask.config for CLI access
+        if not 'cls' in app.config:
+            app.config['cls'] = {}
+        app.config['cls'][plugin_name] = task
 
-            logger.info('Active plugin: {}'.format(modname))
-
-        except StopIteration:
-            # no valid plugin found in module
-            pass
-        except (ImportError, AttributeError) as e:
-            logger.error('Bad plugin: {} ({})'.format(modname, e))
+    except StopIteration:
+        # no valid plugin found in module
+        pass
+    except (ImportError, AttributeError) as e:
+        logger.error('Bad plugin: {} ({})'.format(modname, e))
 
 
-def get_py_module(path, enabled_plugins=None):
+def get_py_module(path):
+    """
+    Find an informa plugin module in path
+    """
     if os.path.basename(path).startswith('__'):
         raise NotAPlugin
 
@@ -150,10 +159,5 @@ def get_py_module(path, enabled_plugins=None):
         modname = os.path.basename(path)
     else:
         raise NotAPlugin
-
-    # skip plugins not defined as enabled
-    if enabled_plugins:
-        if modname not in enabled_plugins:
-            raise InactivePlugin(modname)
 
     return '{}.{}'.format(os.path.dirname(path).replace('/', '.'), modname)
