@@ -1,10 +1,9 @@
 enabled:
   - f1_torrents
-  - ukforex
+  - ofx
 disabled:
   - melmetro
   - mpd
-  - livescore
   - pccasegear
   - tramtracker
   - vagrantup
