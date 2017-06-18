@@ -20,30 +20,18 @@ ALEXA_APP_ID = 'amzn1.ask.skill.cfa6b04c-12b0-4cb1-86e9-96bdc5722ac2'
 @alexa_validate(ALEXA_APP_ID)
 @mpd
 def add_and_play_playlist(client, playlist):
-    # query MPD's API
-    data = client.search('albumartist', text)
+    if client is None:
+        return statement("I couldn't connect to m.p.d.")
 
-    # convert to dict of album names with track count
-    data = {album: len(list(items)) for album, items in itertools.groupby(data, lambda x: x['album'])}
+    # query MPD for playlists
+    if playlist not in [p['playlist'] for p in client.listplaylists()]:
+        return statement("I couldn't find a playlist called that")
 
-    if not data:
-        return statement("I couldn't find any artists matching that")
+    client.clear()
+    client.load(playlist)
+    client.play(0)
 
-    last = None
-
-    # remove last item to build nice sentence
-    if len(data) > 1:
-        last_album = list(data.keys())[-1]
-        last = (last_album, data.pop(last_album),)
-
-    text = 'I found '
-    for album, tracks in data.items():
-        text += '{} with {} tracks, '.format(album, tracks)
-
-    if last:
-        text = text[:-2]
-        text += ' and {} with {} tracks, '.format(*last)
-    return statement(text[:-2])
+    return statement('Done')
 
 
 @app.ask.intent('FindArtist', mapping={'text': 'Artist'})

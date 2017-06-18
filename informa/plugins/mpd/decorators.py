@@ -8,7 +8,7 @@ def mpd(f):
     def wrapped(*args, **kwargs):
         client = libmpd.MPDClient()
         try:
-            client.connect('127.0.0.1', 6600)
+            client.connect('192.168.1.103', 6600)
             return f(client, *args, **kwargs)
         finally:
             client.close()
