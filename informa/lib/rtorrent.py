@@ -1,8 +1,13 @@
+import math
 import re
 import socket
 from urllib.parse import urlparse
 from socket import error as SocketError
 import xmlrpc.client
+
+
+class RtorrentError(Exception):
+    pass
 
 
 class SCGITransport(xmlrpc.client.Transport):
@@ -119,27 +124,72 @@ class RTorrent():
     def __init__(self, host, port):
         self.server = SCGIServerProxy('scgi://{}:{}/'.format(host, port))
 
-    def get_torrents(self, tag=None):
+    def get_torrents(self, tag_filter=None):
         try:
-            torrents = self.server.d.multicall(
-                'main', 'd.complete=', 'd.size_bytes=', 'd.completed_bytes=', 'd.get_name=', 'd.get_custom1='
+            downloads = self.server.d.multicall(
+                'main',
+                'd.hash=',
+                'd.name=',
+                'd.completed_bytes=',
+                'd.custom1='
             )
-            if torrents is None:
-                return None
-
-            data = []
-            for t in torrents:
-                if not tag or (tag and t[4] == tag):
-                    # calculate % done
-                    data.append({
-                        'name': t[3],
-                        'done': '{0:.1f}%'.format(float(t[2]) / float(t[1]) * 100),
-                    })
-                    if tag:
-                        data['tag'] = t[4]
-
-            return data
+            if downloads is None:
+                raise RtorrentError('Failed to load from rtorrent SCGI')
 
         except (xmlrpc.client.Fault, SocketError) as e:
-            # TODO error logging etc
-            return None
+            raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
+
+        data = {}
+
+        for d in downloads:
+            if not tag_filter or (tag_filter and d[4] == tag_filter):
+                # calculate % done
+                data[d[0]] = {
+                    'name': d[1],
+                    'size': format_size(d[2]),
+                    'tag': d[3],
+                    'files': [],
+                }
+
+                try:
+                    files = self.server.f.multicall(
+                        d[0],
+                        '',
+                        'f.path=',
+                        'f.size_bytes=',
+                        'f.size_chunks=',
+                        'f.completed_chunks=',
+                        'f.priority=',
+                    )
+                except (xmlrpc.client.Fault, SocketError) as e:
+                    raise RtorrentError('Failed to load d.files from rtorrent SCGI: {}'.format(e))
+
+                for f in files:
+                    data[d[0]]['files'].append({
+                        'filename': f[0],
+                        'size': format_size(f[1]),
+                        'progress': '{0:.1f}%'.format(float(f[3]) / float(f[2]) * 100),
+                        'priority': 'skip' if f[4] == 0 else 'high' if f[4] == 2 else 'normal',
+                    })
+
+                try:
+                    # torrent total progress based on each file's progress, ignoring "skipped" files
+                    torrent_progress = sum([f[3] for f in files if f[4] > 0]) / sum([f[2] for f in files if f[4] > 0]) * 100
+                except ZeroDivisionError:
+                    # all files are "skip"
+                    torrent_progress = 0
+
+                data[d[0]]['progress'] = '{0:.1f}%'.format(torrent_progress)
+                data[d[0]]['complete'] = torrent_progress == 100
+
+        return data
+
+
+def format_size(size):
+    if size <= 0:
+        return '0B'
+
+    i = int(math.floor(math.log(size, 1024)))
+    s = round(size / math.pow(1024, i), 2)
+
+    return '{}{}'.format(s, ('B', 'KB', 'MB', 'GB', 'TB', 'PB')[i])
