@@ -16,7 +16,6 @@ WATCH_DIR = '/var/app/watch'
 
 class F1Plugin(InformaBasePlugin):
     run_every = crontab(minute='*/5', hour='13-20', day_of_week='sat,sun')
-    persist = True
 
     def process(self):
         try:

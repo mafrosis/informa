@@ -6,7 +6,6 @@ import logging
 
 import deepdiff
 from flask import current_app as app
-import memcache
 import redis
 
 
@@ -20,13 +19,9 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     enabled = False
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
-    persist = False
 
     def __init__(self):
-        # create memcache interface
-        self.memcache = memcache.Client(
-            ['{MEMCACHE_HOST}:{MEMCACHE_PORT}'.format(**app.config)], debug=0
-        )
+        self.redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
 
         # create logger for this plugin
         self.logger = logging.getLogger('informa').getChild(str(self))
@@ -63,27 +58,19 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
 
 
     def load(self):
-        # get from memcache
-        data = self.memcache.get(str(self))
+        # attempt to load data from cold storage
+        obj = None
 
-        if not data:
-            # attempt to load data from cold storage
-            redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
-            obj = None
+        try:
+            obj = self.redis_.get(str(self))
+        except redis.exceptions.ConnectionError:
+            pass
 
-            try:
-                obj = redis_.get(str(self))
-            except redis.exceptions.ConnectionError:
-                pass
+        if obj is None:
+            return
 
-            if obj is None:
-                return
-
-            # parse JSON
-            data = json.loads(obj.decode('utf8'))
-
-            # add to memcache
-            self.memcache.set(str(self), data)
+        # parse JSON
+        data = json.loads(obj.decode('utf8'))
 
         return data
 
@@ -95,16 +82,10 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
             elif type(data) is dict:
                 data = dict_sort(data)
 
-        # persist in the DB
-        if self.persist is True:
-            try:
-                redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
-                redis_.set(str(self), json.dumps(data))
-            except redis.exceptions.ConnectionError:
-                pass
-
-        # store into memcache
-        self.memcache.set(str(self), data)
+        try:
+            self.redis_.set(str(self), json.dumps(data))
+        except redis.exceptions.ConnectionError:
+            pass
 
 
 def dict_sort(data):

@@ -4,12 +4,6 @@ volumes:
   redis-data: {}
 
 services:
-  memcache:
-    image: memcached:alpine
-    restart: always
-    ports:
-      - 11211:11211
-
   redis:
     image: redis:3.2.6-alpine
     restart: always

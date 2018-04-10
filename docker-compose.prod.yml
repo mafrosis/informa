@@ -11,9 +11,6 @@ services:
     depends_on:
       - flask
 
-  memcache:
-    image: mafrosis/rpi-memcached
-
   redis:
     image: hypriot/rpi-redis
 

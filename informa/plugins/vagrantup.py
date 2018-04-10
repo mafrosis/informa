@@ -12,7 +12,6 @@ FEED_RSS = 'https://github.com/mitchellh/vagrant/releases.atom'
 
 class VagrantupPlugin(InformaBasePlugin):
     run_every = timedelta(days=1)
-    persist = True
 
     def process(self):
         try:
