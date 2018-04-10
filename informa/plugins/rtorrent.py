@@ -4,9 +4,8 @@ from .base import InformaBasePlugin
 from ..lib.decorators import retry
 from ..lib.rtorrent import RTorrent
 
-HOST = '172.18.0.1'
+HOST = 'jorg'
 PORT = 5000
-RTORRENT_XMLRPC = 'scgi://{}:{}'.format(HOST, PORT)
 
 
 class RTorrentPlugin(InformaBasePlugin):
