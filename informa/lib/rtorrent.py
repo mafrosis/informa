@@ -185,6 +185,37 @@ class RTorrent():
         return data
 
 
+    def set_tag(self, hash_id, tag_name):
+        '''
+        Set tag in custom1 field on a torrent
+
+        Params:
+            hash_id (str):      download hash_id
+            tag_name (str):     tag text
+        '''
+        try:
+            self.server.d.custom1.set(hash_id, tag_name)
+
+        except (xmlrpc.client.Fault, SocketError) as e:
+            raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
+
+
+    def set_file_priority(self, hash_id, file_index, priority):
+        '''
+        Set priority of a file in a torrent
+
+        Params:
+            hash_id (str):      download hash_id
+            file_index (int):   position in download.files[] from get_torrents()
+            priority (int):     0: skip, 1: normal, 2: high
+        '''
+        try:
+            self.server.f.priority.set('{}:f{}'.format(hash_id, file_index), priority)
+
+        except (xmlrpc.client.Fault, SocketError) as e:
+            raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
+
+
 def format_size(size):
     if size <= 0:
         return '0B'
