@@ -1,3 +1,5 @@
+.PHONY: celerybeat celery flask gunicorn
+
 celerybeat:
 	rm -f /run/celerybeat.pid
 	C_FORCE_ROOT=1 celery beat -A entrypoint.celery --pidfile=/run/celerybeat.pid
