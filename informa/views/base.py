@@ -1,16 +1,16 @@
 from flask import Blueprint, jsonify
 from flask import current_app as app
 
-base = Blueprint('base', __name__)
+bp = Blueprint('base', __name__)
 
 
-@base.route('/')
+@bp.route('/')
 def index():
     return get()
 
 
-@base.route('/get')
-@base.route('/get/<plugin>')
+@bp.route('/get')
+@bp.route('/get/<plugin>')
 def get(plugin=None):
     data = {}
 
@@ -28,7 +28,7 @@ def get(plugin=None):
     return jsonify(data=data)
 
 
-@base.route('/force-poll')
+@bp.route('/force-poll')
 def poll():
     # force background load of all plugins
     for name, plugin in app.config['plugins'].items():

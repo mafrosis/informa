@@ -39,7 +39,7 @@ def create_app():
     app.celery.Task = ContextTask
 
     # register views
-    app.register_blueprint(base)
+    app.register_blueprint(base.bp)
 
     # import plugins, with a Flask context
     with app.app_context():
