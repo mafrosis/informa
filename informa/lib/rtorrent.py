@@ -136,6 +136,8 @@ class RTorrent():
             if downloads is None:
                 raise RtorrentError('Failed to load from rtorrent SCGI')
 
+        except ConnectionRefusedError:
+            raise RtorrentError('Rtorrent is down')
         except (xmlrpc.client.Fault, SocketError) as e:
             raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
 
@@ -161,6 +163,8 @@ class RTorrent():
                         'f.completed_chunks=',
                         'f.priority=',
                     )
+                except ConnectionRefusedError:
+                    raise RtorrentError('Rtorrent is down')
                 except (xmlrpc.client.Fault, SocketError) as e:
                     raise RtorrentError('Failed to load d.files from rtorrent SCGI: {}'.format(e))
 
@@ -196,6 +200,8 @@ class RTorrent():
         try:
             self.server.d.custom1.set(hash_id, tag_name)
 
+        except ConnectionRefusedError:
+            raise RtorrentError('Rtorrent is down')
         except (xmlrpc.client.Fault, SocketError) as e:
             raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
 
@@ -212,6 +218,8 @@ class RTorrent():
         try:
             self.server.f.priority.set('{}:f{}'.format(hash_id, file_index), priority)
 
+        except ConnectionRefusedError:
+            raise RtorrentError('Rtorrent is down')
         except (xmlrpc.client.Fault, SocketError) as e:
             raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
 
