@@ -16,7 +16,6 @@ class Meta(type):
 
 
 class InformaBasePlugin(app.celery.Task, metaclass=Meta):
-    enabled = False
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
 
@@ -55,7 +54,6 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     @abstractmethod
     def process(self):
         pass
-
 
     def load(self):
         # attempt to load data from cold storage
