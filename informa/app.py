@@ -9,8 +9,9 @@ from celery import Celery, signals
 from flask import Flask
 from flask_ask import Ask
 
-from .views import base
 from .exceptions import InactivePlugin, NotAPlugin
+from .lib.json import init_json
+from .views import base
 
 logger = logging.getLogger('informa')
 
@@ -19,6 +20,8 @@ def create_app():
     # setup Flask
     app = Flask(__name__)
     app.config.from_pyfile('../config/flask.conf.py')
+
+    init_json(app)
 
     # init Flask-Ask
     app.ask = Ask(app, '/alexa')
