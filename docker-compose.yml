@@ -18,6 +18,7 @@ services:
     volumes:
       - ./:/srv/app
       - /srv/app/.git
+      - /etc/localtime:/etc/localtime
     depends_on:
       - redis
 
@@ -27,6 +28,7 @@ services:
     volumes:
       - ./:/srv/app
       - /srv/app/.git
+      - /etc/localtime:/etc/localtime
     depends_on:
       - redis
       - celery
@@ -42,6 +44,7 @@ services:
     volumes:
       - ./:/srv/app
       - /srv/app/.git
+      - /etc/localtime:/etc/localtime
     ports:
       - 8003:8003
     depends_on:
