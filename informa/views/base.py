@@ -20,7 +20,13 @@ def get(plugin=None):
             data[plugin_name] = app.config['cls'][plugin_name].load()
 
     else:
-        data = app.config['cls'][plugin].load()
+        # if requested plugin is not already enabled, load it
+        if plugin not in app.config['plugins']['enabled']:
+            from informa.app import load_plugin
+            load_plugin(app, 'informa.plugins.{}'.format(plugin))
+
+        # load plugin data
+        data = app.config['cls'][plugin].run()
 
     return jsonify(data)
 
