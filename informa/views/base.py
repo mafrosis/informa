@@ -16,16 +16,13 @@ def get(plugin=None):
 
     if not plugin:
         # load each module's latest data
-        for name, plugin in app.config['plugins'].items():
-            if plugin['enabled'] is False:
-                continue
+        for plugin_name in app.config['plugins']['enabled']:
+            data[plugin_name] = app.config['cls'][plugin_name].load()
 
-            data[name.replace('plugins.','')] = plugin['cls'].load()
     else:
-        plugin = app.config['plugins'].get('plugins.{}'.format(plugin))
-        data = plugin['cls'].load()
+        data = app.config['cls'][plugin].load()
 
-    return jsonify(data=data)
+    return jsonify(data)
 
 
 @bp.route('/force-poll')
