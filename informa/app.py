@@ -6,7 +6,7 @@ import sys
 import yaml
 
 from celery import Celery, signals
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_ask import Ask
 
 from .exceptions import DisabledPlugin, InactivePlugin, NotAPlugin
@@ -139,6 +139,21 @@ def load_plugin(app, modname, is_plugin_active=False):
         if is_plugin_active:
             task = app.celery.register_task(cls)
             app.celery.add_periodic_task(task.run_every, task.s(), name=task.__name__)
+
+        plugin_blueprint = None
+
+        try:
+            # get instance of flask.Blueprint from module
+            plugin_blueprint = next(iter([
+                v for v in mod.__dict__.values() if isinstance(v, Blueprint)
+            ]))
+        except StopIteration:
+            pass
+
+        # module can expose a single Flask blueprint
+        if plugin_blueprint:
+            app.register_blueprint(plugin_blueprint)
+            logger.info('{} registered an API'.format(plugin_name))
 
         # store refs to all plugins in Flask.config for CLI access
         if not 'cls' in app.config:
