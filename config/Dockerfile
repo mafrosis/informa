@@ -16,7 +16,7 @@ WORKDIR /srv/app
 
 COPY config /srv/app/config
 
-RUN pip3 install -r config/requirements-dev.txt
+RUN pip3 install --pre -r config/requirements-dev.txt
 
 ENV FLASK_APP=entrypoint.py
 

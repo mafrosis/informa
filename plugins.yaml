@@ -1,10 +1,9 @@
 enabled:
   - f1_torrents
-  - ofx
+  - dht22
 disabled:
   - melmetro
   - mpd
   - pccasegear
   - tramtracker
   - vagrantup
-  - weather
