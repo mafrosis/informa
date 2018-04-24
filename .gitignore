@@ -18,3 +18,5 @@ prod_vars.sls
 
 celerybeat-schedule.*
 bin/
+
+.pytest_cache
