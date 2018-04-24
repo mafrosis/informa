@@ -36,7 +36,7 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     def on_bound(cls, app):
         # log plugin active
         logger = logging.getLogger('informa').getChild(str(cls))
-        logger.info('active')
+        logger.info('polling in celery')
 
 
     def run(self, **kwargs):

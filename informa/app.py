@@ -9,7 +9,7 @@ from celery import Celery, signals
 from flask import Flask
 from flask_ask import Ask
 
-from .exceptions import InactivePlugin, NotAPlugin
+from .exceptions import DisabledPlugin, InactivePlugin, NotAPlugin
 from .lib.json import init_json
 from .views import base
 
@@ -84,6 +84,8 @@ def load_directory(app, path):
     """
     Load all Informa plugins from path
     """
+    all_plugins = app.config['plugins']['enabled'] + app.config['plugins']['disabled']
+
     for filename in os.listdir(path):
         if filename == '__pycache__':
             continue
@@ -94,47 +96,62 @@ def load_directory(app, path):
 
             # skip inactive plugins
             plugin_name = os.path.splitext(modname)[1][1:]
-            if plugin_name not in app.config['plugins']['enabled']:
-                raise InactivePlugin(modname)
+            if plugin_name not in all_plugins:
+                raise DisabledPlugin(modname)
+
+            is_plugin_active = True
+            if plugin_name in app.config['plugins']['disabled']:
+                is_plugin_active = False
 
         except NotAPlugin:
             continue
-        except InactivePlugin as e:
+        except DisabledPlugin as e:
             continue
 
-        load_plugin(app, modname)
+        load_plugin(app, modname, is_plugin_active)
 
 
-def load_plugin(app, modname):
+def load_plugin(app, modname, is_plugin_active=False):
     """
     Load a single plugin and register its celery task
     """
     try:
-        # dynamic import of python modules
+        # dynamic import of plugins
         mod = importlib.import_module(modname)
 
-        # get class from module
+        plugin_name = os.path.splitext(modname)[1][1:]
+
+        # late import cause celery
+        from .plugins.base import InformaBasePlugin
+
+        # get InformaBasePlugin class from module
         PluginClass = next(iter([
             v for v in mod.__dict__.values()
             if inspect.isclass(v)
-                and 'informa.plugins' in v.__module__
-                and 'base' not in v.__module__
+                and issubclass(v, InformaBasePlugin)
+                and v != InformaBasePlugin
         ]))
 
-        # instantiate task and register as periodic
-        task = app.celery.register_task(PluginClass())
-        app.celery.add_periodic_task(task.run_every, task.s(), name=task.__name__)
+        # instantiate task
+        cls = PluginClass()
 
-        plugin_name = os.path.splitext(modname)[1][1:]
+        # only active in plugins.yml, and register as periodic
+        if is_plugin_active:
+            task = app.celery.register_task(cls)
+            app.celery.add_periodic_task(task.run_every, task.s(), name=task.__name__)
 
         # store refs to all plugins in Flask.config for CLI access
         if not 'cls' in app.config:
             app.config['cls'] = {}
-        app.config['cls'][plugin_name] = task
+
+        app.config['cls'][plugin_name] = cls
+
+        logger.info('{} loaded'.format(plugin_name))
 
     except StopIteration:
         # no valid plugin found in module
-        pass
+        logger.error('No plugin in module: {}'.format(modname))
+
     except (ImportError, AttributeError) as e:
         logger.error('Bad plugin: {} ({})'.format(modname, e))
 

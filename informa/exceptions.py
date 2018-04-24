@@ -3,3 +3,6 @@ class NotAPlugin(Exception):
 
 class InactivePlugin(Exception):
     pass
+
+class DisabledPlugin(Exception):
+    pass
