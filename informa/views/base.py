@@ -26,7 +26,11 @@ def get(plugin=None):
             load_plugin(app, 'informa.plugins.{}'.format(plugin))
 
         # load plugin data
-        data = app.config['cls'][plugin].run()
+        data = app.config['cls'][plugin].load()
+
+        # refresh data if none is present
+        if not data:
+            data = app.config['cls'][plugin].run()
 
     return jsonify(data)
 

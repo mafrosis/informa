@@ -32,7 +32,13 @@ def load(name, debug):
         print('Unknown plugin')
         return
 
-    data = app.config['cls'][name].run()
+    # load plugin data
+    data = app.config['cls'][name].load()
+
+    # refresh data if none is present
+    if not data:
+        data = app.config['cls'][name].run()
+
     print(json.dumps({name: data}, indent=2))
 
 
