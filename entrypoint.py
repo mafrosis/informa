@@ -1,7 +1,7 @@
-import json
 import logging
 
 import click
+from flask import json
 
 from informa.app import create_app, load_plugin
 
@@ -32,14 +32,8 @@ def load(name, debug):
         print('Unknown plugin')
         return
 
-    # load plugin data
-    data = app.config['cls'][name].load()
-
-    # refresh data if none is present
-    if not data:
-        data = app.config['cls'][name].run()
-
-    print(json.dumps({name: data}, indent=2))
+    data = app.config['cls'][name].get()
+    print(json.dumps(data, indent=2))
 
 
 @app.cli.command()

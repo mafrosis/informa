@@ -40,6 +40,9 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
 
 
     def run(self, **kwargs):
+        """
+        Async run method called on celery worker
+        """
         data = self.process()
         if data is None:
             raise Exception("Plugin '{}' didn't return anything".format(str(self)))
@@ -47,13 +50,29 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
         # if data has changed since last run, log and store
         if deepdiff.DeepDiff(self.load(), data):
             self.logger.info(data)
-            self.store(data)
+            self._store(data)
 
         return data
 
     @abstractmethod
     def process(self):
+        """
+        Method must be overriden in child-class to implement plugin functionality
+        """
         pass
+
+    def get(self):
+        """
+        Retrieve data stored for this plugin
+        """
+        data = self.load()
+
+        # refresh data if none is present
+        if not data:
+            data = self.run()
+
+        return json.loads(data)
+
 
     def load(self):
         # attempt to load data from cold storage
@@ -67,12 +86,9 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
         if obj is None:
             return
 
-        # parse JSON
-        data = json.loads(obj.decode('utf8'))
+        return obj.decode('utf8')
 
-        return data
-
-    def store(self, data):
+    def _store(self, data):
         # sort the data
         if self.sort_output is True:
             if type(data) is list:

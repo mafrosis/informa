@@ -17,7 +17,7 @@ def get(plugin=None):
     if not plugin:
         # load each module's latest data
         for plugin_name in app.config['plugins']['enabled']:
-            data[plugin_name] = app.config['cls'][plugin_name].load()
+            data[plugin_name] = app.config['cls'][plugin_name].get()
 
     else:
         # if requested plugin is not already enabled, load it
@@ -26,11 +26,7 @@ def get(plugin=None):
             load_plugin(app, 'informa.plugins.{}'.format(plugin))
 
         # load plugin data
-        data = app.config['cls'][plugin].load()
-
-        # refresh data if none is present
-        if not data:
-            data = app.config['cls'][plugin].run()
+        data = app.config['cls'][plugin].get()
 
     return jsonify(data)
 
