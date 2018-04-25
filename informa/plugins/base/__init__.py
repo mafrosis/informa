@@ -18,6 +18,7 @@ class Meta(type):
 class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
+    celery_disable = False
 
     def __init__(self):
         self.redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])

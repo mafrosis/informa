@@ -13,6 +13,8 @@ bp = Blueprint('dht22', __name__, url_prefix='/api/dht22')
 
 
 class Dht22Plugin(InformaBasePlugin):
+    celery_disable = True
+
     def process(self):
         pass
 

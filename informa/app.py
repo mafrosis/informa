@@ -136,7 +136,7 @@ def load_plugin(app, modname, is_plugin_active=False):
         cls = PluginClass()
 
         # only active in plugins.yml, and register as periodic
-        if is_plugin_active:
+        if is_plugin_active and not cls.celery_disable:
             task = app.celery.register_task(cls)
             app.celery.add_periodic_task(task.run_every, task.s(), name=task.__name__)
 
