@@ -19,6 +19,7 @@ services:
       - ./:/srv/app
       - /srv/app/.git
       - /etc/localtime:/etc/localtime
+      - /home/mafro/watch:/watch
     depends_on:
       - redis
 
@@ -45,6 +46,7 @@ services:
       - ./:/srv/app
       - /srv/app/.git
       - /etc/localtime:/etc/localtime
+      - /home/mafro/watch:/watch
     ports:
       - 8003:8003
     depends_on:
