@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify
-from flask import current_app as app
+from flask import Blueprint, current_app as app, jsonify, request
 
 bp = Blueprint('base', __name__)
 
@@ -14,10 +13,12 @@ def index():
 def get(plugin=None):
     data = {}
 
+    force = bool(request.args.get('force', 0))
+
     if not plugin:
         # load each module's latest data
         for plugin_name in app.config['plugins']['enabled']:
-            data[plugin_name] = app.config['cls'][plugin_name].get()
+            data[plugin_name] = app.config['cls'][plugin_name].get(force=force)
 
     else:
         # if requested plugin is not already enabled, load it
@@ -26,7 +27,7 @@ def get(plugin=None):
             load_plugin(app, 'informa.plugins.{}'.format(plugin))
 
         # load plugin data
-        data = app.config['cls'][plugin].get()
+        data = app.config['cls'][plugin].get(force=force)
 
     return jsonify(data)
 

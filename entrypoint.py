@@ -17,7 +17,8 @@ celery = app.celery
 @app.cli.command()
 @click.argument('name', required=True)
 @click.option('--debug', default=False, is_flag=True, show_default=True)
-def load(name, debug):
+@click.option('--force', default=False, is_flag=True, show_default=True)
+def load(name, debug, force):
     '''
     Foreground load data via a single plugin
     '''
@@ -32,7 +33,7 @@ def load(name, debug):
         print('Unknown plugin')
         return
 
-    data = app.config['cls'][name].get()
+    data = app.config['cls'][name].get(force=force)
     print(json.dumps(data, indent=2))
 
 

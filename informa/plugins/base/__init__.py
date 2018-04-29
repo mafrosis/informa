@@ -62,14 +62,14 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
         """
         pass
 
-    def get(self):
+    def get(self, force=False):
         """
         Retrieve data stored for this plugin
         """
         data = self.load()
 
         # refresh data if none is present
-        if not data:
+        if not data or force is True:
             data = self.run()
 
         return json.loads(data)
