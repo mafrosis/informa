@@ -1,4 +1,6 @@
-from flask import Blueprint, current_app as app, jsonify, request
+import json
+
+from flask import Blueprint, current_app as app, jsonify, request, render_template_string
 
 bp = Blueprint('base', __name__)
 
@@ -29,7 +31,7 @@ def get(plugin=None):
         # load plugin data
         data = app.config['cls'][plugin].get(force=force)
 
-    return jsonify(data)
+    return render_template_string(TEMPLATE, data=json.dumps(data, indent=2))
 
 
 @bp.route('/force-poll')
@@ -40,3 +42,9 @@ def poll():
             plugin['cls'].delay()
 
     return jsonify({'OK': True})
+
+
+TEMPLATE = """<html>
+<head></head>
+<body><pre>{{ data }}</pre></body>
+</html>"""
