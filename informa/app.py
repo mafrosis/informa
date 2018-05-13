@@ -51,13 +51,6 @@ def create_app():
     return app
 
 
-@signals.setup_logging.connect
-def setup_celery_logging(**kwargs):
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter('[%(asctime)s %(levelname)s/%(processName)s] %(name)s %(message)s'))
-    logger.addHandler(handler)
-
-
 def find_plugins(app):
     """
     Load plugins.yaml into flask_app.config and load plugin directories
