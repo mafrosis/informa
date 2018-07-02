@@ -18,7 +18,6 @@ TORRENT_URL = 'https://katcr.co/get/user-uploads/62512875/authtoken/37217f748d3b
 #    'kat': 'https://katcr.co/user/smcgill1969/uploads/page/',
 #    'pb': 'https://thepiratebay.org/user/smcgill1969/',
 #}
-WATCH_DIR = '/watch'
 
 
 class F1Plugin(InformaBasePlugin):
@@ -39,7 +38,9 @@ class F1Plugin(InformaBasePlugin):
             }
 
         self._check_for_new(data)
-        self._magnet_to_torrent(data)
+
+        # add magnets to rtorrent
+        self._add_magnet_to_rtorrent(data)
 
         try:
             self._set_torrent_file_priorities(data)
@@ -156,44 +157,20 @@ class F1Plugin(InformaBasePlugin):
                         self.logger.error('Failed loading from {}'.format(item['page_link']))
 
 
-    def _magnet_to_torrent(self, data):
+    def _add_magnet_to_rtorrent(self, data):
         '''
-        Convert any stored magnet links into real torrent files in /watch
+        Add magnets directly to rtorrent via RPC
         '''
-        if not os.path.exists('/watch'):
-            self.logger.error('No /watch directory!')
-            return
-
         for race_id, stages in data['races'].items():
             for stage, race_data in stages.items():
+
                 if race_data['added_to_rtorrent'] is False:
                     rt = RTorrent(RTORRENT_HOST, 5000)
-                    self.logger.info(race_data['magnet'])
                     rt.add_magnet(race_data['magnet'])
 
-                    # parse magnet link to create torrent filename
+                    # parse magnet link to get torrent filename
                     qs = urlparse(race_data['magnet']).query.split('&')
                     filename = next((p[3:] for p in qs if p.startswith('dn=')), '')
-                    hash_ = qs[0][12:]
-
-                    self.logger.debug("Calling magnet to torrent for '{}'".format(filename))
-
-                    # convert magnet links to torrent file via API
-                    resp = requests.post(
-                        'http://magnet2torrent.com/upload/',
-                        headers={
-                            'User-Agent': 'Mozilla/5.0'
-                        },
-                        data={
-                            'magnet': race_data['magnet']
-                        }
-                    )
-                    # write torrent into watch dir
-                    with open(os.path.join(WATCH_DIR, 'magnet-{}-{}.torrent'.format(filename, hash_)), 'wb') as f:
-                        f.write(resp.content)
 
                     self.logger.info('MAGNET torrent for {}'.format(filename))
                     race_data['added_to_rtorrent'] = True
-
-                    # hang for rtorrent to pick up watched torrents
-                    time.sleep(20)

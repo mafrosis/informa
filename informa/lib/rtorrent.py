@@ -189,6 +189,22 @@ class RTorrent():
         return data
 
 
+    def add_magnet(self, magnet_url):
+        '''
+        Add a magnet URL
+
+        Params:
+            magnet_url (str):   duh
+        '''
+        try:
+            self.server.load.start_verbose('', magnet_url)
+
+        except ConnectionRefusedError:
+            raise RtorrentError('Rtorrent is down')
+        except (xmlrpc.client.Fault, SocketError) as e:
+            raise RtorrentError('Failed to load from rtorrent SCGI: {}'.format(e))
+
+
     def set_tag(self, hash_id, tag_name):
         '''
         Set tag in custom1 field on a torrent
