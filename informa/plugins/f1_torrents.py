@@ -150,12 +150,15 @@ class F1Plugin(InformaBasePlugin):
                         if race_id not in data['races']:
                             data['races'][race_id] = dict()
 
-                        data['races'][race_id]['r' if 'Race' in title else 'q'] = {
-                            'title': title,
-                            'url': url,
-                            'magnet': magnet,
-                            'added_to_rtorrent': False,
-                        }
+                        event = 'r' if 'Race' in title else 'q'
+
+                        if event not in data['races'][race_id]:
+                            data['races'][race_id][event] = {
+                                'title': title,
+                                'url': url,
+                                'magnet': magnet,
+                                'added_to_rtorrent': False,
+                            }
                     except:
                         self.logger.error('Failed loading from {}'.format(item['page_link']))
 
