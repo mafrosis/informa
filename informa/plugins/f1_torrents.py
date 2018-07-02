@@ -1,5 +1,6 @@
 #import datetime
 import os
+import datetime
 import time
 from urllib.parse import urlparse
 
@@ -21,7 +22,7 @@ TORRENT_URL = 'https://katcr.co/get/user-uploads/62512875/authtoken/37217f748d3b
 
 
 class F1Plugin(InformaBasePlugin):
-    run_every = crontab(minute='*/15')
+    run_every = crontab(minute='*/1')
 
     def process(self, data):
         '''
@@ -37,7 +38,9 @@ class F1Plugin(InformaBasePlugin):
                 'races': {}
             }
 
-        self._check_for_new(data)
+        # plugin runs every minute; only check for torrents every 15 mins
+        if datetime.datetime.now().minute % 15 == 0:
+            self._check_for_new(data)
 
         # add magnets to rtorrent
         self._add_magnet_to_rtorrent(data)
