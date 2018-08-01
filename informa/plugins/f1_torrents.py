@@ -106,60 +106,62 @@ class F1Plugin(InformaBasePlugin):
             title = item['torrent_name'].replace(' ', '.')
 
             if title.startswith('Formula.1.{}'.format(race_id)) and title.endswith('SkyF1HD.1080p50'):
-                if 'Race' in title or 'Qualifying' in title:
-                    try:
-                        ok = False
-                        trys = 0
+                if not 'Race' in title and not 'Qualifying' in title:
+                    continue
 
-                        sess = requests.Session()
-                        url = 'https://katcr.co/torrent/{}/{}.html'.format(
-                            item['hashed_id'], item['page_link']
-                        )
-                        self.logger.debug('Loading {}'.format(url))
+                try:
+                    ok = False
+                    trys = 0
 
-                        while ok is False and trys <= 2:
-                            sess.head(url, timeout=5)
-                            resp = sess.get(url, timeout=5)
+                    sess = requests.Session()
+                    url = 'https://katcr.co/torrent/{}/{}.html'.format(
+                        item['hashed_id'], item['page_link']
+                    )
+                    self.logger.debug('Loading {}'.format(url))
 
-                            if 'ERROR LOADING CONTENT' in resp.text:
-                                trys += 1
-                                time.sleep(1)
-                                self.logger.debug('Retry {}'.format(trys))
-                            else:
-                                ok = True
+                    while ok is False and trys <= 2:
+                        sess.head(url, timeout=5)
+                        resp = sess.get(url, timeout=5)
 
-                        if trys >= 2:
-                            self.logger.error('Failed loading KAT torrent page: {}'.format(url))
-                            continue
+                        if 'ERROR LOADING CONTENT' in resp.text:
+                            trys += 1
+                            time.sleep(1)
+                            self.logger.debug('Retry {}'.format(trys))
+                        else:
+                            ok = True
 
-                        soup = bs4.BeautifulSoup(resp.text, 'html.parser')
+                    if trys >= 2:
+                        self.logger.error('Failed loading KAT torrent page: {}'.format(url))
+                        continue
 
-                        magnet = next(iter([
-                            a.attrs['href']
-                            for a in soup.select('a.button--special_icon')
-                            if a.attrs['href'].startswith('magnet')
-                        ]), None)
+                    soup = bs4.BeautifulSoup(resp.text, 'html.parser')
 
-                        self.logger.debug('Got magnet {}'.format(magnet))
+                    magnet = next(iter([
+                        a.attrs['href']
+                        for a in soup.select('a.button--special_icon')
+                        if a.attrs['href'].startswith('magnet')
+                    ]), None)
 
-                        if not magnet:
-                            self.logger.error('Failed getting magnet on {}'.format(url))
-                            continue
+                    self.logger.debug('Got magnet {}'.format(magnet))
 
-                        if race_id not in data['races']:
-                            data['races'][race_id] = dict()
+                    if not magnet:
+                        self.logger.error('Failed getting magnet on {}'.format(url))
+                        continue
 
-                        event = 'r' if 'Race' in title else 'q'
+                    if race_id not in data['races']:
+                        data['races'][race_id] = dict()
 
-                        if event not in data['races'][race_id]:
-                            data['races'][race_id][event] = {
-                                'title': title,
-                                'url': url,
-                                'magnet': magnet,
-                                'added_to_rtorrent': False,
-                            }
-                    except:
-                        self.logger.error('Failed loading from {}'.format(item['page_link']))
+                    event = 'r' if 'Race' in title else 'q'
+
+                    if event not in data['races'][race_id]:
+                        data['races'][race_id][event] = {
+                            'title': title,
+                            'url': url,
+                            'magnet': magnet,
+                            'added_to_rtorrent': False,
+                        }
+                except:
+                    self.logger.error('Failed loading from {}'.format(item['page_link']))
 
 
     def _add_magnet_to_rtorrent(self, data):
