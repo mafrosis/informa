@@ -112,7 +112,7 @@ class F1Plugin(InformaBasePlugin):
                         trys = 0
 
                         sess = requests.Session()
-                        url = 'https://katcr.co/min/torrent/{}/{}.html'.format(
+                        url = 'https://katcr.co/torrent/{}/{}.html'.format(
                             item['hashed_id'], item['page_link']
                         )
                         self.logger.debug('Loading {}'.format(url))
