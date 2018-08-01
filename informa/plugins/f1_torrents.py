@@ -65,16 +65,15 @@ class F1Plugin(InformaBasePlugin):
                 # set label on F1 torrents
                 rt.set_tag(hash_id, 'F1')
 
-                # disable first and last parts for qualy
-                if 'Qualifying' in torrent_data['name']:
-                    rt.set_file_priority(hash_id, 0, 0)
-                    rt.set_file_priority(hash_id, 2, 0)
-                    self.logger.info('Disabled pre/post-qualifying on {}'.format(torrent_data['name']))
-
-                # disable last part for race
-                if 'Race' in torrent_data['name']:
-                    rt.set_file_priority(hash_id, 2, 0)
-                    self.logger.info('Disabled post-race on {}'.format(torrent_data['name']))
+                # load torrent files and their index
+                for i, file_data in enumerate(torrent_data['files']):
+                    # disable first and last parts for qualy
+                    if 'Pre-Race.Buildup' not in file_data['filename'] and 'Session' not in file_data['filename']:
+                        rt.set_file_priority(hash_id, i, 0)
+                        self.logger.info('Disabled {} on {}'.format(
+                            file_data['filename'],
+                            torrent_data['name'],
+                        ))
 
 
     #@retry(times=3, sleep=3)
