@@ -143,7 +143,7 @@ class F1Plugin(InformaBasePlugin):
                         self.logger.debug('Got magnet {}'.format(magnet))
 
                         if not magnet:
-                            # TODO couldnt parse magnet failure
+                            self.logger.error('Failed getting magnet on {}'.format(url))
                             continue
 
                         if race_id not in data['races']:
