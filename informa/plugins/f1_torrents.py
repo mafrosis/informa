@@ -108,6 +108,8 @@ class F1Plugin(InformaBasePlugin):
             if title.startswith('Formula.1.{}'.format(race_id)) and title.endswith('SkyF1HD.1080p50'):
                 if not 'Race' in title and not 'Qualifying' in title:
                     continue
+                if 'Teds' in title:
+                    continue
 
                 try:
                     ok = False
