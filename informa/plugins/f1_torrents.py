@@ -39,6 +39,13 @@ class F1Plugin(InformaBasePlugin):
         if self.force is True or datetime.datetime.now().minute % 15 == 0:
             self._check_for_new(data)
 
+        # prune data history
+        data['races'] = {
+            k:v for k,v in data['races'].items()
+            if k == '{}x{:02d}'.format(CURRENT_SEASON, data['latest_race'])
+            or k == '{}x{:02d}'.format(CURRENT_SEASON, data['latest_race']-1)
+        }
+
         # add magnets to rtorrent
         self._add_magnet_to_rtorrent(data)
 
