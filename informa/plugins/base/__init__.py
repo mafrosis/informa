@@ -19,6 +19,7 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
     run_every = datetime.timedelta(minutes=30)
     sort_output = False
     celery_disable = False
+    force = False
 
     def __init__(self):
         self.redis_ = redis.StrictRedis(app.config['REDIS_HOST'], app.config['REDIS_PORT'])
@@ -44,7 +45,9 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
         """
         Async run method called on celery worker
         """
-        data = self.process()
+        self.logger.debug('Running {}'.format(str(self)))
+
+        data = self.process(kwargs['data'] if 'data' in kwargs else {})
         if data is None:
             raise Exception("Plugin '{}' didn't return anything".format(str(self)))
 
@@ -68,11 +71,18 @@ class InformaBasePlugin(app.celery.Task, metaclass=Meta):
         """
         data = self.load()
 
+        # cast strings as JSON
+        if type(data) is str:
+            data = json.loads(data)
+
+        # set force flag on plugin object
+        self.force = force
+
         # refresh data if none is present
         if not data or force is True:
-            data = self.run()
+            data = self.run(data=data)
 
-        return json.loads(data)
+        return data
 
 
     def load(self):

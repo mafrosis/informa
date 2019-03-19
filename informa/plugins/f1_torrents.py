@@ -39,7 +39,7 @@ class F1Plugin(InformaBasePlugin):
             }
 
         # plugin runs every minute; only check for torrents every 15 mins
-        if datetime.datetime.now().minute % 15 == 0:
+        if self.force is True or datetime.datetime.now().minute % 15 == 0:
             self._check_for_new(data)
 
         # add magnets to rtorrent
