@@ -104,6 +104,10 @@ class F1Plugin(InformaBasePlugin):
             self.logger.error('Failed loading from {}'.format(TORRENT_URL))
             return
 
+        if 'Site maintenance in process' in resp.text:
+            self.logger.error('KAT down for maintenance {}'.format(TORRENT_URL))
+            return
+
         try:
             soup = bs4.BeautifulSoup(resp.text, 'html.parser')
 
