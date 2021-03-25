@@ -5,6 +5,6 @@ celery==3.1.11
 python-memcached==1.53
 gunicorn==19.3.0
 pytz==2014.2
-PyYAML==3.11
+PyYAML==5.4
 -e git+https://github.com/mitsuhiko/flask-sqlalchemy.git@master#egg=flask-sqlalchemy
 requests==2.6.0
