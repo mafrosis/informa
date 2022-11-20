@@ -5,18 +5,5 @@ dist/
 *.pyc
 .env
 
-.DS_Store
-celerybeat-schedule
-celerybeat.pid
-
-.vagrant
-
-dev_vars.sls
-!dev_vars.sls.encrypted
-prod_vars.sls
-!prod_vars.sls.encrypted
-
-celerybeat-schedule.*
-bin/
-
 .pytest_cache
+venv

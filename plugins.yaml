@@ -1,9 +1,0 @@
-enabled:
-  - f1_torrents
-  - dht22
-disabled:
-  - melmetro
-  - mpd
-  - pccasegear
-  - tramtracker
-  - vagrantup
