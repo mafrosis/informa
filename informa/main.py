@@ -1,8 +1,10 @@
+import importlib
 import os
 import logging
 
+import yaml
+
 from informa.lib import app
-from informa.plugins import dans
 
 
 logger = logging.getLogger('informa')
@@ -15,4 +17,16 @@ if os.environ.get('DEBUG'):
 
 
 def main():
+    init_plugins()
     app.run()
+
+
+def init_plugins():
+    # Load active plugins from YAML config
+    with open('plugins.yaml', encoding='utf8') as f:
+        plugins = yaml.safe_load(f)['plugins']
+
+    # Iterate loaded plugins
+    for plug in plugins:
+        # Dynamic import to register rocketry tasks
+        importlib.import_module(f'informa.plugins.{plug}')
