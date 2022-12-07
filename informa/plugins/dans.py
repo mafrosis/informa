@@ -6,13 +6,12 @@ import logging
 from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
 
-from informa.lib import app
+from informa.lib import app, MQTT_BROKER
 
 
 logger = logging.getLogger('informa')
 
 
-MQTT_BROKER = 'ringil'
 MQTT_TOPIC = f'informa/{__name__}'
 TEMPLATE_NAME = 'dans.tmpl'
 
