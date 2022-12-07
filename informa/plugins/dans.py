@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import datetime
 import json
 import logging
+from typing import Optional
 
 from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
@@ -18,7 +19,7 @@ TEMPLATE_NAME = 'dans.tmpl'
 
 @dataclass
 class State(JsonSchemaMixin):
-    last_run: datetime.date = field(default=datetime.datetime.now())
+    last_run: Optional[datetime.date] = field(default=None)
 
 
 @app.task('every 1 day')
@@ -41,4 +42,5 @@ def fetch_state_and_run():
 
 
 def run(state: State):
-    logger.debug('Running, last run: %s', state.last_run)
+    logger.debug('Running, last run: %s', state.last_run or 'Never')
+    state.last_run = datetime.datetime.now()
