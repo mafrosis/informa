@@ -8,6 +8,8 @@ from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
 from rocketry import Rocketry
 
+from informa.exceptions import AppError
+
 
 app = Rocketry(config={'execution': 'thread'})
 
@@ -47,10 +49,16 @@ def fetch_run_publish(
 
         # Pass plugin state into main run function
         state = state_cls.from_dict(json.loads(msg.payload))
-        main_func(state)
 
-        # Publish plugin state back to MQTT
-        client.publish(mqtt_topic, state, retain=True)
+        try:
+            main_func(state)
+
+            # Publish plugin state back to MQTT
+            client.publish(mqtt_topic, json.dumps(state.to_dict()), retain=True)
+            logger.debug('State published')
+
+        except AppError as e:
+            logger.error(str(e))
 
         client.loop_stop()
 
