@@ -7,10 +7,10 @@ from typing import Optional
 from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
 
-from informa.lib import app, MQTT_BROKER
+from informa.lib import app, MQTT_BROKER, PluginAdapter
 
 
-logger = logging.getLogger('informa')
+logger = PluginAdapter(logging.getLogger('informa'))
 
 
 MQTT_TOPIC = f'informa/{__name__}'
