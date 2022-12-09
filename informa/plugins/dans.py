@@ -28,11 +28,17 @@ def fetch_state_and_run():
 
     def on_message(_1, _2, msg: mqtt.MQTTMessage):
         logger.debug('State retrieved')
+
+        # Pass plugin state into main run function
         state = State.from_dict(json.loads(msg.payload))
-        run(state)
+        main(state)
+
+        # Publish plugin state back to MQTT
+        client.publish(MQTT_TOPIC, state, retain=True)
 
         client.loop_stop()
 
+    # Connect to MQTT to retrieve plugin state
     client.on_message = on_message
     client.connect(MQTT_BROKER)
     client.subscribe(MQTT_TOPIC)
@@ -41,6 +47,6 @@ def fetch_state_and_run():
     logger.debug('Subscribed to %s', MQTT_TOPIC)
 
 
-def run(state: State):
+def main(state: State):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
     state.last_run = datetime.datetime.now()
