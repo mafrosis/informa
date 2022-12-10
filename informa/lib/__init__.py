@@ -1,8 +1,10 @@
+import datetime
 import inspect
 import json
 import logging
 import os
 from typing import Callable, Type, Union
+from zoneinfo import ZoneInfo
 
 from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
@@ -69,3 +71,8 @@ def fetch_run_publish(
     client.loop_start()
 
     logger.debug('Subscribed to %s', mqtt_topic)
+
+
+def now_aest() -> datetime.datetime:
+    'Utility function to return now as TZ-aware datetime'
+    return datetime.datetime.now(ZoneInfo('Australia/Melbourne'))

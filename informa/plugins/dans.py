@@ -6,7 +6,7 @@ from typing import Optional
 from dataclasses_jsonschema import JsonSchemaMixin
 import requests
 
-from informa.lib import app, fetch_run_publish, mailgun, PluginAdapter
+from informa.lib import app, fetch_run_publish, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -40,7 +40,7 @@ def run():
 
 def main(state: State):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
-    state.last_run = datetime.datetime.now()
+    state.last_run = now_aest()
 
     sess = requests.Session()
 
