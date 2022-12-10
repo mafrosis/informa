@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import datetime
 import logging
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from dataclasses_jsonschema import JsonSchemaMixin
 import requests
@@ -23,8 +23,14 @@ class Product(JsonSchemaMixin):
     target: int
 
 @dataclass
+class Alert(JsonSchemaMixin):
+    product: Product
+    ts: datetime.datetime = field(default=now_aest())
+
+@dataclass
 class State(JsonSchemaMixin):
     last_run: Optional[datetime.date] = field(default=None)
+    alerted: List[Alert] = field(default_factory=list)
 
 
 PRODUCTS = [
@@ -45,7 +51,34 @@ def main(state: State):
     sess = requests.Session()
 
     for product in PRODUCTS:
-        query_product(sess, product)
+        alert, _ = get_last_alert(product, state.alerted)
+
+        # Skip product if alerted more recently than 6 days ago
+        if alert and alert.ts > now_aest() - datetime.timedelta(days=6):
+            logger.info('Skipped recently alerted %s', product.name)
+            continue
+
+        if query_product(sess, product):
+            update_product_alert(product, state.alerted)
+
+
+def get_last_alert(product: Product, alerts: List[Alert]) -> Tuple[Optional[Alert], Optional[int]]:
+    'Lookup most recent alert for this product'
+    for i, alert in enumerate(alerts):
+        if alert.product == product:
+            return alert, i
+    return None, None
+
+
+def update_product_alert(product: Product, alerts: List[Alert]):
+    'Update the alert for this product'
+    # Remove previous alert for this product
+    _, i = get_last_alert(product, alerts)
+    if i:
+        del alerts[i]
+
+    # Create new alert timestamp for this product
+    alerts.append(Alert(product, now_aest()))
 
 
 def query_product(sess, product: Product) -> bool:
