@@ -1,0 +1,31 @@
+---
+version: '3'
+
+volumes:
+  mosquitto-data: {}
+
+services:
+  informa:
+    image: ghcr.io/mafrosis/informa:dev
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - DEBUG
+      - MQTT_BROKER
+      - MAILGUN_KEY
+    volumes:
+      - ./plugins.yaml:/src/plugins.yaml:ro
+      - ./templates:/src/templates:ro
+
+  test:
+    image: ghcr.io/mafrosis/informa:test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - MYPYPATH=/mypy-stubs
+    volumes:
+      - ./informa:/src/informa
+    depends_on:
+      - informa
