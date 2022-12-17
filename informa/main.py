@@ -1,6 +1,5 @@
 import importlib
 import json
-import os
 import logging
 
 import paho.mqtt.client as mqtt
@@ -10,15 +9,9 @@ from informa.lib import app, MQTT_BROKER
 
 
 logger = logging.getLogger('informa')
-sh = logging.StreamHandler()
-logger.addHandler(sh)
-logger.setLevel(logging.INFO)
-
-if os.environ.get('DEBUG'):
-    logger.setLevel(logging.DEBUG)
 
 
-def main():
+def start_rocketry():
     init_plugins()
     app.run()
 

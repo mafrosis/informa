@@ -4,5 +4,6 @@ pytest-mypy
 pytest-sugar
 ipdb
 types-beautifulsoup4
+types-click
 types-PyYAML
 types-requests

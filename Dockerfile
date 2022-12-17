@@ -23,4 +23,4 @@ COPY --from=builder /dist /dist
 # Install
 RUN python -m pip install --no-index --find-links=/dist informa
 
-CMD ["informa"]
+CMD ["informa", "start"]
