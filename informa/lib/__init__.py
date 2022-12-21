@@ -3,6 +3,7 @@ import inspect
 import json
 import logging
 import os
+import sys
 from typing import Callable, Type, Union
 from zoneinfo import ZoneInfo
 
@@ -13,9 +14,14 @@ from rocketry import Rocketry
 from informa.exceptions import AppError
 
 
-app = Rocketry(config={'execution': 'thread'})
+app = Rocketry(config={'execution': 'thread', 'timezone': ZoneInfo('Australia/Melbourne')})
 
 MQTT_BROKER = os.environ.get('MQTT_BROKER', 'localhost')
+
+# Abort if MQTT_BROKER is zero length
+if not MQTT_BROKER:
+    print('Exit: MQTT_BROKER environment variable is empty!')
+    sys.exit(1)
 
 
 class PluginAdapter(logging.LoggerAdapter):
