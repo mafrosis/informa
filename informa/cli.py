@@ -1,7 +1,10 @@
+import importlib
 import os
 import logging
+import time
 
 import click
+from rocketry import Rocketry
 import yaml
 
 
@@ -38,3 +41,28 @@ def list_plugins():
 
     for plug in plugins:
         print(plug)
+
+
+@cli.command
+@click.argument('plugin')
+@click.option('--timeout', default=3, help='How long to wait for plugin to finish (default: 3s)')
+def call(plugin: str, timeout: int):
+    '''
+    Run a single plugin synchronously
+
+    PLUGIN - Name of the plugin to run
+    '''
+    app = Rocketry(config={'task_execution': 'main'})
+
+    plug = importlib.import_module(f'informa.plugins.{plugin}')
+
+    @app.task('minutely', execution='main')
+    def run():
+        plug.fetch_run_publish(plug.logger, plug.State, plug.MQTT_TOPIC, plug.main)
+
+        # Allow short timeout for plugin to run, before exiting all async jobs
+        time.sleep(timeout)
+        app.session.shut_down()
+
+    logger.debug('Triggering plugin %s', plugin)
+    app.run()
