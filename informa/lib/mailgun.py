@@ -5,11 +5,12 @@ from typing import Dict, Union
 from jinja2 import Environment, FileSystemLoader
 import requests
 
+from informa.lib import PluginAdapter
 from informa.exceptions import MailgunKeyMissing, MailgunSendFailed
 
 
 def send(
-        logger: Union[logging.Logger, logging.LoggerAdapter],
+        logger: Union[logging.Logger, PluginAdapter],
         subject: str,
         template: str,
         content: Dict[str, str]
@@ -30,7 +31,7 @@ def send(
         template:  The jinja2 template filename in templates/
         content:   K/V data mapping to render template
     '''
-    if os.environ.get('DEBUG'):
+    if logger.getEffectiveLevel() == logging.DEBUG:
         logger.debug('Skip Mailgun send due to DEBUG')
         return
 
