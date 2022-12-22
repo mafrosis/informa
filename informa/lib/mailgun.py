@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from jinja2 import Environment, FileSystemLoader
 import requests
@@ -13,7 +13,7 @@ def send(
         logger: Union[logging.Logger, PluginAdapter],
         subject: str,
         template: str,
-        content: Dict[str, str]
+        content: Dict[str, Any]
     ):
     '''
     Send an email via Mailgun
@@ -53,8 +53,8 @@ def send(
         'https://api.eu.mailgun.net/v2/mailgun.mafro.net/messages',
         auth=('api', api_key),
         data={
-            'from': 'Informa <dev@mafro.net>',
-            'to': 'forums@mafro.net',
+            'from': 'Informa <informa@mafro.net>',
+            'to': 'informa@mafro.net',
             'subject': subject,
             'text': body,
             'html': body,
