@@ -1,0 +1,5 @@
+<p>Latest torrents for {{ term }}</p>
+
+{% for match in matches %}
+<p><a href="{{ match.url }}">{{ match.title }}</a></p>
+{% endfor %}

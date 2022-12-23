@@ -7,3 +7,6 @@ class MailgunKeyMissing(AppError):
 
 class MailgunSendFailed(AppError):
     'Mailgun email send failed!'
+
+class ReachedLastSeen(AppError):
+    'Reached a value already seen in previous run'
