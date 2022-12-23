@@ -30,3 +30,12 @@ services:
       - ./informa:/src/informa
     depends_on:
       - informa
+
+  mqtt:
+    image: eclipse-mosquitto:2.0.11
+    restart: always
+    ports:
+      - 1883:1883
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
