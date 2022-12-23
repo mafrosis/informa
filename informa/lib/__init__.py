@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from dataclasses_jsonschema import JsonSchemaMixin
 import paho.mqtt.client as mqtt
 from rocketry import Rocketry
+import yaml
 
 from informa.exceptions import AppError
 
@@ -82,3 +83,15 @@ def fetch_run_publish(
 def now_aest() -> datetime.datetime:
     'Utility function to return now as TZ-aware datetime'
     return datetime.datetime.now(ZoneInfo('Australia/Melbourne'))
+
+
+def load_config(config_cls: Type[JsonSchemaMixin], plugin_name: str) -> JsonSchemaMixin:
+    '''
+    Utility function to load plugin config from a file
+
+    Params:
+        config_cls:   Plugin's config class type, which must subclass JsonSchemaMixin
+        plugin_name:  Plugin's name
+    '''
+    with open(f'config/{plugin_name}.yaml', encoding='utf8') as f:
+        return config_cls.from_dict(yaml.safe_load(f))

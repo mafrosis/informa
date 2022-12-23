@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 import datetime
 import logging
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 from dataclasses_jsonschema import JsonSchemaMixin
 import requests
 
-from informa.lib import app, fetch_run_publish, mailgun, now_aest, PluginAdapter
+from informa.lib import app, fetch_run_publish, load_config, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -32,11 +32,9 @@ class State(JsonSchemaMixin):
     last_run: Optional[datetime.date] = field(default=None)
     alerted: List[Alert] = field(default_factory=list)
 
-
-PRODUCTS = [
-    Product(110093, 'Woodford', 60),
-    Product(904612, 'Tariquet', 60),
-]
+@dataclass
+class Config(JsonSchemaMixin):
+    products: List[Product]
 
 
 @app.task('every 12 hours', name=__name__)
@@ -48,9 +46,12 @@ def main(state: State):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
     state.last_run = now_aest()
 
+    # Reload config each time plugin runs
+    config = cast(Config, load_config(Config, __name__))
+
     sess = requests.Session()
 
-    for product in PRODUCTS:
+    for product in config.products:
         alert, _ = get_last_alert(product, state.alerted)
 
         # Skip product if alerted more recently than 6 days ago
