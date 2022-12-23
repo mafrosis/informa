@@ -17,6 +17,7 @@ services:
     volumes:
       - ./plugins.yaml:/src/plugins.yaml:ro
       - ./templates:/src/templates:ro
+      - ./config:/src/config:ro
 
   test:
     image: ghcr.io/mafrosis/informa:test
