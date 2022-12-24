@@ -9,7 +9,7 @@ COPY pyproject.toml /src
 COPY informa /src/informa
 
 # Build application wheel
-RUN python -m pip wheel --wheel-dir /dist .
+RUN python -m pip wheel --no-cache-dir --wheel-dir /dist .
 
 # ---
 
@@ -21,6 +21,6 @@ WORKDIR /src
 COPY --from=builder /dist /dist
 
 # Install
-RUN python -m pip install --no-index --find-links=/dist informa
+RUN python -m pip install --no-index --find-links=/dist --no-cache informa
 
 CMD ["informa", "start"]
