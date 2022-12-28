@@ -18,7 +18,7 @@ TEMPLATE_NAME = 'dans.tmpl'
 
 @dataclass
 class Product(JsonSchemaMixin):
-    id: int
+    id: str
     name: str
     target: int
 
@@ -83,19 +83,30 @@ def update_product_alert(product: Product, alerts: List[Alert]):
 
 
 def query_product(sess, product: Product) -> bool:
-    logger.debug('Querying %s', product.name)
     try:
+        # Fetch single product from Dan's API
         resp = sess.get(f'https://api.danmurphys.com.au/apis/ui/Product/{product.id}', timeout=5)
     except requests.RequestException as e:
         logger.error('Failed loading from %s: %s', product.name, e)
         return False
 
     try:
-        current_price = resp.json()['Products'][0]['Prices']['singleprice']['Value']
+        # Pull out the current single bottle price
+        prices = resp.json()['Products'][0]['Prices']
+        if 'promoprice' in prices:
+            prices = prices['promoprice']
+        else:
+            prices = prices['singleprice']
+
+        current_price = prices['Value']
+
     except (KeyError, IndexError) as e:
-        logger.error('%s parsing price', e)
+        logger.error('%s %s parsing price for %s', e.__class__.__name__, e, product.name)
         return False
 
+    logger.debug('Querying %s for target=%s, actual=%s', product.name, product.target, current_price)
+
+    # Check if price within target range, and send an email if so
     if current_price <= product.target:
         logger.info('Sending email for %s at price %s', product.name, current_price)
 
