@@ -10,13 +10,13 @@ import feedparser
 import requests
 
 from informa import exceptions
-from informa.lib import app, fetch_run_publish, load_config, mailgun, now_aest, PluginAdapter
+from informa.lib import app, load_run_persist, load_config, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
 
-MQTT_TOPIC = f'informa/{__name__}'
+PLUGIN_NAME = __name__
 TEMPLATE_NAME = 'torrentgalaxy.tmpl'
 
 
@@ -39,7 +39,7 @@ class Match():
 
 @app.task('every 12 hours', name=__name__)
 def run():
-    fetch_run_publish(logger, State, MQTT_TOPIC, main)
+    load_run_persist(logger, State, PLUGIN_NAME, main)
 
 
 def main(state: State):

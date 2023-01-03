@@ -4,11 +4,10 @@ import json
 import logging
 import os
 import sys
-from typing import Callable, Type, Union
+from typing import Callable, Optional, Type, Union
 from zoneinfo import ZoneInfo
 
 from dataclasses_jsonschema import JsonSchemaMixin
-import paho.mqtt.client as mqtt
 from rocketry import Rocketry
 import yaml
 
@@ -16,13 +15,6 @@ from informa.exceptions import AppError
 
 
 app = Rocketry(config={'execution': 'thread', 'timezone': ZoneInfo('Australia/Melbourne')})
-
-MQTT_BROKER = os.environ.get('MQTT_BROKER', 'localhost')
-
-# Abort if MQTT_BROKER is zero length
-if not MQTT_BROKER:
-    print('Exit: MQTT_BROKER environment variable is empty!')
-    sys.exit(1)
 
 
 class PluginAdapter(logging.LoggerAdapter):
@@ -36,48 +28,38 @@ class PluginAdapter(logging.LoggerAdapter):
         return f'[{self.extra}] {msg}', kwargs
 
 
-def fetch_run_publish(
+def load_run_persist(
         logger: Union[logging.Logger, logging.LoggerAdapter],
         state_cls: Type[JsonSchemaMixin],
-        mqtt_topic: str,
+        plugin_name: str,
         main_func: Callable
     ):
     '''
-    Fetch MQTT state, run a callback, and publish the state back to MQTT.
+    Load plugin state, run plugin main function via callback, persist state to disk.
 
     Params:
-        logger:      Logger for the calling plugin
-        state_cls:   Dataclass model of the JSON state persisted in MQTT
-        mqtt_topic:  Plugin MQTT topic
-        main_func:   Callback function to trigger plugin logic
+        logger:       Logger for the calling plugin
+        state_cls:    Plugin state dataclass which is persisted between runs
+        plugin_name:  Plugin unique name
+        main_func:    Callback function to trigger plugin logic
     '''
-    client = mqtt.Client()
+    # Reload config each time plugin runs
+    state = load_state(state_cls, plugin_name)
+    if not state:
+        logger.debug('Empty state initialised for %s', plugin_name)
+        state = state_cls()
+    else:
+        logger.debug('Loaded state for %s', plugin_name)
 
-    def on_message(_1, _2, msg: mqtt.MQTTMessage):
-        logger.debug('State retrieved')
+    try:
+        main_func(state)
 
-        # Pass plugin state into main run function
-        state = state_cls.from_dict(json.loads(msg.payload))
+        # Write plugin state back to disk
+        write_state(state, plugin_name)
+        logger.debug('State persisted')
 
-        try:
-            main_func(state)
-
-            # Publish plugin state back to MQTT
-            client.publish(mqtt_topic, json.dumps(state.to_dict()), retain=True)
-            logger.debug('State published')
-
-        except AppError as e:
-            logger.error(str(e))
-
-        client.loop_stop()
-
-    # Connect to MQTT to retrieve plugin state
-    client.on_message = on_message
-    client.connect(MQTT_BROKER)
-    client.subscribe(mqtt_topic)
-    client.loop_start()
-
-    logger.debug('Subscribed to %s', mqtt_topic)
+    except AppError as e:
+        logger.error(str(e))
 
 
 def now_aest() -> datetime.datetime:
@@ -85,13 +67,37 @@ def now_aest() -> datetime.datetime:
     return datetime.datetime.now(ZoneInfo('Australia/Melbourne'))
 
 
-def load_config(config_cls: Type[JsonSchemaMixin], plugin_name: str) -> JsonSchemaMixin:
+def load_config(config_cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
+    return load_file('config', config_cls, plugin_name)
+
+def load_state(state_cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
+    return load_file('state', state_cls, plugin_name)
+
+def load_file(directory: str, cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
     '''
-    Utility function to load plugin config from a file
+    Utility function to load plugin config/state from a file
 
     Params:
-        config_cls:   Plugin's config class type, which must subclass JsonSchemaMixin
+        directory:    Directory path; either "config" or "state"
+        cls:          Plugin's state/config class type
         plugin_name:  Plugin's name
     '''
-    with open(f'config/{plugin_name}.yaml', encoding='utf8') as f:
-        return config_cls.from_dict(yaml.safe_load(f))
+    try:
+        with open(f'{directory}/{plugin_name}.yaml', encoding='utf8') as f:
+            data = yaml.safe_load(f)
+            if not data:
+                raise FileNotFoundError
+            return cls.from_dict(data)
+    except FileNotFoundError:
+        return None
+
+def write_state(state_obj: JsonSchemaMixin, plugin_name: str):
+    '''
+    Utility function to write state to a file
+
+    Params:
+        cls:          Plugin's state object
+        plugin_name:  Plugin's name
+    '''
+    with open(f'state/{plugin_name}.yaml', 'w', encoding='utf8') as f:
+        f.write(yaml.dump(state_obj.to_dict()))
