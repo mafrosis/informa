@@ -52,12 +52,7 @@ def load_run_persist(
         main_func:    Callback function to trigger plugin logic
     '''
     # Reload config each time plugin runs
-    state = load_state(state_cls, plugin_name)
-    if not state:
-        logger.debug('Empty state initialised for %s', plugin_name)
-        state = state_cls()
-    else:
-        logger.debug('Loaded state for %s', plugin_name)
+    state = load_state(logger, state_cls, plugin_name)
 
     plugin_config_class: Optional[Type[ConfigBase]] = None
 
@@ -93,8 +88,24 @@ def now_aest() -> datetime.datetime:
 def load_config(config_cls: Type[ConfigBase], plugin_name: str) -> Optional[JsonSchemaMixin]:
     return load_file('config', config_cls, plugin_name)
 
-def load_state(state_cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
-    return load_file('state', state_cls, plugin_name)
+
+def load_state(
+        logger: Union[logging.Logger, logging.LoggerAdapter],
+        state_cls: Type[JsonSchemaMixin],
+        plugin_name: str
+    ) -> JsonSchemaMixin:
+    '''
+    Load or initialise a plugin's state
+    '''
+    state = load_file('state', state_cls, plugin_name)
+    if not state:
+        logger.debug('Empty state initialised for %s', plugin_name)
+        state = state_cls()
+    else:
+        logger.debug('Loaded state for %s', plugin_name)
+
+    return state
+
 
 def load_file(directory: str, cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
     '''
