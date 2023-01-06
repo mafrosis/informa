@@ -1,10 +1,11 @@
+import abc
 import datetime
 import inspect
 import json
 import logging
 import os
 import sys
-from typing import Callable, Optional, Type, Union
+from typing import Callable, cast, Optional, Type, Union
 from zoneinfo import ZoneInfo
 
 from dataclasses_jsonschema import JsonSchemaMixin
@@ -28,6 +29,10 @@ class PluginAdapter(logging.LoggerAdapter):
         return f'[{self.extra}] {msg}', kwargs
 
 
+class ConfigBase(JsonSchemaMixin, metaclass=abc.ABCMeta):
+    'Base class from which plugin config classes must inherit'
+
+
 def load_run_persist(
         logger: Union[logging.Logger, logging.LoggerAdapter],
         state_cls: Type[JsonSchemaMixin],
@@ -36,6 +41,9 @@ def load_run_persist(
     ):
     '''
     Load plugin state, run plugin main function via callback, persist state to disk.
+
+    Dynamically inspects the parameter `main_func` to determine if it has a parameter derived from
+    `ConfigBase`, and if so, loads a plugins config into an instance of this `ConfigBase` class.
 
     Params:
         logger:       Logger for the calling plugin
@@ -51,8 +59,23 @@ def load_run_persist(
     else:
         logger.debug('Loaded state for %s', plugin_name)
 
+    plugin_config_class: Optional[Type[ConfigBase]] = None
+
+    # Introspect the passed main_func for a Config parameter
+    for param in inspect.getfullargspec(main_func).annotations.values():
+        if issubclass(param, ConfigBase):
+            plugin_config_class = param
+
     try:
-        main_func(state)
+        if plugin_config_class:
+            # Reload config each time plugin runs
+            config = load_config(plugin_config_class, plugin_name)
+
+            # Call plugin with config
+            main_func(state, config)
+        else:
+            # Call plugin without config
+            main_func(state)
 
         # Write plugin state back to disk
         write_state(state, plugin_name)
@@ -67,7 +90,7 @@ def now_aest() -> datetime.datetime:
     return datetime.datetime.now(ZoneInfo('Australia/Melbourne'))
 
 
-def load_config(config_cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:
+def load_config(config_cls: Type[ConfigBase], plugin_name: str) -> Optional[JsonSchemaMixin]:
     return load_file('config', config_cls, plugin_name)
 
 def load_state(state_cls: Type[JsonSchemaMixin], plugin_name: str) -> Optional[JsonSchemaMixin]:

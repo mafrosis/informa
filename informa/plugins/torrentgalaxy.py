@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import datetime
 import logging
 import re
-from typing import cast, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from dataclasses_jsonschema import JsonSchemaMixin
 from fake_useragent import UserAgent
@@ -10,7 +10,7 @@ import feedparser
 import requests
 
 from informa import exceptions
-from informa.lib import app, load_run_persist, load_config, mailgun, now_aest, PluginAdapter
+from informa.lib import app, ConfigBase, load_run_persist, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -26,15 +26,16 @@ class State(JsonSchemaMixin):
     last_seen: Dict[int, str] = field(default_factory=dict)
 
 @dataclass
-class Config(JsonSchemaMixin):
-    users: List[int]
-    terms: List[str]
-
-@dataclass
 class Match():
     title: str
     url: str
     magnet: str
+
+
+@dataclass
+class Config(ConfigBase):
+    users: List[int]
+    terms: List[str]
 
 
 @app.task('every 12 hours', name=__name__)
@@ -42,12 +43,9 @@ def run():
     load_run_persist(logger, State, PLUGIN_NAME, main)
 
 
-def main(state: State):
+def main(state: State, config: Config):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
     state.last_run = now_aest()
-
-    # Reload config each time plugin runs
-    config = cast(Config, load_config(Config, __name__))
 
     sess = requests.Session()
 

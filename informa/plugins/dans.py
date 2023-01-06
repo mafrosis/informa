@@ -2,12 +2,12 @@ from dataclasses import dataclass, field
 import datetime
 import decimal
 import logging
-from typing import cast, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from dataclasses_jsonschema import JsonSchemaMixin
 import requests
 
-from informa.lib import app, load_run_persist, load_config, mailgun, now_aest, PluginAdapter
+from informa.lib import app, ConfigBase, load_run_persist, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -39,7 +39,7 @@ class FailedProductQuery(Exception):
 
 
 @dataclass
-class Config(JsonSchemaMixin):
+class Config(ConfigBase):
     products: List[Product]
 
 
@@ -48,12 +48,9 @@ def run():
     load_run_persist(logger, State, PLUGIN_NAME, main)
 
 
-def main(state: State):
+def main(state: State, config: Config):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
     state.last_run = now_aest()
-
-    # Reload config each time plugin runs
-    config = cast(Config, load_config(Config, __name__))
 
     sess = requests.Session()
 
