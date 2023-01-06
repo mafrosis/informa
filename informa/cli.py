@@ -1,12 +1,10 @@
-import importlib
 import os
 import logging
 
 import click
-import yaml
 
 
-from informa.main import start_rocketry
+from informa.main import init_plugins, start_rocketry
 from informa.lib import load_run_persist
 
 
@@ -35,10 +33,7 @@ def list_plugins():
     '''
     List configured plugins
     '''
-    with open('plugins.yaml', encoding='utf8') as f:
-        plugins = yaml.safe_load(f)['plugins']
-
-    for plug in plugins:
+    for plug in init_plugins().keys():
         print(plug)
 
 
@@ -48,7 +43,8 @@ def call(plugin: str):
     '''
     Run a single plugin synchronously
 
-    PLUGIN - Name of the plugin to run
+    PLUGIN - Name of the plugin to run synchronously on the CLI
     '''
-    plug = importlib.import_module(f'informa.plugins.{plugin}')
+    plugins = init_plugins()
+    plug = plugins[plugin]
     load_run_persist(plug.logger, plug.State, plug.PLUGIN_NAME, plug.main)
