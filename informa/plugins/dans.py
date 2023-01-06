@@ -24,17 +24,21 @@ class Product(JsonSchemaMixin):
     target: int
 
 @dataclass
-class Alert(JsonSchemaMixin):
+class History(JsonSchemaMixin):
     product: Product
     price: decimal.Decimal
     ts: datetime.datetime = field(default=now_aest())
+    alerted: bool = field(default=False)
 
 @dataclass
 class State(JsonSchemaMixin):
     last_run: Optional[datetime.date] = field(default=None)
-    alerted: List[Alert] = field(default_factory=list)
+    history: List[History] = field(default_factory=list)
 
 class FailedProductQuery(Exception):
+    pass
+
+class ProductNeverAlerted(Exception):
     pass
 
 
@@ -54,44 +58,52 @@ def main(state: State, config: Config):
 
     sess = requests.Session()
 
+    history_item: Optional[History] = None
+
     # Iterate configured list of Dan's products
     for product in config.products:
-        alert, _ = get_last_alert(product, state.alerted)
-
-        # Skip product if alerted more recently than 6 days ago
-        if alert and alert.ts > now_aest() - datetime.timedelta(days=6):
-            logger.info('Skipped recently alerted %s @ %s', product.name, alert.price)
-            continue
+        try:
+            history_item, _ = get_last_alert(product, state.history)
+        except ProductNeverAlerted:
+            pass
 
         try:
             current_price = query_product(sess, product)
+            alerted = False
 
             # Check if price within target range, and send an email if so
             if current_price <= product.target:
-                send_alert(product, current_price)
-                update_product_alert(product, current_price, state.alerted)
+                # Skip product if alerted more recently than 6 days ago
+                if history_item and history_item.ts > now_aest() - datetime.timedelta(days=6):
+                    logger.info('Skipped alerting %s @ %s', product.name, history_item.price)
+                else:
+                    send_alert(product, current_price)
+                    alerted = True
+
+            # Track query results
+            result = History(product, current_price, alerted=alerted)
+            add_to_history(state.history, result)
 
         except FailedProductQuery as e:
             logger.error(e)
 
 
-def get_last_alert(product: Product, alerts: List[Alert]) -> Tuple[Optional[Alert], Optional[int]]:
+def get_last_alert(product: Product, history: List[History]) -> Tuple[History, int]:
     'Lookup most recent alert for this product'
-    for i, alert in enumerate(alerts):
-        if alert.product == product:
-            return alert, i
-    return None, None
+    for i, history_item in enumerate(reversed(history)):
+        if history_item.product == product and history_item.alerted:
+            return history_item, i
+    raise ProductNeverAlerted
 
 
-def update_product_alert(product: Product, current_price: decimal.Decimal, alerts: List[Alert]):
-    'Update the alert for this product'
-    # Remove previous alert for this product
-    _, i = get_last_alert(product, alerts)
-    if i:
-        del alerts[i]
+def add_to_history(history: List[History], new_history: History):
+    'Add query result to product history'
+    # Remove history over 13 months old
+    for i, history_item in enumerate(history):
+        if history_item.ts > now_aest() + datetime.timedelta(days=400):
+            del history[i]
 
-    # Create new alert timestamp for this product
-    alerts.append(Alert(product, current_price, now_aest()))
+    history.append(new_history)
 
 
 def query_product(sess, product: Product) -> decimal.Decimal:
