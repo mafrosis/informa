@@ -1,4 +1,5 @@
 ---
 plugins:
   - dans
+  - ha-releases
   - torrentgalaxy
