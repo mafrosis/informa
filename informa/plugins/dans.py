@@ -2,12 +2,14 @@ from dataclasses import dataclass, field
 import datetime
 import decimal
 import logging
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
+import click
 from dataclasses_jsonschema import JsonSchemaMixin
+import pandas as pd
 import requests
 
-from informa.lib import app, ConfigBase, load_run_persist, mailgun, now_aest, PluginAdapter
+from informa.lib import app, ConfigBase, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -29,6 +31,15 @@ class History(JsonSchemaMixin):
     price: decimal.Decimal
     ts: datetime.datetime = field(default=now_aest())
     alerted: bool = field(default=False)
+
+    def flatten(self):
+        return {
+            'id': self.product.id,
+            'name': self.product.name,
+            'target': self.product.target,
+            'price': self.price,
+            'ts': self.ts,
+        }
 
 @dataclass
 class State(JsonSchemaMixin):
@@ -155,3 +166,36 @@ def send_alert(product: Product, current_price: decimal.Decimal):
             'url': f'https://www.danmurphys.com.au/product/DM_{product.id}',
         }
     )
+
+
+@click.group(name=__name__.replace('_','-'))
+def cli():
+    'Dan Murphy\'s product tracker'
+
+@cli.command
+def stats():
+    '''
+    Show product stats
+    '''
+    state = cast(State, load_state(logger, State, PLUGIN_NAME))
+
+    product_history = [h.flatten() for h in state.history]
+    df = pd.DataFrame(product_history)
+
+    # Aggregate max/min/median prices
+    price_range = df.groupby(['name']).agg({'price': ['count', 'min', 'max', 'median']})
+    price_range.columns = price_range.columns.get_level_values(1)
+
+    # Determine earliest and most recent query dates
+    query_range = df.groupby(['name']).agg({'ts': ['min', 'max']})
+    query_range.columns = query_range.columns.get_level_values(1)
+
+    # Pull price from most recent query
+    latest_price = df.sort_values(['ts']).groupby('name').tail(1).set_index('name').drop(columns=['id','target','ts'])
+
+    # Smash into single dataframe
+    df = pd.concat([price_range, latest_price, query_range], axis=1)
+    df.columns = ['Count','Min','Max','Median','Latest','First','Most Recent']
+    df['First'] = df['First'].dt.strftime('%d-%m-%Y')
+    df['Most Recent'] = df['Most Recent'].dt.strftime('%d-%m-%Y')
+    print(df)
