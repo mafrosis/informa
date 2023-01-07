@@ -1,3 +1,4 @@
+import inspect
 import os
 import logging
 
@@ -22,6 +23,20 @@ def cli(debug):
         logger.setLevel(logging.DEBUG)
 
 
+@cli.group('plugin')
+def plugin_():
+    'Invoke a plugin\'s CLI'
+
+# Load all the plugins at import time
+PLUGINS = init_plugins()
+
+# Iterate plugins, looking for Click Groups to include in the CLI
+for plugin_module in PLUGINS.values():
+    for name, member in inspect.getmembers(plugin_module):
+        if isinstance(member, click.core.Group):
+            plugin_.add_command(member)
+
+
 @cli.command
 def start():
     'Start the async workers for each plugin'
@@ -33,7 +48,7 @@ def list_plugins():
     '''
     List configured plugins
     '''
-    for plug in init_plugins().keys():
+    for plug in PLUGINS.keys():
         print(plug)
 
 
@@ -45,6 +60,5 @@ def call(plugin: str):
 
     PLUGIN - Name of the plugin to run synchronously on the CLI
     '''
-    plugins = init_plugins()
-    plug = plugins[plugin]
+    plug = PLUGINS[plugin]
     load_run_persist(plug.logger, plug.State, plug.PLUGIN_NAME, plug.main)

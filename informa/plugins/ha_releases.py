@@ -4,10 +4,11 @@ import logging
 from typing import Optional
 
 import bs4
+import click
 from dataclasses_jsonschema import JsonSchemaMixin
 import requests
 
-from informa.lib import app, load_run_persist, mailgun, now_aest, PluginAdapter
+from informa.lib import app, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -43,21 +44,23 @@ def fetch_ha_releases(last_release_seen: Optional[str]):
         logger.error('Failed loading HA release notes: %s', e)
         return False
 
-    # Parse the HTML and compare latest release to last seen
     soup = bs4.BeautifulSoup(resp.text, 'html.parser')
 
+    # Iterate release news page
     for release in soup.select('h1.gamma a'):
         try:
+            # Parse release title (this is likely to break at some point)
             version = release.text.split(':')[0]
         except IndexError:
             continue
 
+        # Abort when we reach the most recently seen release
         if version == last_release_seen:
             logger.debug('Stopping at %s', version)
             break
 
+        # Send an email for a more recent HA release
         if version > (last_release_seen or '0'):
-            # Parse release title (this is likely to break at some point)
             last_release_seen = version
             logger.info('Found %s', last_release_seen)
 
@@ -72,3 +75,14 @@ def fetch_ha_releases(last_release_seen: Optional[str]):
             break
 
     return last_release_seen
+
+
+@click.group(name='ha-releases')
+def cli():
+    'Home Assistant release tracker'
+
+@cli.command
+def current():
+    'What is the current HA version?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    click.echo(state.last_release_seen or 'Never queried')
