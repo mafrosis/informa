@@ -191,11 +191,11 @@ def stats():
     query_range.columns = query_range.columns.get_level_values(1)
 
     # Pull price from most recent query
-    latest_price = df.sort_values(['ts']).groupby('name').tail(1).set_index('name').drop(columns=['id','target','ts'])
+    latest_price = df.sort_values(['ts']).groupby('name').tail(1).set_index('name').drop(columns=['id','ts'])
 
     # Smash into single dataframe
     df = pd.concat([price_range, latest_price, query_range], axis=1)
-    df.columns = ['Count','Min','Max','Median','Latest','First','Most Recent']
+    df.columns = ['Count','Min','Max','Median','Target','Latest','First','Most Recent']
     df['First'] = df['First'].dt.strftime('%d-%m-%Y')
     df['Most Recent'] = df['Most Recent'].dt.strftime('%d-%m-%Y')
     print(df)
