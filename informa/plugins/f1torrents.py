@@ -15,7 +15,7 @@ import feedparser
 import requests
 
 
-from informa.lib import app, ConfigBase, load_run_persist, load_state, now_aest, PluginAdapter
+from informa.lib import app, ConfigBase, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -23,6 +23,7 @@ logger = PluginAdapter(logging.getLogger('informa'))
 
 RTORRENT_HOST = '192.168.1.104'
 PLUGIN_NAME = __name__
+TEMPLATE_NAME = 'f1torrents.tmpl'
 
 
 @dataclass
@@ -126,6 +127,15 @@ def add_magnet_to_rtorrent(races: Dict[str, Download]):
 
             logger.info('Added magnet for %s', filename)
             race_data.added_to_rtorrent = True
+
+            mailgun.send(
+                logger,
+                f'{filename} torrent added',
+                TEMPLATE_NAME,
+                {
+                    'filename': filename,
+                }
+            )
 
 
 def check_torrentgalaxy(current_season: int, state: State):
@@ -440,3 +450,10 @@ def last_run():
     'When was the last run?'
     state = load_state(logger, State, PLUGIN_NAME)
     print(f'Last run: {state.last_run}')
+
+@cli.command
+def found():
+    'What races have we found already?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    for race in state.races.values():
+        print(race.title)
