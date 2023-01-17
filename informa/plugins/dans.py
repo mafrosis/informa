@@ -168,9 +168,15 @@ def send_alert(product: Product, current_price: decimal.Decimal):
     )
 
 
-@click.group(name=__name__.replace('_','-'))
+@click.group(name='dans')
 def cli():
     'Dan Murphy\'s product tracker'
+
+@cli.command
+def last_run():
+    'When was the last run?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    print(f'Last run: {state.last_run}')
 
 @cli.command
 def stats():

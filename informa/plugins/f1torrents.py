@@ -9,6 +9,7 @@ from typing import cast, Dict, Optional
 from urllib.parse import urlparse
 import xmlrpc.client
 
+import click
 from dataclasses_jsonschema import JsonSchemaMixin
 import feedparser
 import requests
@@ -428,3 +429,14 @@ def format_size(size):
     s = round(size / math.pow(1024, i), 2)
 
     return '{}{}'.format(s, ('B', 'KB', 'MB', 'GB', 'TB', 'PB')[i])  # pylint: disable=consider-using-f-string
+
+
+@click.group(name='f1torrents')
+def cli():
+    'F1 torrent downloader'
+
+@cli.command
+def last_run():
+    'When was the last run?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    print(f'Last run: {state.last_run}')
