@@ -4,13 +4,14 @@ import logging
 import re
 from typing import Dict, List, Optional
 
+import click
 from dataclasses_jsonschema import JsonSchemaMixin
 from fake_useragent import UserAgent
 import feedparser
 import requests
 
 from informa import exceptions
-from informa.lib import app, ConfigBase, load_run_persist, mailgun, now_aest, PluginAdapter
+from informa.lib import app, ConfigBase, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -109,3 +110,14 @@ def query_torrent(sess, config: Config, uid: int, last_seen: Dict[int, str]):
         # Track the first entry seen, so we can skip these next time
         logger.debug('Marking last seen: %s', feed['entries'][0]['title'])
         last_seen[uid] = feed['entries'][0]['id']
+
+
+@click.group(name='torrentgalaxy')
+def cli():
+    'Torrent Galaxy user tracker'
+
+@cli.command
+def last_run():
+    'When was the last run?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    print(f'Last run: {state.last_run}')

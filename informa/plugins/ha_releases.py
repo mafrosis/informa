@@ -82,6 +82,12 @@ def cli():
     'Home Assistant release tracker'
 
 @cli.command
+def last_run():
+    'When was the last run?'
+    state = load_state(logger, State, PLUGIN_NAME)
+    print(f'Last run: {state.last_run}')
+
+@cli.command
 def current():
     'What is the current HA version?'
     state = load_state(logger, State, PLUGIN_NAME)
