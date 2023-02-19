@@ -15,7 +15,11 @@ import yaml
 from informa.exceptions import AppError
 
 
-app = Rocketry(config={'execution': 'thread', 'timezone': ZoneInfo('Australia/Melbourne')})
+app = Rocketry(config={
+    'execution': 'thread',
+    'timezone': ZoneInfo('Australia/Melbourne'),
+    'cycle_sleep': 10,
+})
 
 
 class PluginAdapter(logging.LoggerAdapter):
