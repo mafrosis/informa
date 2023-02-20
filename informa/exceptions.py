@@ -3,7 +3,7 @@ class AppError(Exception):
         return str(self.__doc__)
 
 class MailgunKeyMissing(AppError):
-    'Environment var MAILGUN_KEY is missing'
+    'Environment var MAILGUN_KEY is missing. Are you running in DEBUG?'
 
 class MailgunSendFailed(AppError):
     'Mailgun email send failed!'
