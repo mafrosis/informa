@@ -463,3 +463,14 @@ def found():
     state = load_state(logger, State, PLUGIN_NAME)
     for race in state.races.values():
         print(race.title)
+
+@cli.command
+def get_torrents():
+    'Load the current torrents from rtorrent'
+    rt = RTorrent(RTORRENT_HOST, 5000)
+    try:
+        torrents = rt.get_torrents()
+        for hash_, t in torrents.items():
+            print(f"{t['progress']}\t {t['name']}")
+    except RtorrentError as e:
+        logger.error(e)
