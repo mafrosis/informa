@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from jinja2 import Environment, FileSystemLoader
 import requests
@@ -12,8 +12,8 @@ from informa.exceptions import MailgunKeyMissing, MailgunSendFailed
 def send(
         logger: Union[logging.Logger, PluginAdapter],
         subject: str,
-        template: str,
-        content: Dict[str, Any]
+        template: Optional[str]=None,
+        content: Optional[Dict[str, Any]]=None,
     ):
     '''
     Send an email via Mailgun
@@ -42,11 +42,15 @@ def send(
 
     env = Environment(loader=FileSystemLoader('templates'))
 
-    if not template.endswith('.tmpl'):
-        template += '.tmpl'
+    if template:
+        if not template.endswith('.tmpl'):
+            template += '.tmpl'
 
-    with open(f'templates/{template}', encoding='utf-8') as f:
-        body = env.from_string(f.read()).render(**content)
+        with open(f'templates/{template}', encoding='utf-8') as f:
+            body = env.from_string(f.read()).render(**content)
+
+    else:
+        body = subject
 
     # send the email via Mailgun's API
     resp = requests.post(
