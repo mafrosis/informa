@@ -13,6 +13,7 @@ services:
     environment:
       - DEBUG
       - MAILGUN_KEY
+      - TZ=Australia/Melbourne
     volumes:
       - ./plugins.yaml:/src/plugins.yaml:ro
       - ./templates:/src/templates:ro
