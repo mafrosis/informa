@@ -5,6 +5,7 @@ import logging
 import click
 
 
+from informa.exceptions import PluginNotFound
 from informa.main import init_plugins, start_rocketry
 from informa.lib import load_run_persist
 
@@ -53,6 +54,23 @@ def list_plugins():
         print(plug)
 
 
+def get_plugin(command: str):
+    'Attempt to convert a string into a valid plugin name'
+    # Cleanup the passed string
+    command = command.lower().replace('_','-')
+
+    if command in PLUGINS:
+        # Found plugin by name
+        return PLUGINS[command]
+
+    matches = [p for p in PLUGINS if p.startswith(command)]
+    if len(matches) == 1:
+        # Only one plugin exists with passed prefix, so assume a match
+        return PLUGINS[matches[0]]
+    else:
+        raise PluginNotFound
+
+
 @cli.command
 @click.argument('plugin')
 def call(plugin: str):
@@ -61,5 +79,5 @@ def call(plugin: str):
 
     PLUGIN - Name of the plugin to run synchronously on the CLI
     '''
-    plug = PLUGINS[plugin]
+    plug = get_plugin(plugin)
     load_run_persist(plug.logger, plug.State, plug.PLUGIN_NAME, plug.main)
