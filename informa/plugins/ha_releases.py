@@ -77,7 +77,7 @@ def fetch_ha_releases(last_release_seen: Optional[str]):
     return last_release_seen
 
 
-@click.group(name='ha-releases')
+@click.group(name=PLUGIN_NAME[16:].replace('_','-'))
 def cli():
     'Home Assistant release tracker'
 

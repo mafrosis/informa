@@ -68,7 +68,7 @@ def query_cellar_releases(products_seen: Set[str]):
         products_seen.add(title)
 
 
-@click.group(name='tahbilk')
+@click.group(name=PLUGIN_NAME[16:])
 def cli():
     'Tahbilk CLI'
 

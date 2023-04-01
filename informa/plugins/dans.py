@@ -168,7 +168,7 @@ def send_alert(product: Product, current_price: decimal.Decimal):
     )
 
 
-@click.group(name='dans')
+@click.group(name=PLUGIN_NAME[16:])
 def cli():
     'Dan Murphy\'s product tracker'
 
