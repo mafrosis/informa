@@ -13,6 +13,7 @@ import click
 from dataclasses_jsonschema import JsonSchemaMixin
 import feedparser
 import requests
+from wakeonlan import send_magic_packet
 
 
 from informa.lib import app, ConfigBase, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
@@ -118,6 +119,11 @@ def add_magnet_to_rtorrent(races: Dict[str, Download]):
                 rt = RTorrent(RTORRENT_HOST, 5000)
                 rt.add_magnet(race_data.magnet)
             except RtorrentError as e:
+                if 'No route to host' in str(e):
+                    # Wake on LAN for jorg
+                    send_magic_packet('d0:50:99:c1:63:c9')
+                    logger.info('WOL packet sent to wake rtorrent')
+                    return
                 logger.error('Failed adding magnet for %s (%s)', key, e)
                 continue
 
