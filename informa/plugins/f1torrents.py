@@ -441,7 +441,7 @@ def format_size(size):
     return '{}{}'.format(s, ('B', 'KB', 'MB', 'GB', 'TB', 'PB')[i])  # pylint: disable=consider-using-f-string
 
 
-@click.group(name='f1torrents')
+@click.group(name=PLUGIN_NAME[16:])
 def cli():
     'F1 torrent downloader'
 

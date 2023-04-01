@@ -112,7 +112,7 @@ def query_torrent(sess, config: Config, uid: int, last_seen: Dict[int, str]):
         last_seen[uid] = feed['entries'][0]['id']
 
 
-@click.group(name='torrentgalaxy')
+@click.group(name=PLUGIN_NAME[16:])
 def cli():
     'Torrent Galaxy user tracker'
 
