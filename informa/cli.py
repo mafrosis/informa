@@ -12,6 +12,7 @@ from informa.lib import load_run_persist
 logger = logging.getLogger('informa')
 sh = logging.StreamHandler()
 logger.addHandler(sh)
+sh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 logger.setLevel(logging.INFO)
 
 
