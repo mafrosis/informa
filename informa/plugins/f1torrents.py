@@ -16,7 +16,8 @@ import requests
 from wakeonlan import send_magic_packet
 
 
-from informa.lib import app, ConfigBase, load_run_persist, load_state, mailgun, now_aest, PluginAdapter
+from informa.lib import (app, ConfigBase, load_run_persist, load_state, mailgun, now_aest,
+                         PluginAdapter, pretty)
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -470,7 +471,6 @@ def get_torrents():
     rt = RTorrent(RTORRENT_HOST, 5000)
     try:
         torrents = rt.get_torrents()
-        for hash_, t in torrents.items():
-            print(f"{t['progress']}\t {t['name']}")
+        pretty.table(torrents.values(), columns=('progress', 'name'))
     except RtorrentError as e:
         logger.error(e)
