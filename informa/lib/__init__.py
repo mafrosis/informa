@@ -8,7 +8,7 @@ import sys
 from typing import Callable, cast, Optional, Type, Union
 from zoneinfo import ZoneInfo
 
-from dataclasses_jsonschema import JsonSchemaMixin
+from dataclasses_jsonschema import JsonSchemaMixin, ValidationError
 from rocketry import Rocketry
 import yaml
 
@@ -55,17 +55,17 @@ def load_run_persist(
         plugin_name:  Plugin unique name
         main_func:    Callback function to trigger plugin logic
     '''
-    # Reload config each time plugin runs
-    state = load_state(logger, state_cls, plugin_name)
-
-    plugin_config_class: Optional[Type[ConfigBase]] = None
-
-    # Introspect the passed main_func for a Config parameter
-    for param in inspect.getfullargspec(main_func).annotations.values():
-        if issubclass(param, ConfigBase):
-            plugin_config_class = param
-
     try:
+        # Reload config each time plugin runs
+        state = load_state(logger, state_cls, plugin_name)
+
+        plugin_config_class: Optional[Type[ConfigBase]] = None
+
+        # Introspect the passed main_func for a Config parameter
+        for param in inspect.getfullargspec(main_func).annotations.values():
+            if issubclass(param, ConfigBase):
+                plugin_config_class = param
+
         if plugin_config_class:
             # Reload config each time plugin runs
             config = load_config(plugin_config_class, plugin_name)
@@ -82,6 +82,10 @@ def load_run_persist(
 
     except AppError as e:
         logger.error(str(e))
+    except ValidationError as e:
+        logger.error('State ValidationError: %s', str(e))
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error('Exception %s: %s', e.__class__.__name__, str(e))
 
 
 def now_aest() -> datetime.datetime:
