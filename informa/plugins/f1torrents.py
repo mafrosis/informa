@@ -463,7 +463,8 @@ def found():
     'What races have we found already?'
     state = load_state(logger, State, PLUGIN_NAME)
     for race in state.races.values():
-        print(race.title)
+        added = 'added  ' if race.added_to_rtorrent is True else 'pending'
+        print(f'{added} {race.title}')
 
 @cli.command
 def get_torrents():
