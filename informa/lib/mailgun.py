@@ -14,7 +14,23 @@ def send(
         subject: str,
         template: Optional[str]=None,
         content: Optional[Dict[str, Any]]=None,
-    ):
+    ) -> bool:
+    '''
+    Handle plugin loggers, and any exceptions raised during _send
+    '''
+    if logger.getEffectiveLevel() == logging.DEBUG:
+        logger.debug('Skip Mailgun send due to DEBUG')
+        return False
+
+    try:
+        _send(subject, template, content)
+    except (MailgunKeyMissing, MailgunSendFailed) as e:
+        logger.error(str(e))
+        return False
+    return True
+
+
+def _send(subject: str, template: Optional[str]=None, content: Optional[Dict[str, Any]]=None):
     '''
     Send an email via Mailgun
 
@@ -31,10 +47,6 @@ def send(
         template:  The jinja2 template filename in templates/
         content:   K/V data mapping to render template
     '''
-    if logger.getEffectiveLevel() == logging.DEBUG:
-        logger.debug('Skip Mailgun send due to DEBUG')
-        return
-
     try:
         api_key = os.environ['MAILGUN_KEY']
     except:
