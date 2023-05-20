@@ -94,7 +94,8 @@ def set_torrent_file_priorities():
     try:
         torrents = rt.get_torrents()
     except RtorrentError as e:
-        logger.error(e)
+        # No error logging to save log noise when jorg is switched off
+        logger.debug(e)
         return
 
     for hash_id, torrent_data in torrents.items():
