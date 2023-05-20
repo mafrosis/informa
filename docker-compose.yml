@@ -19,6 +19,7 @@ services:
       - ./plugins.yaml:/src/plugins.yaml:ro
       - ./templates:/src/templates:ro
       - ./config:/src/config:ro
+      - ./gcp_oauth_secret.json:/src/gcp_oauth_secret.json:ro
       - informa-data:/src/state
 
   test:

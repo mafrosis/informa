@@ -5,19 +5,21 @@ import math
 import re
 import socket
 from socket import error as SocketError
-from typing import cast, Dict, Optional
+from typing import cast, Dict, List, Optional
 from urllib.parse import urlparse
 import xmlrpc.client
 
 import click
 from dataclasses_jsonschema import JsonSchemaMixin
 import feedparser
+from gcsa.google_calendar import GoogleCalendar
 import requests
+from rocketry.conds import cron
 from wakeonlan import send_magic_packet
 
 
-from informa.lib import (app, ConfigBase, load_run_persist, load_state, mailgun, now_aest,
-                         PluginAdapter, pretty)
+from informa.lib import (app, ConfigBase, load_run_persist, load_config, load_state, mailgun,
+                         now_aest, PluginAdapter, pretty)
 
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -29,7 +31,7 @@ TEMPLATE_NAME = 'f1torrents.tmpl'
 
 
 @dataclass
-class Race(JsonSchemaMixin):
+class Download(JsonSchemaMixin):
     key: str
     title: str
     magnet: str
@@ -39,18 +41,35 @@ class Race(JsonSchemaMixin):
 class State(JsonSchemaMixin):
     last_run: Optional[datetime.date] = field(default=now_aest())
     latest_race: str = field(default='')
-    races: Dict[str, Race] = field(default_factory=dict)
+    races: Dict[str, Download] = field(default_factory=dict)
 
 class FailedFetchingTorrents(Exception):
     pass
 
 
 @dataclass
+class Race(JsonSchemaMixin):
+    title: str
+    start: datetime.datetime
+
+@dataclass
 class Config(ConfigBase):
-    current_season: int = field(default=2023)
+    current_season: int
+    calendar: List[Race]
 
 
-@app.task('every 15 minutes', name=__name__)
+@app.cond()
+def is_f1_weekend():
+    config = load_config(Config, PLUGIN_NAME)
+    for race in config.calendar:
+        if datetime.date.today() >= race.start.date() - datetime.timedelta(days=3) and \
+           datetime.date.today() < race.start.date() + datetime.timedelta(days=3):
+            return True
+    logger.debug('Today not within F1 weekend range')
+    return False
+
+
+@app.task(cron('*/15 * * * *') & is_f1_weekend, name=__name__)
 def run():
     load_run_persist(logger, State, PLUGIN_NAME, main)
 
@@ -186,7 +205,7 @@ def check_torrentgalaxy(current_season: int, state: State):
 
             # Retain all data to be posted on MQTT
             if key not in state.races:
-                state.races[key] = Race(key=key, title=title, magnet=magnet)
+                state.races[key] = Download(key=key, title=title, magnet=magnet)
 
             if key > state.latest_race:
                 state.latest_race = key
@@ -475,3 +494,24 @@ def get_torrents():
         pretty.table(torrents.values(), columns=('progress', 'name'))
     except RtorrentError as e:
         logger.error(e)
+
+@cli.command
+def calendar():
+    'Print current F1 calendar'
+    gc = GoogleCalendar(
+        credentials_path='gcp_oauth_secret.json',
+        authentication_flow_port=9999,
+    )
+
+    F1CAL = 'kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com'
+
+    for ev in gc.get_events(
+            calendar_id=F1CAL,
+            time_min=datetime.date(2023, 1, 1),
+            single_events=True,
+            order_by='startTime',
+        ):
+        if ev.summary.endswith(' - Race'):
+            summary = ev.summary.replace("'", ' ')
+            print(f"- title: '{summary}'")
+            print(f"  start: '{ev.start}'")

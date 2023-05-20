@@ -9,3 +9,5 @@ dist/
 venv
 config/*.yaml
 state
+gcp_oauth_secret.json
+token.pickle
