@@ -313,12 +313,12 @@ class RTorrent():
                 'd.custom1='
             )
             if downloads is None:
-                raise RtorrentError('Failed to load from rtorrent SCGI')
+                raise RtorrentError('get_torrents: Failed to load from rtorrent SCGI')
 
         except ConnectionRefusedError as e:
-            raise RtorrentError('Rtorrent is down') from e
+            raise RtorrentError('get_torrents: Rtorrent is down') from e
         except (xmlrpc.client.Fault, SocketError) as e:
-            raise RtorrentError(f'Failed to load from rtorrent SCGI: {e}') from e
+            raise RtorrentError(f'get_torrents: Failed to load from rtorrent SCGI: {e}') from e
 
         data = {}
 
@@ -343,9 +343,9 @@ class RTorrent():
                         'f.priority=',
                     )
                 except ConnectionRefusedError as e:
-                    raise RtorrentError('Rtorrent is down') from e
+                    raise RtorrentError('get_torrents: Rtorrent is down') from e
                 except (xmlrpc.client.Fault, SocketError) as e:
-                    raise RtorrentError(f'Failed to load d.files from rtorrent SCGI: {e}') from e
+                    raise RtorrentError(f'get_torrents: Failed to load d.files from rtorrent SCGI: {e}') from e
 
                 for f in files:
                     data[d[0]]['files'].append({
@@ -379,9 +379,9 @@ class RTorrent():
             self.server.load.start_verbose('', magnet_url)
 
         except ConnectionRefusedError as e:
-            raise RtorrentError('Rtorrent is down') from e
+            raise RtorrentError('add_magnet: Rtorrent is down') from e
         except (xmlrpc.client.Fault, SocketError) as e:
-            raise RtorrentError(f'Failed to add magnet: {e}') from e
+            raise RtorrentError(f'add_magnet: Failed to add magnet: {e}') from e
 
 
     def set_tag(self, hash_id, tag_name):
@@ -396,9 +396,9 @@ class RTorrent():
             self.server.d.custom1.set(hash_id, tag_name)
 
         except ConnectionRefusedError as e:
-            raise RtorrentError('Rtorrent is down') from e
+            raise RtorrentError('set_tag: Rtorrent is down') from e
         except (xmlrpc.client.Fault, SocketError) as e:
-            raise RtorrentError(f'Failed to load from rtorrent SCGI: {e}') from e
+            raise RtorrentError(f'set_tag: Failed to load from rtorrent SCGI: {e}') from e
 
 
     def set_file_priority(self, hash_id, file_index, priority):
@@ -414,9 +414,9 @@ class RTorrent():
             self.server.f.priority.set(f'{hash_id}:f{file_index}', priority)
 
         except ConnectionRefusedError as e:
-            raise RtorrentError('Rtorrent is down') from e
+            raise RtorrentError('set_file_priority: Rtorrent is down') from e
         except (xmlrpc.client.Fault, SocketError) as e:
-            raise RtorrentError(f'Failed to load from rtorrent SCGI: {e}') from e
+            raise RtorrentError(f'set_file_priority: Failed to load from rtorrent SCGI: {e}') from e
 
 
     def get_file_priority(self, hash_id, file_index):
@@ -433,9 +433,9 @@ class RTorrent():
             return self.server.f.priority(f'{hash_id}:f{file_index}')
 
         except ConnectionRefusedError as e:
-            raise RtorrentError('Rtorrent is down') from e
+            raise RtorrentError('get_file_priority: Rtorrent is down') from e
         except (xmlrpc.client.Fault, SocketError) as e:
-            raise RtorrentError(f'Failed to load from rtorrent SCGI: {e}') from e
+            raise RtorrentError(f'get_file_priority: Failed to load from rtorrent SCGI: {e}') from e
 
 
 def format_size(size):
