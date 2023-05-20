@@ -21,6 +21,7 @@ dependencies = [
 	"dataclasses-jsonschema==2.16.0",
     "fake-useragent==1.1.1",
     "feedparser==6.0.10",
+	"gcsa==2.1.0",
 	"Jinja2==3.1.2",
 	"pandas==1.5.2",
 	"pyyaml==6.0",
