@@ -196,13 +196,12 @@ def check_torrentgalaxy(current_season: int, state: State):
                 logger.error('Failed extracting magnet: %s', entry.get('links', 'No key "links" on entry obj!'))
                 continue
 
-            logger.debug(f'Found: {title}')
+            session_type = title[title.index('.', 18)+1:title.index('.', title.index('.', 18)+1)]
 
-            # Create a different key for Race and Qualy
-            if 'Race' in title:
-                key = f'{title[10:17]}r'
-            else:
-                key = f'{title[10:17]}q'
+            logger.debug(f'Found: {title} ({session_type})')
+
+            # Create a different key for each session type (eg. 2023x04ra)
+            key = f'{title[10:17]}{session_type[0:2].lower()}'
 
             # Retain all data to be posted on MQTT
             if key not in state.races:
