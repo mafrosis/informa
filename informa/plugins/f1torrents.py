@@ -491,7 +491,7 @@ def get_torrents():
     rt = RTorrent(RTORRENT_HOST, 5000)
     try:
         torrents = rt.get_torrents()
-        pretty.table(torrents.values(), columns=('progress', 'name'))
+        pretty.table([t for t in torrents.values() if 'Formula.1' in t['name']],  columns=('progress', 'name'))
     except RtorrentError as e:
         logger.error(e)
 
