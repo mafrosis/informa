@@ -78,7 +78,9 @@ def main(state: State, config: Config):
     '''
     Check for new F1 torrents and add to rtorrent
     '''
-    logger.debug('Checking for torrents..')
+    logger.debug('Running, last run: %s', state.last_run or 'Never')
+    state.last_run = now_aest()
+
     check_torrentgalaxy(config.current_season, state)
 
     # Immediately add torrents (this command also runs every 15 mins on a task)
