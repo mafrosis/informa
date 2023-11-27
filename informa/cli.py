@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import os
 import logging
@@ -6,7 +7,7 @@ import click
 
 
 from informa.exceptions import PluginNotFound
-from informa.main import init_plugins, start_rocketry
+from informa.main import init_plugins, start as start_app
 from informa.lib import load_run_persist
 
 
@@ -41,8 +42,9 @@ for plugin_module in PLUGINS.values():
 
 @cli.command
 def start():
-    'Start the async workers for each plugin'
-    start_rocketry()
+    'Start the async workers for each plugin, and the API server'
+    logger.info('Starting FastAPI and Rocketry workers')
+    asyncio.run(start_app())
 
 
 @cli.command
