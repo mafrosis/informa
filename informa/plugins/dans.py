@@ -29,7 +29,7 @@ class Product(JsonSchemaMixin):
 class History(JsonSchemaMixin):
     product: Product
     price: decimal.Decimal
-    ts: datetime.datetime = field(default=now_aest())
+    ts: datetime.datetime
     alerted: bool = field(default=False)
 
     def flatten(self):
@@ -92,7 +92,7 @@ def main(state: State, config: Config):
                     alerted = True
 
             # Track query results
-            result = History(product, current_price, alerted=alerted)
+            result = History(product, current_price, ts=now_aest(), alerted=alerted)
             add_to_history(state.history, result)
 
         except FailedProductQuery as e:
