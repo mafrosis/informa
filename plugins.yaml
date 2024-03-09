@@ -1,7 +1,3 @@
 ---
 plugins:
-  - dans
-  - f1torrents
   - ha-releases
-  - tahbilk
-  - torrentgalaxy
