@@ -14,6 +14,7 @@ logger = logging.getLogger('informa')
 
 def start_rocketry():
     init_plugins()
+    logger.info('Starting rocketry workers')
     app.run()
 
 
