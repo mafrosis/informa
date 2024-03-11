@@ -21,7 +21,7 @@ dependencies = [
 	"dataclasses-jsonschema==2.16.0",
 	"fake-useragent==1.1.1",
 	"feedparser==6.0.10",
-	"gcsa==2.1.0",
+	"gcsa @ https://github.com/mafrosis/gcsa/releases/download/2.2.1-dev/gcsa-dev-py3-none-any.whl",
 	"Jinja2==3.1.2",
 	"pandas>2.2,<2.3",
 	"pydantic==1.10.10",

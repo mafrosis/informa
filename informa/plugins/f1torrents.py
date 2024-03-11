@@ -17,7 +17,7 @@ import requests
 from rocketry.conds import cron
 from wakeonlan import send_magic_packet
 
-
+from informa.helpers import write_config
 from informa.lib import (app, ConfigBase, load_run_persist, load_config, load_state, mailgun,
                          now_aest, PluginAdapter, pretty)
 
@@ -55,16 +55,22 @@ class Race(JsonSchemaMixin):
 @dataclass
 class Config(ConfigBase):
     current_season: int
-    calendar: List[Race]
+    calendar: Optional[List[Race]] = None
 
 
 @app.cond()
 def is_f1_weekend():
     config = load_config(Config, PLUGIN_NAME)
+
+    if config.calendar is None:
+        logger.error('No F1 calendar configured, use: informa plugin f1torrents calendar')
+        return False
+
     for race in config.calendar:
         if datetime.date.today() >= race.start.date() - datetime.timedelta(days=3) and \
            datetime.date.today() < race.start.date() + datetime.timedelta(days=3):
             return True
+
     logger.debug('Today not within F1 weekend range')
     return False
 
@@ -479,6 +485,7 @@ def last_run():
     state = load_state(logger, State, PLUGIN_NAME)
     print(f'Last run: {state.last_run}')
 
+
 @cli.command
 def found():
     'What races have we found already?'
@@ -486,6 +493,7 @@ def found():
     for race in state.races.values():
         added = 'added  ' if race.added_to_rtorrent is True else 'pending'
         print(f'{added} {race.title}')
+
 
 @cli.command
 def get_torrents():
@@ -497,23 +505,39 @@ def get_torrents():
     except RtorrentError as e:
         logger.error(e)
 
+
 @cli.command
-def calendar():
-    'Print current F1 calendar'
-    gc = GoogleCalendar(
-        credentials_path='gcp_oauth_secret.json',
-        authentication_flow_port=9999,
-    )
+@click.option('--write', is_flag=True, default=False,
+              help='Write the calendar data to the plugin config file')
+def calendar(write: bool):
+    'Fetch F1 calendar for the current configured year, and write to config'
+    config = load_config(Config, PLUGIN_NAME)
 
-    F1CAL = 'kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com'
+    def fetch_f1_calendar() -> Dict[str, datetime.datetime]:
+        'Fetch current F1 calendar'
+        gc = GoogleCalendar(
+            credentials_path='gcp_oauth_secret.json',
+            authentication_flow_host='home.mafro.net',
+            authentication_flow_bind_addr='0.0.0.0',
+            authentication_flow_port=3002,
+            read_only=True,
+        )
 
-    for ev in gc.get_events(
-            calendar_id=F1CAL,
-            time_min=datetime.date(2023, 1, 1),
+        config = load_config(Config, PLUGIN_NAME)
+
+        events = gc.get_events(
+            calendar_id='kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com',
+            time_min=datetime.date(config.current_season, 1, 1),
             single_events=True,
             order_by='startTime',
-        ):
-        if ev.summary.endswith(' - Race'):
-            summary = ev.summary.replace("'", ' ')
-            print(f"- title: '{summary}'")
-            print(f"  start: '{ev.start}'")
+        )
+        return {e.summary: e.start for e in events if e.summary.endswith(' - Race')}
+
+    config.calendar = [Race(k, v) for k, v in fetch_f1_calendar().items()]
+
+    if write:
+        write_config(config, PLUGIN_NAME)
+
+    for r in config.calendar:
+        print(f'{r.title}')
+        print(f'   {r.start}')
