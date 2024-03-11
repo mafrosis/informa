@@ -1,3 +1,5 @@
+google-api-python-client-stubs
+pandas-stubs
 pylint
 pytest
 pytest-mypy
