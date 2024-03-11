@@ -204,7 +204,8 @@ def check_torrentgalaxy(current_season: int, state: State):
                 logger.error('Failed extracting magnet: %s', entry.get('links', 'No key "links" on entry obj!'))
                 continue
 
-            session_type = title[title.index('.', 18)+1:title.index('.', title.index('.', 18)+1)]
+            # Race / Qualifying / Sprint etc
+            session_type = title.split('.')[-3]
 
             logger.debug(f'Found: {title} ({session_type})')
 
