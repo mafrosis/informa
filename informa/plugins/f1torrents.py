@@ -60,10 +60,9 @@ class Config(ConfigBase):
 
 @app.cond()
 def is_f1_weekend():
-    config = load_config(Config, PLUGIN_NAME)
-    for race in config.calendar:
-        if datetime.date.today() >= race.start.date() - datetime.timedelta(days=3) and \
-           datetime.date.today() < race.start.date() + datetime.timedelta(days=3):
+    for start in fetch_f1_calendar().values():
+        if datetime.date.today() >= start.date() - datetime.timedelta(days=3) and \
+           datetime.date.today() < start.date() + datetime.timedelta(days=3):
             return True
     logger.debug('Today not within F1 weekend range')
     return False
@@ -469,6 +468,24 @@ def format_size(size):
     return '{}{}'.format(s, ('B', 'KB', 'MB', 'GB', 'TB', 'PB')[i])  # pylint: disable=consider-using-f-string
 
 
+def fetch_f1_calendar() -> Dict[str, datetime.datetime]:
+    'Fetch current F1 calendar'
+    gc = GoogleCalendar(
+        credentials_path='gcp_oauth_secret.json',
+        authentication_flow_port=9999,
+    )
+
+    config = load_config(Config, PLUGIN_NAME)
+
+    events = gc.get_events(
+        calendar_id='kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com',
+        time_min=datetime.date(config.current_season, 1, 1),
+        single_events=True,
+        order_by='startTime',
+    )
+    return {e.summary: e.start for e in events if e.summary.endswith(' - Race')}
+
+
 @click.group(name=PLUGIN_NAME[16:])
 def cli():
     'F1 torrent downloader'
@@ -500,20 +517,6 @@ def get_torrents():
 @cli.command
 def calendar():
     'Print current F1 calendar'
-    gc = GoogleCalendar(
-        credentials_path='gcp_oauth_secret.json',
-        authentication_flow_port=9999,
-    )
-
-    F1CAL = 'kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com'
-
-    for ev in gc.get_events(
-            calendar_id=F1CAL,
-            time_min=datetime.date(2023, 1, 1),
-            single_events=True,
-            order_by='startTime',
-        ):
-        if ev.summary.endswith(' - Race'):
-            summary = ev.summary.replace("'", ' ')
-            print(f"- title: '{summary}'")
-            print(f"  start: '{ev.start}'")
+    for s, d in fetch_f1_calendar().items():
+        print(f'- title: {s}')
+        print(f'  start: {d}')
