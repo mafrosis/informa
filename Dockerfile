@@ -17,6 +17,8 @@ FROM python:3.12-slim
 
 WORKDIR /src
 
+RUN apt update && apt install -y curl
+
 # Copy in the built wheels
 COPY --from=builder /dist /dist
 
