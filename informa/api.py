@@ -72,5 +72,17 @@ async def get_mp3_album_info(identifier: str):
         'track_count': count_mp3s(path),
     }
 
+@router_mp3info.get('/art/{identifier}')
+async def get_mp3_album_art(identifier: str):
+    def find_album_art_path(albumartist: str):
+        for path in pathlib.Path(MP3HOME).glob(f'**/{albumartist}'):
+            if os.exists(f'{path}/folder.jpg'):
+                return f'{path}/folder.jpg'
+
+    path = find_album_art_path(identifier)
+
+    with open(path, 'rb') as f:
+        return f.read()
+
 
 app_fastapi.include_router(router_mp3info)
