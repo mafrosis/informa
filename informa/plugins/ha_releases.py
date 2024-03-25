@@ -33,7 +33,9 @@ def main(state: State):
     logger.debug('Running, last run: %s', state.last_run or 'Never')
     state.last_run = now_aest()
 
-    state.last_release_seen = fetch_ha_releases(state.last_release_seen or None)
+    ver = fetch_ha_releases(state.last_release_seen or None)
+    if isinstance(ver, str):
+        state.last_release_seen = ver
 
 
 def fetch_ha_releases(last_release_seen: Optional[str]):
