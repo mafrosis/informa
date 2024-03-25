@@ -8,7 +8,6 @@ services:
   informa:
     image: ghcr.io/mafrosis/informa:dev
     restart: unless-stopped
-    network_mode: host
     build:
       context: .
     environment:
