@@ -29,8 +29,12 @@ def init_plugins() -> Dict[str, ModuleType]:
         # Convert dashes into underscores for python imports
         module_name = plug.replace('-', '_')
 
-        # Dynamic import to register rocketry tasks
-        modules[plug] = importlib.import_module(f'informa.plugins.{module_name}')
+        try:
+            # Dynamic import to register rocketry tasks
+            modules[plug] = importlib.import_module(f'informa.plugins.{module_name}')
+        except ModuleNotFoundError as e:
+            logger.error('Plugin not found %s %s', plug, e)
+            continue
 
         if has_rocketry_task(modules[plug]):
             pluginfo = 'Rocketry'
