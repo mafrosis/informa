@@ -8,7 +8,6 @@ services:
   informa:
     image: ghcr.io/mafrosis/informa:dev
     restart: unless-stopped
-    network_mode: host
     build:
       context: .
     environment:
@@ -17,6 +16,8 @@ services:
       - TZ=Australia/Melbourne
     ports:
       - 3002:3002
+    extra_hosts:
+      locke: 192.168.1.198
     volumes:
       - ./plugins.yaml:/src/plugins.yaml:ro
       - ./templates:/src/templates:ro

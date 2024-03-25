@@ -29,7 +29,6 @@ dependencies = [
 	"requests==2.28.1",
 	"rich==13.3.3",
 	"rocketry==2.5.1",
-	"wakeonlan==3.0.0",
 ]
 
 [project.scripts]
