@@ -15,7 +15,6 @@ import feedparser
 from gcsa.google_calendar import GoogleCalendar
 import requests
 from rocketry.conds import cron
-from wakeonlan import send_magic_packet
 
 from informa.helpers import write_config
 from informa.lib import (app, ConfigBase, load_run_persist, load_config, load_state, mailgun,
@@ -149,10 +148,11 @@ def add_magnet_to_rtorrent(races: Dict[str, Download]):
                 rt.add_magnet(race_data.magnet)
             except RtorrentError as e:
                 if 'No route to host' in str(e):
-                    # Wake on LAN for jorg
-                    send_magic_packet('d0:50:99:c1:63:c9')
+                    # Wake jorg via wol-sender running on 3001
+                    requests.get('http://locke.eggs:3001/wake/d0:50:99:c1:63:c9', timeout=3)
                     logger.info('WOL packet sent to wake rtorrent')
                     return
+
                 logger.error('Failed adding magnet for %s (%s)', key, e)
                 continue
 
