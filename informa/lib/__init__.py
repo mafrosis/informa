@@ -141,5 +141,8 @@ def write_state(state_obj: JsonSchemaMixin, plugin_name: str):
         cls:          Plugin's state object
         plugin_name:  Plugin's name
     '''
+    if not os.path.exists('state'):
+        os.mkdir('state')
+
     with open(f'state/{plugin_name}.yaml', 'w', encoding='utf8') as f:
         f.write(yaml.dump(state_obj.to_dict()))
