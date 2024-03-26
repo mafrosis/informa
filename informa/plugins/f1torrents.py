@@ -516,7 +516,11 @@ def calendar(write: bool):
 
     def fetch_f1_calendar() -> Dict[str, datetime.datetime]:
         'Fetch current F1 calendar'
-        gc = GoogleCalendar(credentials_path='gcp_oauth_secret.json')
+        gc = GoogleCalendar(
+            credentials_path='gcp_oauth_secret.json',
+            authentication_flow_host='home.mafro.net',
+            authentication_flow_port=3001,
+        )
 
         config = load_config(Config, PLUGIN_NAME)
 
