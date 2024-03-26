@@ -518,7 +518,8 @@ def calendar(write: bool):
         'Fetch current F1 calendar'
         gc = GoogleCalendar(
             credentials_path='gcp_oauth_secret.json',
-            authentication_flow_host='home.mafro.net',
+            #authentication_flow_host='home.mafro.net',
+            authentication_flow_bind_addr='0.0.0.0',
             authentication_flow_port=3001,
         )
 

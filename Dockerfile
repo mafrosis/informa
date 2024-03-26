@@ -2,6 +2,8 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /src
 
+RUN apt update && apt install -y git
+
 RUN pip install wheel
 
 # Fetch/build wheels for dependencies
@@ -17,7 +19,7 @@ FROM python:3.12-slim
 
 WORKDIR /src
 
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl git
 
 # Copy in the built wheels
 COPY --from=builder /dist /dist
