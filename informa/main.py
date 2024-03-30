@@ -1,10 +1,12 @@
 import functools
 import importlib
+import inspect
 import logging
 from types import ModuleType
 from typing import Dict
 
 import asyncio
+from fastapi import APIRouter
 import uvicorn
 import yaml
 
@@ -29,13 +31,26 @@ def init_plugins() -> Dict[str, ModuleType]:
 
         try:
             # Dynamic import to register rocketry tasks
-            logger.debug('Initialising plugin %s', plug)
             modules[plug] = importlib.import_module(f'informa.plugins.{module_name}')
         except ModuleNotFoundError as e:
             logger.error('Plugin not found %s %s', plug, e)
             continue
 
     return modules
+
+
+def has_rocketry_task(module: ModuleType) -> bool:
+    for _, func in inspect.getmembers(module, inspect.isfunction):
+        if 'load_run_persist' in inspect.getclosurevars(func).globals:
+            return True
+    return False
+
+
+def has_fastapi_router(module: ModuleType) -> bool:
+    for obj in inspect.getmembers(module, inspect.isclass):
+        if issubclass(obj[1], APIRouter):
+            return True
+    return False
 
 
 class Server(uvicorn.Server):
@@ -53,7 +68,15 @@ async def start(host: str, port: int):
     'Run Rocketry and FastAPI'
     server = Server(config=uvicorn.Config(app_fastapi, loop='asyncio', host=host, port=port))
 
-    init_plugins()
+    modules = init_plugins()
+
+    for plugin, module in modules.items():
+        if has_rocketry_task(module):
+            pluginfo = 'Rocketry'
+        elif has_fastapi_router(module):
+            pluginfo = 'FastAPI'
+
+        logger.info('Initialised %s plugin: %s', pluginfo, plugin)
 
     await asyncio.wait([
         asyncio.create_task(server.serve()),
