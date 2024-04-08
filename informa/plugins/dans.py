@@ -21,7 +21,7 @@ TEMPLATE_NAME = 'dans.tmpl'
 
 @dataclass
 class Product(JsonSchemaMixin):
-    id: str
+    id: str  # noqa: A003
     name: str
     target: int
 
