@@ -226,7 +226,7 @@ class RtorrentError(Exception):
 
 
 class SCGITransport(xmlrpc.client.Transport):
-    def single_request(self, host, handler, request_body, verbose=0):
+    def single_request(self, host, handler, request_body, verbose=0):  # noqa: ARG002
         # Create SCGI header
         header = f'CONTENT_LENGTH\x00{len(request_body)}\x00SCGI\x001\x00'
         request_body = f'{len(header)}:{header},{request_body}'
@@ -310,8 +310,7 @@ class SCGIServerProxy(xmlrpc.client.ServerProxy):
         return f'<SCGIServerProxy for {self.__host}{self.__handler}>'
 
     def __getattr__(self, name):
-        # magic method dispatcher
-        return xmlrpc.client._Method(self.__request, name)
+        return xmlrpc.client._Method(self.__request, name)  # noqa: SLF001
 
     def __call__(self, attr):
         '''
@@ -520,7 +519,7 @@ def calendar(write: bool):
         gc = GoogleCalendar(
             credentials_path='gcp_oauth_secret.json',
             authentication_flow_host='home.mafro.net',
-            authentication_flow_bind_addr='0.0.0.0',
+            authentication_flow_bind_addr='0.0.0.0',  # noqa: S104
             authentication_flow_port=3002,
             read_only=True,
         )
