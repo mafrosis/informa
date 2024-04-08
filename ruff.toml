@@ -1,3 +1,6 @@
+[format]
+quote-style = "preserve"
+
 [lint]
 ignore = [
 	"EM101",  # https://docs.astral.sh/ruff/rules/raw-string-in-exception
