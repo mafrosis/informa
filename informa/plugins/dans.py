@@ -3,16 +3,15 @@ import datetime
 import decimal
 import logging
 from dataclasses import dataclass, field
-from typing import cast
 
 import click
 import pandas as pd
 import requests
-from dataclasses_json import DataClassJsonMixin
 
 from informa.lib import (
     ConfigBase,
     PluginAdapter,
+    StateBase,
     app,
     load_run_persist,
     load_state,
@@ -28,14 +27,14 @@ TEMPLATE_NAME = 'dans.tmpl'
 
 
 @dataclass
-class Product(DataClassJsonMixin):
+class Product:
     id: str
     name: str
     target: int
 
 
 @dataclass
-class History(DataClassJsonMixin):
+class History:
     product: Product
     price: decimal.Decimal
     ts: datetime.datetime
@@ -52,8 +51,7 @@ class History(DataClassJsonMixin):
 
 
 @dataclass
-class State(DataClassJsonMixin):
-    last_run: datetime.date | None = None
+class State(StateBase):
     history: list[History] = field(default_factory=list)
 
 
@@ -76,8 +74,6 @@ def run():
 
 
 def main(state: State, config: Config):
-    state.last_run = now_aest()
-
     sess = requests.Session()
 
     history_item: History | None = None
@@ -191,7 +187,7 @@ def stats():
     '''
     Show product stats
     '''
-    state = cast(State, load_state(logger, State, PLUGIN_NAME))
+    state = load_state(logger, State, PLUGIN_NAME)
 
     product_history = [h.flatten() for h in state.history]
     df = pd.DataFrame(product_history)

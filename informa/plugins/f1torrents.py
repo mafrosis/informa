@@ -5,13 +5,11 @@ import re
 import socket
 import xmlrpc.client
 from dataclasses import dataclass, field
-from typing import cast
 from urllib.parse import urlparse
 
 import click
 import feedparser
 import requests
-from dataclasses_json import DataClassJsonMixin
 from gcsa.google_calendar import GoogleCalendar
 from rocketry.conds import cron
 
@@ -19,12 +17,12 @@ from informa.helpers import write_config
 from informa.lib import (
     ConfigBase,
     PluginAdapter,
+    StateBase,
     app,
     load_config,
     load_run_persist,
     load_state,
     mailgun,
-    now_aest,
     pretty,
 )
 
@@ -41,7 +39,7 @@ RT_PRI_OFF = 0
 
 
 @dataclass
-class Download(DataClassJsonMixin):
+class Download:
     key: str
     title: str
     magnet: str
@@ -49,8 +47,7 @@ class Download(DataClassJsonMixin):
 
 
 @dataclass
-class State(DataClassJsonMixin):
-    last_run: datetime.date | None = field(default=now_aest())
+class State(StateBase):
     latest_race: str = field(default='')
     races: dict[str, Download] = field(default_factory=dict)
 
@@ -60,7 +57,7 @@ class FailedFetchingTorrents(Exception):
 
 
 @dataclass
-class Race(DataClassJsonMixin):
+class Race:
     title: str
     start: datetime.datetime
 
@@ -98,8 +95,6 @@ def main(state: State, config: Config):
     '''
     Check for new F1 torrents and add to rtorrent
     '''
-    state.last_run = now_aest()
-
     if check_torrentgalaxy(config.current_season, state):
         # if torrents found, try to add immediately
         add_magnet_to_rtorrent(state.races)
@@ -145,7 +140,7 @@ def set_torrent_file_priorities():
 
 @app.task('every 15 minutes')
 def add_torrents():
-    state = cast(State, load_state(logger, State, PLUGIN_NAME))
+    state = load_state(logger, State, PLUGIN_NAME)
     add_magnet_to_rtorrent(state.races)
 
 
