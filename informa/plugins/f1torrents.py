@@ -21,7 +21,7 @@ from informa.lib import (
     mailgun,
     pretty,
 )
-from informa.lib.plugin import load_config, load_run_persist, load_state, write_config
+from informa.lib.plugin import load_config, load_run_persist, load_state, write_config, write_state
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -137,10 +137,11 @@ def set_torrent_file_priorities():
 @app.task('every 15 minutes')
 def add_torrents():
     state = load_state(logger, State)
-    add_magnet_to_rtorrent(state.races)
+    if add_magnet_to_rtorrent(state.races):
+        write_state(state)
 
 
-def add_magnet_to_rtorrent(races: dict[str, Download]):
+def add_magnet_to_rtorrent(races: dict[str, Download]) -> bool:
     '''
     Add magnets directly to rtorrent via RPC
     '''
@@ -154,7 +155,7 @@ def add_magnet_to_rtorrent(races: dict[str, Download]):
                     # Wake jorg via wol-sender running on 3001
                     requests.get('http://locke:3001/wake/d0:50:99:c1:63:c9', timeout=3)
                     logger.info('WOL packet sent to wake rtorrent')
-                    return
+                    return False
 
                 logger.error('Failed adding magnet for %s (%s)', key, e)
                 continue
@@ -174,6 +175,9 @@ def add_magnet_to_rtorrent(races: dict[str, Download]):
                     'filename': filename,
                 },
             )
+            return True
+
+    return False
 
 
 def check_torrentgalaxy(current_season: int, state: State) -> bool:
