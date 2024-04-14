@@ -54,6 +54,10 @@ class History:
 class State(StateBase):
     history: list[History] = field(default_factory=list)
 
+@dataclass
+class Config(ConfigBase):
+    products: list[Product]
+
 
 class FailedProductQuery(Exception):
     pass
@@ -61,11 +65,6 @@ class FailedProductQuery(Exception):
 
 class ProductNeverAlerted(Exception):
     pass
-
-
-@dataclass
-class Config(ConfigBase):
-    products: list[Product]
 
 
 @app.task('every 12 hours', name=__name__)
@@ -138,6 +137,9 @@ def query_product(sess, product: Product) -> decimal.Decimal:
     except requests.RequestException as e:
         raise FailedProductQuery(f'Failed loading from {product.name}: {e}') from e
 
+    if resp.status_code != 200:  # noqa: PLR2004
+        raise FailedProductQuery(f'HTTP {resp.status_code} loading {product.name}')
+
     try:
         # Pull out the current single bottle price
         prices = resp.json()['Products'][0]['Prices']
@@ -146,7 +148,7 @@ def query_product(sess, product: Product) -> decimal.Decimal:
         # Continue with current price as decimal
         current_price = decimal.Decimal(str(prices['Value']))
 
-    except (KeyError, IndexError) as e:
+    except (requests.exceptions.JSONDecodeError, KeyError, IndexError) as e:
         raise FailedProductQuery(f'{e.__class__.__name__} {e} parsing price for {product.name}') from e
 
     logger.debug('Querying %s %s for target=%s, actual=%s', product.id, product.name, product.target, current_price)
