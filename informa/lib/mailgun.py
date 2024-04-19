@@ -10,11 +10,11 @@ from informa.lib import PluginAdapter
 
 
 def send(
-        logger: logging.Logger | PluginAdapter,
-        subject: str,
-        template: str | None = None,
-        content: dict[str, Any] | None = None,
-    ) -> bool:
+    logger: logging.Logger | PluginAdapter,
+    subject: str,
+    template: str | None = None,
+    content: dict[str, Any] | None = None,
+) -> bool:
     '''
     Handle plugin loggers, and any exceptions raised during _send
     '''

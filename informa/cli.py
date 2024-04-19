@@ -29,6 +29,7 @@ def cli(debug):
 def plugin_():
     'Invoke a plugin\'s CLI'
 
+
 # Load all the plugins at import time
 PLUGINS = init_plugins()
 

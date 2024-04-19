@@ -33,6 +33,7 @@ class Product(JsonSchemaMixin):
     name: str
     target: int
 
+
 @dataclass
 class History(JsonSchemaMixin):
     product: Product
@@ -49,13 +50,16 @@ class History(JsonSchemaMixin):
             'ts': self.ts,
         }
 
+
 @dataclass
 class State(JsonSchemaMixin):
     last_run: datetime.date | None = None
     history: list[History] = field(default_factory=list)
 
+
 class FailedProductQuery(Exception):
     pass
+
 
 class ProductNeverAlerted(Exception):
     pass
@@ -166,7 +170,7 @@ def send_alert(product: Product, current_price: decimal.Decimal):
             'product': product.name,
             'price': current_price,
             'url': f'https://www.danmurphys.com.au/product/DM_{product.id}',
-        }
+        },
     )
 
 
@@ -174,11 +178,13 @@ def send_alert(product: Product, current_price: decimal.Decimal):
 def cli():
     'Dan Murphy\'s product tracker'
 
+
 @cli.command
 def last_run():
     'When was the last run?'
     state = load_state(logger, State, PLUGIN_NAME)
     print(f'Last run: {state.last_run}')
+
 
 @cli.command
 def stats():

@@ -47,11 +47,13 @@ class Download(JsonSchemaMixin):
     magnet: str
     added_to_rtorrent: bool = False
 
+
 @dataclass
 class State(JsonSchemaMixin):
     last_run: datetime.date | None = field(default=now_aest())
     latest_race: str = field(default='')
     races: dict[str, Download] = field(default_factory=dict)
+
 
 class FailedFetchingTorrents(Exception):
     pass
@@ -61,6 +63,7 @@ class FailedFetchingTorrents(Exception):
 class Race(JsonSchemaMixin):
     title: str
     start: datetime.datetime
+
 
 @dataclass
 class Config(ConfigBase):
@@ -151,7 +154,6 @@ def add_magnet_to_rtorrent(races: dict[str, Download]):
     Add magnets directly to rtorrent via RPC
     '''
     for key, race_data in races.items():
-
         if not race_data.added_to_rtorrent:
             try:
                 rt = RTorrent(RTORRENT_HOST, 5000)
@@ -179,7 +181,7 @@ def add_magnet_to_rtorrent(races: dict[str, Download]):
                 TEMPLATE_NAME,
                 {
                     'filename': filename,
-                }
+                },
             )
 
 
@@ -300,12 +302,7 @@ class SCGIServerProxy(xmlrpc.client.ServerProxy):
         self.__transport.close()
 
     def __request(self, methodname, params):
-        request = xmlrpc.client.dumps(
-            params,
-            methodname,
-            encoding=self.__encoding,
-            allow_none=self.__allow_none
-        )
+        request = xmlrpc.client.dumps(params, methodname, encoding=self.__encoding, allow_none=self.__allow_none)
 
         response = self.__transport.request(
             self.__host,
@@ -343,7 +340,6 @@ class RTorrent:
     def __init__(self, host, port):
         self.server = SCGIServerProxy(f'scgi://{host}:{port}/')
 
-
     def get_torrents(self, tag_filter=None):
         try:
             downloads = self.server.d.multicall2(
@@ -352,7 +348,7 @@ class RTorrent:
                 'd.hash=',
                 'd.name=',
                 'd.completed_bytes=',
-                'd.custom1='
+                'd.custom1=',
             )
             if downloads is None:
                 raise RtorrentError('get_torrents: Failed to load from rtorrent SCGI')
@@ -398,17 +394,16 @@ class RTorrent:
                     })
 
                 try:
-                    # torrent total progress based on each file's progress, ignoring "skipped" files
+                    # torrent total progress based on each file's progress, ignoring 'skipped' files
                     torrent_progress = sum(f[3] for f in files if f[4] > 0) / sum(f[2] for f in files if f[4] > 0) * 100
                 except ZeroDivisionError:
-                    # all files are "skip"
+                    # all files are 'skip'
                     torrent_progress = 0
 
                 data[d[0]]['progress'] = f'{torrent_progress:.1f}%'
                 data[d[0]]['complete'] = torrent_progress == 100  # noqa: PLR2004
 
         return data
-
 
     def add_magnet(self, magnet_url):
         '''
@@ -424,7 +419,6 @@ class RTorrent:
             raise RtorrentError('add_magnet: Rtorrent is down') from e
         except (OSError, xmlrpc.client.Fault) as e:
             raise RtorrentError(f'add_magnet: Failed to add magnet: {e}') from e
-
 
     def set_tag(self, hash_id, tag_name):
         '''
@@ -442,7 +436,6 @@ class RTorrent:
         except (OSError, xmlrpc.client.Fault) as e:
             raise RtorrentError(f'set_tag: Failed to load from rtorrent SCGI: {e}') from e
 
-
     def set_file_priority(self, hash_id, file_index, priority):
         '''
         Set priority of a file in a torrent
@@ -459,7 +452,6 @@ class RTorrent:
             raise RtorrentError('set_file_priority: Rtorrent is down') from e
         except (OSError, xmlrpc.client.Fault) as e:
             raise RtorrentError(f'set_file_priority: Failed to load from rtorrent SCGI: {e}') from e
-
 
     def get_file_priority(self, hash_id, file_index):
         '''
@@ -494,6 +486,7 @@ def format_size(size):
 def cli():
     'F1 torrent downloader'
 
+
 @cli.command
 def last_run():
     'When was the last run?'
@@ -522,8 +515,7 @@ def get_torrents():
 
 
 @cli.command
-@click.option('--write', is_flag=True, default=False,
-              help='Write the calendar data to the plugin config file')
+@click.option('--write', is_flag=True, default=False, help='Write the calendar data to the plugin config file')
 def calendar(write: bool):
     'Fetch F1 calendar for the current configured year, and write to config'
     config = load_config(Config, PLUGIN_NAME)

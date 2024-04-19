@@ -13,11 +13,13 @@ from zoneinfo import ZoneInfo
 
 from informa.exceptions import AppError
 
-app = Rocketry(config={
-    'execution': 'thread',
-    'timezone': ZoneInfo('Australia/Melbourne'),
-    'cycle_sleep': 10,
-})
+app = Rocketry(
+    config={
+        'execution': 'thread',
+        'timezone': ZoneInfo('Australia/Melbourne'),
+        'cycle_sleep': 10,
+    }
+)
 
 fastapi = FastAPI()
 
@@ -25,10 +27,7 @@ fastapi = FastAPI()
 class PluginAdapter(logging.LoggerAdapter):
     def __init__(self, logger_):
         # Pass the plugin's name as `extra` param to the logger
-        super().__init__(
-            logger_,
-            inspect.getmodule(inspect.stack()[1][0]).__name__.split('.')[-1].upper()
-        )
+        super().__init__(logger_, inspect.getmodule(inspect.stack()[1][0]).__name__.split('.')[-1].upper())
 
     def process(self, msg, kwargs):
         return f'[{self.extra}] {msg}', kwargs
@@ -39,11 +38,11 @@ class ConfigBase(JsonSchemaMixin, metaclass=abc.ABCMeta):
 
 
 def load_run_persist(
-        logger: logging.Logger | logging.LoggerAdapter,
-        state_cls: type[JsonSchemaMixin],
-        plugin_name: str,
-        main_func: Callable
-    ):
+    logger: logging.Logger | logging.LoggerAdapter,
+    state_cls: type[JsonSchemaMixin],
+    plugin_name: str,
+    main_func: Callable,
+):
     '''
     Load plugin state, run plugin main function via callback, persist state to disk.
 
@@ -101,10 +100,8 @@ def load_config(config_cls: type[ConfigBase], plugin_name: str) -> JsonSchemaMix
 
 
 def load_state(
-        logger: logging.Logger | logging.LoggerAdapter,
-        state_cls: type[JsonSchemaMixin],
-        plugin_name: str
-    ) -> JsonSchemaMixin:
+    logger: logging.Logger | logging.LoggerAdapter, state_cls: type[JsonSchemaMixin], plugin_name: str
+) -> JsonSchemaMixin:
     '''
     Load or initialise a plugin's state
     '''
@@ -123,7 +120,7 @@ def load_file(directory: str, cls: type[JsonSchemaMixin], plugin_name: str) -> J
     Utility function to load plugin config/state from a file
 
     Params:
-        directory:    Directory path; either "config" or "state"
+        directory:    Directory path; either 'config' or 'state'
         cls:          Plugin's state/config class type
         plugin_name:  Plugin's name
     '''
@@ -135,6 +132,7 @@ def load_file(directory: str, cls: type[JsonSchemaMixin], plugin_name: str) -> J
             return cls.from_dict(data)
     except FileNotFoundError:
         return None
+
 
 def write_state(state_obj: JsonSchemaMixin, plugin_name: str):
     '''

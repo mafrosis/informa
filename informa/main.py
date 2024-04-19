@@ -43,6 +43,7 @@ class Server(uvicorn.Server):
 
     Rocketry needs to shutdown when Uvicorn shuts down.
     '''
+
     def handle_exit(self, sig: int, frame) -> None:
         app_rocketry.session.shut_down()
         return super().handle_exit(sig, frame)
