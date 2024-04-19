@@ -30,7 +30,6 @@ logger = PluginAdapter(logging.getLogger('informa'))
 
 
 RTORRENT_HOST = '192.168.1.104'
-PLUGIN_NAME = __name__
 TEMPLATE_NAME = 'f1torrents.tmpl'
 
 RT_PRI_HIGH = 2
@@ -70,7 +69,7 @@ class Config(ConfigBase):
 
 @app.cond()
 def is_f1_weekend():
-    config = load_config(Config, PLUGIN_NAME)
+    config = load_config(Config)
 
     if config.calendar is None:
         logger.error('No F1 calendar configured, use: informa plugin f1torrents calendar')
@@ -88,7 +87,7 @@ def is_f1_weekend():
 
 @app.task(cron('*/15 * * * *') & is_f1_weekend, name=__name__)
 def run():
-    load_run_persist(logger, State, PLUGIN_NAME, main)
+    load_run_persist(logger, State, main)
 
 
 def main(state: State, config: Config):
@@ -140,7 +139,7 @@ def set_torrent_file_priorities():
 
 @app.task('every 15 minutes')
 def add_torrents():
-    state = load_state(logger, State, PLUGIN_NAME)
+    state = load_state(logger, State)
     add_magnet_to_rtorrent(state.races)
 
 
@@ -477,7 +476,7 @@ def format_size(size):
     return '{}{}'.format(s, ('B', 'KB', 'MB', 'GB', 'TB', 'PB')[i])
 
 
-@click.group(name=PLUGIN_NAME[16:])
+@click.group(name=__name__[16:])
 def cli():
     'F1 torrent downloader'
 
@@ -485,7 +484,7 @@ def cli():
 @cli.command
 def found():
     'What races have we found already?'
-    state = load_state(logger, State, PLUGIN_NAME)
+    state = load_state(logger, State)
     for race in state.races.values():
         added = 'added  ' if race.added_to_rtorrent is True else 'pending'
         print(f'{added} {race.title}')
@@ -506,7 +505,7 @@ def get_torrents():
 @click.option('--write', is_flag=True, default=False, help='Write the calendar data to the plugin config file')
 def calendar(write: bool):
     'Fetch F1 calendar for the current configured year, and write to config'
-    config = load_config(Config, PLUGIN_NAME)
+    config = load_config(Config)
 
     def fetch_f1_calendar() -> dict[str, datetime.datetime]:
         'Fetch current F1 calendar'
@@ -518,7 +517,7 @@ def calendar(write: bool):
             read_only=True,
         )
 
-        config = load_config(Config, PLUGIN_NAME)
+        config = load_config(Config)
 
         events = gc.get_events(
             calendar_id='kovat4knav5877j87e4o9f6m8m55dtbq@import.calendar.google.com',
@@ -531,7 +530,7 @@ def calendar(write: bool):
     config.calendar = [Race(k, v) for k, v in fetch_f1_calendar().items()]
 
     if write:
-        write_config(config, PLUGIN_NAME)
+        write_config(config)
 
     for r in config.calendar:
         print(f'{r.title}')
