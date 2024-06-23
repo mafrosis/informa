@@ -18,7 +18,7 @@ from informa.lib import (
     mailgun,
     now_aest,
 )
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import load_run_persist, load_state, write_state
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -209,3 +209,32 @@ def stats():
     df['First'] = df['First'].dt.strftime('%d-%m-%Y')
     df['Most Recent'] = df['Most Recent'].dt.strftime('%d-%m-%Y')
     print(df)
+
+
+@cli.command
+@click.option('--fix', is_flag=True, default=False)
+def validate(fix: bool):
+    "Validate and fix state"
+    state = cast(State, load_state(logger, State))
+
+    for entry in state.history:
+        print(entry.price)
+        entry.price = decimal.Decimal(f'{entry.price:0.2f}')
+        print(entry.price)
+
+    if fix:
+        write_state(state)
+
+
+@cli.command
+@click.argument('product_name')
+def delete(product_name: str):
+    """
+    Delete a product from the history
+    \b
+    PRODUCT_NAME: Product name shown in stats command
+    """
+    state = cast(State, load_state(logger, State))
+
+    state.history = [entry for entry in state.history if entry.product.name != product_name]
+    write_state(state)
