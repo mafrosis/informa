@@ -44,7 +44,6 @@ class Download:
 
 @dataclass
 class State(StateBase):
-    latest_race: str = field(default='')
     races: dict[str, Download] = field(default_factory=dict)
 
 
@@ -197,7 +196,6 @@ def check_torrentgalaxy(current_season: int, state: State) -> bool:
 
     feed = feedparser.parse(resp.text)
 
-    logger.info('Latest race: %s', state.latest_race)
     ret = False
 
     RACE_TYPES = {'Race', 'Qualifying', 'Sprint', 'Season.Review', 'Shootout'}
@@ -237,9 +235,6 @@ def check_torrentgalaxy(current_season: int, state: State) -> bool:
             if key not in state.races:
                 state.races[key] = Download(key=key, title=title, magnet=magnet)
                 ret = True
-
-            if key > state.latest_race:
-                state.latest_race = key
 
     return ret
 
