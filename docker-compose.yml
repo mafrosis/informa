@@ -16,7 +16,6 @@ services:
       - TZ=Australia/Melbourne
     ports:
       - 3000:3000
-      - 3002:3002
     extra_hosts:
       locke: 192.168.1.198
     volumes:
