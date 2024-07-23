@@ -3,6 +3,10 @@ class AppError(Exception):
         return str(self.__doc__)
 
 
+class StateJsonDecodeError(AppError):
+    'Unable to decode plugin state JSON'
+
+
 class MailgunKeyMissing(AppError):
     'Environment var MAILGUN_KEY is missing. Are you running in DEBUG?'
 
