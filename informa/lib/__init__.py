@@ -1,16 +1,20 @@
 import abc
 import datetime
+import decimal
 import inspect
 import logging
 import os
 from dataclasses import dataclass
 from typing import cast
 
+import orjson
 import yaml
 from dataclasses_json import DataClassJsonMixin
 from fastapi import FastAPI
 from rocketry import Rocketry
 from zoneinfo import ZoneInfo
+
+from informa.exceptions import StateJsonDecodeError
 
 app = Rocketry(
     config={
@@ -57,14 +61,19 @@ def pass_plugin_name(func):
     return inner
 
 
-def _load_config(
-    plugin_name: str,
-    config_cls: type[ConfigBase],
-) -> DataClassJsonMixin | None:
+def _load_config(plugin_name: str, config_cls: type[ConfigBase]) -> DataClassJsonMixin | None:
     '''
     Load plugin config
     '''
-    return cast(ConfigBase, _load_file(plugin_name, 'config', config_cls))
+    try:
+        with open(f'config/{plugin_name}.yaml', encoding='utf8') as f:
+            data = yaml.load(f, Loader=yaml.Loader)  # noqa: S506
+            if not data:
+                return None
+    except FileNotFoundError:
+        return None
+
+    return cast(ConfigBase, config_cls.from_dict(data))
 
 
 def _load_state(
@@ -73,33 +82,22 @@ def _load_state(
     '''
     Load or initialise plugin state
     '''
-    state = _load_file(plugin_name, 'state', state_cls)
-    if not state:
+    try:
+        with open(f'state/{plugin_name}.json', encoding='utf8') as f:
+            data = orjson.loads(f.read())
+            if not data:
+                raise StateJsonDecodeError
+
+        # Inflate JSON into the State dataclass
+        state = state_cls.from_dict(data)
+
+    except (FileNotFoundError, orjson.JSONDecodeError):
         logger.debug('Empty state initialised for %s', plugin_name)
         state = state_cls()
-    else:
-        logger.debug('Loaded state for %s', plugin_name)
+
+    logger.debug('Loaded state for %s', plugin_name)
 
     return cast(StateBase, state)
-
-
-def _load_file(plugin_name: str, directory: str, cls: type[DataClassJsonMixin]) -> DataClassJsonMixin | None:
-    '''
-    Utility function to load plugin config/state from a file
-
-    Params:
-        plugin_name:  Plugin's name
-        directory:    Directory path; either 'config' or 'state'
-        cls:          Plugin's state/config class type
-    '''
-    try:
-        with open(f'{directory}/{plugin_name}.yaml', encoding='utf8') as f:
-            data = yaml.load(f, Loader=yaml.Loader)  # noqa: S506
-            if not data:
-                raise FileNotFoundError
-            return cls.from_dict(data)
-    except FileNotFoundError:
-        return None
 
 
 def _write_state(plugin_name: str, state_obj: StateBase):
@@ -109,5 +107,13 @@ def _write_state(plugin_name: str, state_obj: StateBase):
     if not os.path.exists('state'):
         os.mkdir('state')
 
-    with open(f'state/{plugin_name}.yaml', 'w', encoding='utf8') as f:
-        f.write(yaml.dump(state_obj.to_dict()))
+    def default(obj):
+        'Handler for types unknown to orjson'
+        if isinstance(obj, decimal.Decimal):
+            return str(obj)
+        if isinstance(obj, set):
+            return list(obj)
+        raise TypeError
+
+    with open(f'state/{plugin_name}.json', 'w', encoding='utf8') as f:
+        f.write(orjson.dumps(state_obj, default=default).decode())
