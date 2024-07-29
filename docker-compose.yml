@@ -24,7 +24,6 @@ services:
     extra_hosts:
       locke: 192.168.1.198
     volumes:
-      - ./plugins.yaml:/src/plugins.yaml:ro
       - ./templates:/src/templates:ro
       - ./config:/src/config:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
