@@ -2,6 +2,10 @@
 volumes:
   informa-data: {}
 
+networks:
+  caddy:
+    external: true
+
 services:
   informa:
     image: ghcr.io/mafrosis/informa:dev
@@ -9,13 +13,14 @@ services:
     command: start --host 0.0.0.0 --port 3000
     build:
       context: .
+    networks:
+      - default
+      - caddy
     environment:
       - DEBUG
       - MP3HOME=/music
       - GSUITE_OAUTH_CREDS=/src/gcp_oauth_secret.json
       - TZ=Australia/Melbourne
-    ports:
-      - 3000:3000
     extra_hosts:
       locke: 192.168.1.198
     volumes:
@@ -27,3 +32,8 @@ services:
       - informa-data:/src/state
     env_file:
       - .secrets
+    labels:
+      caddy: informa.mafro.net
+      caddy.tls.ca: https://ca.mafro.net:4433/acme/acme/directory
+      caddy.tls.ca_root: /root/step_ca.crt
+      caddy.reverse_proxy: "{{upstreams 3000}}"
