@@ -5,7 +5,8 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from informa.lib import PluginAdapter
 from informa.lib import fastapi as app_fastapi
@@ -45,11 +46,24 @@ def get_mp3_album_info(query: bytes):
     def count_mp3s(path: Path):
         return sum(1 for x in list(path.glob('*.mp3')))
 
+    urlsafe_identifier = base64.b64encode(path.parts[-1].encode()).decode('utf8')
+
     return {
         'identifier': path.parts[-1],
         'path': str(path),
         'track_count': count_mp3s(path),
+        'artwork_url': f'https://informa.mafro.net/mp3/art/{urlsafe_identifier}',
     }
+
+
+@router.get('/art/{query}')
+def get_mp3_album_art(query: bytes):
+    path = find_album_path(try_base64_decode(query))
+
+    if (path / 'folder.jpg').exists():
+        return FileResponse(path / 'folder.jpg', media_type='image/jpeg')
+
+    raise HTTPException(status_code=404, detail='Artwork missing')
 
 
 app_fastapi.include_router(router)
