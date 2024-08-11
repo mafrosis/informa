@@ -44,7 +44,7 @@ def main(state: State) -> int:
         )
 
         # Run blocking command over SSH
-        _, stdout, _ = client.exec_command(f'cd {os.environ.get("MEGADLZ_DIR")} && megadlz\n')
+        _, stdout, _ = client.exec_command(f'cd {os.environ.get('MEGADLZ_DIR')} && megadlz\n')
         stdout.channel.set_combine_stderr(True)
         output = stdout.readlines()
 
