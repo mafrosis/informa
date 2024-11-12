@@ -14,3 +14,4 @@ client_secret_*.apps.googleusercontent.com.json
 mafro-oauth-abad62e69e8d.json
 
 informa/plugins/c*8*.py
+informa/plugins/t*ly.py

@@ -11,17 +11,18 @@ from informa.lib.plugin import load_run_persist, load_state
 logger = PluginAdapter(logging.getLogger('informa'))
 
 
-TEMPLATE_NAME = 'tahbilk.tmpl'
+TEMPLATE_NAME = 'product_price_url.tmpl'
 
+
+@dataclass(frozen=True)  # Immutable, hashable
+class WineRelease:
+    title: str
+    price: str
+    url: str
 
 @dataclass
 class State(StateBase):
-    products_seen: set[str] = field(default_factory=set)
-
-@dataclass
-class NewRelease:
-    title: str
-    price: str
+    products_seen: set[WineRelease] = field(default_factory=set)
 
 
 @app.task('every 12 hours', name=__name__)
@@ -30,56 +31,58 @@ def run():
 
 
 def main(state: State) -> int:
-    if nr := query_cellar_releases(state.products_seen):
-        notify(nr)
-
-    return len(state.products_seen)
+    return query_cellar_releases(state.products_seen)
 
 
-def query_cellar_releases(products_seen: set[str]) -> NewRelease | None:
+def query_cellar_releases(products_seen: set[str]) -> int:
     try:
-        resp = requests.get('https://www.tahbilk.com.au/cellar-release', timeout=5)
+        resp = requests.get('https://www.tahbilk.com.au/tahbilk-museum-release', timeout=5)
     except requests.RequestException as e:
         logger.error('Failed loading Tahbilk website: %s', e)
         return None
 
     soup = bs4.BeautifulSoup(resp.text, 'html.parser')
 
-    # Iterate all products
-    for product_info in soup.select('div.product-info'):
-        title = product_info.select('h4')[0].text
+    found = 0
 
-        # Track all seen products, so they're notified only once
-        products_seen.add(title)
+    # Iterate all products
+    for product_info in soup.select('a.product-info'):
+        wr = WineRelease(
+            title=product_info.select_one('h4').text,
+            url='https://www.tahbilk.com.au' + product_info.attrs['href'],
+            price=product_info.select_one('.wine-club-price .price').text,
+        )
 
         # Alert on anything not already seen
-        if title not in products_seen:
-            price = product_info.select('.old-price')[0].text
-            logger.info('Found %s at %s', title, price)
-            return NewRelease(title, price)
+        if wr not in products_seen:
+            products_seen.add(wr)
+            logger.info('Found %s at %s', wr.title, wr.price)
+            found += 1
+            notify(wr)
 
-    return None
+    return found
 
 
-def notify(nr: NewRelease):
+def notify(wr: WineRelease):
     mailgun.send(
         logger,
-        f'New Tahbilk release: {nr.title}',
+        f'New Tahbilk release: {wr.title}',
         TEMPLATE_NAME,
         {
-            'title': nr.title,
-            'price': nr.price,
+            'title': wr.title,
+            'price': wr.price,
+            'url': wr.url,
         },
     )
 
 
 @click.group(name=__name__[16:])
 def cli():
-    'Tahbilk CLI'
+    'Tahbilk new release tracker'
 
 
 @cli.command
 def seen():
     'What products have been seen already?'
     state = load_state(logger, State)
-    print('\n'.join(state.products_seen))
+    print('\n'.join([f'{wr.title} @ {wr.price}' for wr in state.products_seen]))
