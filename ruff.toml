@@ -11,10 +11,12 @@ ignore = [
 	"EM102",  # https://docs.astral.sh/ruff/rules/f-string-in-exception
 	"FA",     # https://docs.astral.sh/ruff/rules/#flake8-future-annotations-fa
 	"FBT001", # https://docs.astral.sh/ruff/rules/boolean-type-hint-positional-argument
+	"FBT002", # https://docs.astral.sh/ruff/rules/boolean-default-value-positional-argument
 	"INP001", # https://docs.astral.sh/ruff/rules/implicit-namespace-package
 	"N806",   # https://docs.astral.sh/ruff/rules/non-lowercase-variable-in-function
 	"N818",   # https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name
 	"RET503", # https://docs.astral.sh/ruff/rules/implicit-return
+	"SIM108", # https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp
 	"T201",   # https://docs.astral.sh/ruff/rules/print
 	"TRY003", # https://docs.astral.sh/ruff/rules/raise-vanilla-args
 	"TRY301", # https://docs.astral.sh/ruff/rules/raise-within-try
