@@ -61,18 +61,19 @@ def main(state: State) -> int:
         client.close()
 
     try:
-        # Extract name of completed download
-        file = next(iter([line[11:] for line in output if line.startswith('Downloaded ')])).strip()
-        logger.info('Downloaded %s', file)
+        # Extract name & file count downloaded
+        dl = next(iter([line[11:] for line in output if line.startswith('Downloaded ')]))
+        count = next(iter([line[6:] for line in output if line.startswith('Count ')]))
+        logger.info('Downloaded %s with %s files', dl.strip(), count.strip())
 
         # Persist something
-        state.completed.append(file)
+        state.completed.append(dl)
 
     except StopIteration:
         return 0
     else:
         # Plugin only ever triggers a single download
-        return 1
+        return int(count)
 
 
 @click.group(name=__name__[16:].replace('_', '-'))
