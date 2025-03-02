@@ -1,4 +1,5 @@
 import datetime
+import httplib2
 import logging
 import math
 import os
@@ -106,8 +107,8 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         )
         return {e.summary: e.start for e in events if e.summary.endswith(' - Race')}
 
-    except TimeoutError:
-        logger.error('Timeout fetching calendar data')
+    except (httplib2.error.ServerNotFoundError, TimeoutError):
+        logger.error('Failed fetching calendar data (timeout or server not found)')
         return None
 
 
