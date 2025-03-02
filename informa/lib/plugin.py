@@ -1,4 +1,5 @@
 import inspect
+import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ import yaml
 from dataclasses_json import DataClassJsonMixin
 from marshmallow.exceptions import ValidationError
 from paho.mqtt import client as mqtt
+from paho.mqtt import publish as mqtt_publish
 from paho.mqtt.enums import CallbackAPIVersion
 
 from informa.exceptions import AppError
@@ -134,6 +136,7 @@ def _load_run_persist(
     except ValidationError as e:
         logger.error('State ValidationError: %s', str(e))
     except Exception:
+        # TODO send email
         logger.exception('Unhandled exception')
 
 
@@ -143,6 +146,33 @@ def publish_plugin_run_to_mqtt(plugin_name: str, state: StateBase):
     client.connect('locke', 1883)
     client.publish(f'informa/{plugin_name}/last_run', state.last_run.isoformat(), retain=True)
     client.publish(f'informa/{plugin_name}/last_count', state.last_count, retain=True)
+
+
+def publish_ha_mqtt_autodiscovery(plugin_name: str):
+    'Publish an autodiscovery message for a HA sensor'
+    mqtt_publish.single(
+        f'homeassistant/sensor/informa/{plugin_name}_last_run/config',
+        json.dumps({
+            'name': f'Informa {plugin_name} Last Run',
+            'unique_id': f'informa.plugins.{plugin_name}.last_run',
+            'state_topic': f'informa/informa.plugins.{plugin_name}/last_run',
+            'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
+        }),
+        hostname='locke',
+        retain=True
+    )
+
+    mqtt_publish.single(
+        f'homeassistant/sensor/informa/{plugin_name}_last_count/config',
+        json.dumps({
+            'name': f'Informa {plugin_name} Last Count',
+            'unique_id': f'informa.plugins.{plugin_name}.last_count',
+            'state_topic': f'informa/informa.plugins.{plugin_name}/last_count',
+            'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
+        }),
+        hostname='locke',
+        retain=True
+    )
 
 
 @pass_plugin_name

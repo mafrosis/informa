@@ -13,7 +13,7 @@ from fastapi import APIRouter
 
 from informa.api import app_fastapi
 from informa.lib import app as app_rocketry
-from informa.lib.plugin import setup_plugin_cli
+from informa.lib.plugin import publish_ha_mqtt_autodiscovery, setup_plugin_cli
 
 logger = logging.getLogger('informa')
 
@@ -43,6 +43,9 @@ def init_plugins() -> dict[str, ModuleType]:
 
             # Setup CLI for all plugins
             setup_plugin_cli(modules[plug.name])
+
+            # Publish HA sensor autodiscovery to MQTT
+            publish_ha_mqtt_autodiscovery(module_name)
 
         except ModuleNotFoundError as e:
             logger.error('Plugin "%s" not loaded: %s', plug.name, e)
