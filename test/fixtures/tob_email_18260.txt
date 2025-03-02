@@ -1,0 +1,153 @@
+<body bgcolor="#f7f7f7" marginheight="0" marginwidth="0" style="background-color:#f7f7f7;padding:0;text-align:center">
+<table bgcolor="#f7f7f7" id="outer_wrapper" style="background-color:#f7f7f7" width="100%">
+<tr>
+<td></td>
+<td width="600">
+<div dir="ltr" id="wrapper" style="margin:0 auto;padding:70px 0;width:100%;max-width:600px" width="100%">
+<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%">
+<tr>
+<td align="center" valign="top">
+<div id="template_header_image">
+</div>
+<table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" id="template_container" style="background-color:#fff;border:1px solid #dedede;border-radius:3px" width="100%">
+<tr>
+<td align="center" valign="top">
+<table bgcolor="#6f1343" border="0" cellpadding="0" cellspacing="0" id="template_header" style='background-color:#6f1343;color:#fff;border-bottom:0;font-weight:bold;line-height:100%;vertical-align:middle;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;border-radius:3px 3px 0 0' width="100%">
+<tr>
+<td id="header_wrapper" style="padding:36px 48px;display:block">
+<h1 bgcolor="inherit" style='font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:30px;font-weight:300;line-height:150%;margin:0;text-align:left;color:#fff;background-color:inherit'>Thank you for your order</h1>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td align="center" valign="top">
+<table border="0" cellpadding="0" cellspacing="0" id="template_body" width="100%">
+<tr>
+<td bgcolor="#fff" id="body_content" style="background-color:#fff" valign="top">
+<table border="0" cellpadding="20" cellspacing="0" width="100%">
+<tr>
+<td style="padding:48px 48px 32px" valign="top">
+<div align="left" id="body_content_inner" style='color:#636363;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:14px;line-height:150%;text-align:left'>
+<p style="margin:0 0 16px">Hi MATTHEW,</p>
+<p style="margin:0 0 16px">Just to let you know — we've received your order #18260, and it is now being processed:</p>
+<p style="margin:0 0 16px;font-size:11px">To find out the latest ETA for your Pre-Departure orders (i.e. those shipments that are being shipped from France and haven’t yet arrived in Australia), log into your account on the website and click on “Orders” and then click on the blue “View” buttons to see what you’ve ordered and when it’s due to arrive into Port Botany, NSW. For all other orders (i.e. for wines that are already in Australia and ready to be shipped  to you immediately) you should receive tracking notifications from Australia Post or Aramex/Fastway, and you might have to check in your junk folder if you don’t receive any.</p>
+<h2 style='color:#6f1343;display:block;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:18px;font-weight:bold;line-height:130%;margin:0 0 18px;text-align:left'>
+	[Order #18260] (March 20, 2024)</h2>
+<div style="margin-bottom:40px">
+<table border="1" cellpadding="6" cellspacing="0" class="td" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;width:100%;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif" width="100%">
+<thead>
+<tr>
+<th align="left" class="td" scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Product</th>
+<th align="left" class="td" scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Quantity</th>
+<th align="left" class="td" scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Price</th>
+</tr>
+</thead>
+<tbody>
+<tr class="order_item">
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word">
+<a href="https://theotherbordeaux.com/shop/pre-departure-offers/domaine-berthenet-montagnytetedecuvee2022/" style="color:#6f1343;font-weight:normal;text-decoration:underline">Domaine Berthenet Montagny "Tête de Cuvée" 2022</a> </td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+			1		</td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+<span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>44.95</span> </td>
+</tr>
+<tr class="order_item">
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word">
+<a href="https://theotherbordeaux.com/shop/pre-departure-offers/domaine-berthenetbourgogne-rouge-pinotnoir2022-2022-copy/" style="color:#6f1343;font-weight:normal;text-decoration:underline">Domaine Berthenet Bourgogne Rouge Pinot Noir 2022</a> </td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+			1		</td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+<span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>39.95</span> </td>
+</tr>
+<tr class="order_item">
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word">
+<a href="https://theotherbordeaux.com/shop/pre-departure-offers/mayjuneshipmentchateau-lastours-tradition-gaillac-red-2020-copy/" style="color:#6f1343;font-weight:normal;text-decoration:underline">Château Lastours "Tradition" Gaillac red 2020</a> </td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+			2		</td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+<span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>43.90</span> </td>
+</tr>
+<tr class="order_item">
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word">
+<a href="https://theotherbordeaux.com/shop/pre-departure-offers/mayjuneshipmentchateau-pithivier-bordeaux-2020-copy/" style="color:#6f1343;font-weight:normal;text-decoration:underline">Château Pithivier Bordeaux 2020</a> </td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+			2		</td>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;padding:12px;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+<span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>39.90</span> </td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<th align="left" class="td" colspan="2" scope="row" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left;border-top-width:4px">Subtotal:</th>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left;border-top-width:4px"><span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>168.70</span></td>
+</tr>
+<tr>
+<th align="left" class="td" colspan="2" scope="row" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Shipping:</th>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Free shipping</td>
+</tr>
+<tr>
+<th align="left" class="td" colspan="2" scope="row" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Payment method:</th>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Credit / Debit Card</td>
+</tr>
+<tr>
+<th align="left" class="td" colspan="2" scope="row" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left">Total:</th>
+<td align="left" class="td" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left"><span class="woocommerce-Price-amount amount"><span class="woocommerce-Price-currencySymbol">$</span>168.70</span></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<p style="margin:0 0 16px"><strong>Do you give the postman “Authority to leave”? i.e. Do you give the postman authority to leave the wine for you if you are not present at the time of delivery to receive it?  “Authority to leave” should only be given if there is no reasonable risk that the wine might be taken by a person under 18 years of age.:</strong> Yes</p>
+<p style="margin:0 0 16px"><strong>Date of birth:</strong> 5th August, 1981</p>
+<table border="0" cellpadding="0" cellspacing="0" id="addresses" style="width:100%;vertical-align:top;margin-bottom:40px;padding:0" width="100%">
+<tr>
+<td align="left" style="text-align:left;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;border:0;padding:0" valign="top" width="50%">
+<h2 style='color:#6f1343;display:block;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:18px;font-weight:bold;line-height:130%;margin:0 0 18px;text-align:left'>Billing address</h2>
+<address class="address" style="padding:12px;color:#636363;border:1px solid #e5e5e5">
+				MATTHEW BLACK<br/>13 Wilks St<br/>Caulfield North Victoria 3161									<br/><a href="tel:+61421073321" style="color:#6f1343;font-weight:normal;text-decoration:underline">+61421073321</a> <br/><a href="mailto:wines@mafro.net">wines@mafro.net</a> </address>
+</td>
+<td align="left" style="text-align:left;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;padding:0" valign="top" width="50%">
+<h2 style='color:#6f1343;display:block;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:18px;font-weight:bold;line-height:130%;margin:0 0 18px;text-align:left'>Shipping address</h2>
+<address class="address" style="padding:12px;color:#636363;border:1px solid #e5e5e5">
+					MATTHEW BLACK<br/>13 Wilks St<br/>Caulfield North Victoria 3161														</address>
+</td>
+</tr>
+</table>
+<p style="margin:0 0 16px">Thanks for using <a href="http://theotherbordeaux.com">theotherbordeaux.com</a>!</p>
+</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td align="center" valign="top">
+<table border="0" cellpadding="10" cellspacing="0" id="template_footer" width="100%">
+<tr>
+<td style="padding:0;border-radius:6px" valign="top">
+<table border="0" cellpadding="10" cellspacing="0" width="100%">
+<tr>
+<td align="center" colspan="2" id="credit" style='border-radius:6px;border:0;color:#8a8a8a;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:12px;line-height:150%;text-align:center;padding:24px 0' valign="middle">
+<p style="margin:0 0 16px">The Other Bordeaux</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td></td>
+</tr>
+</table>
+</body>
