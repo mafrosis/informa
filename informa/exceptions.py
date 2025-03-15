@@ -1,5 +1,11 @@
 class AppError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(message)
+
     def __str__(self):
+        if self.message:
+            return f'{self.__doc__} ({self.message})'
         return str(self.__doc__)
 
 
