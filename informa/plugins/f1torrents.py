@@ -12,6 +12,7 @@ import click
 import feedparser
 import googleapiclient
 import httplib2
+import pytz
 import requests
 from gcsa.google_calendar import GoogleCalendar
 from google.oauth2.service_account import Credentials
@@ -64,6 +65,7 @@ class Race:
 @dataclass
 class Config(ConfigBase):
     current_season: int
+    gcal: str
     calendar: list[Race] | None = None
 
 
@@ -100,12 +102,15 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
 
     try:
         events = gc.get_events(
-            calendar_id='c_e615a5f4fc5d2ddb8ff9e902a50fcf0c26ffe628f149c11d13b4c51e123ce8a7@group.calendar.google.com',
+            calendar_id=config.gcal,
             time_min=datetime.date(config.current_season, 1, 1),
             single_events=True,
             order_by='startTime',
         )
-        return {e.summary: e.start for e in events if e.summary.endswith(' - Race')}
+        return {
+            e.summary[16:-1]: e.start.astimezone(pytz.timezone('Australia/Melbourne'))
+            for e in events if e.summary.startswith('F1: Grand Prix')
+        }
 
     except (httplib2.error.ServerNotFoundError, TimeoutError):
         logger.error('Failed fetching calendar data (timeout or server not found)')
@@ -548,6 +553,7 @@ def calendar():
     'Fetch F1 calendar for the current configured year, and write to config'
     cal = fetch_f1_calendar()
     if not cal:
+        print('Calendar fetch and read failed somewhere')
         return False
 
     for r in [Race(k, v) for k, v in cal.items()]:
