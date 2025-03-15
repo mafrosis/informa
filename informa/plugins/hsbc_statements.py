@@ -101,6 +101,7 @@ def process_statement(msg) -> bool:
 def _capture_transto_logging() -> io.StringIO:
     'Add a handler to capture logging from transto'
     transto_logger = logging.getLogger('transto')
+    transto_logger.setLevel(logging.INFO)
     log_stream = io.StringIO()
     log_handler = logging.StreamHandler(log_stream)
     log_handler.setLevel(logging.INFO)
