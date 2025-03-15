@@ -127,7 +127,7 @@ def main(state: State, config: Config) -> int:
     Check for new F1 torrents and add to rtorrent
     '''
     try:
-        if check_torrentgalaxy(config.current_season, state):
+        if check_thepiratebay(config.current_season, state):
             # if torrents found, try to add immediately
             add_magnet_to_rtorrent(state.races)
             return 1
@@ -223,6 +223,37 @@ def add_magnet_to_rtorrent(races: dict[str, Download]) -> bool:
     return torrent_added
 
 
+def check_thepiratebay(current_season: int, state: State) -> bool:
+    '''
+    Query thepiratebay for smcgill1969 torrents
+    '''
+    try:
+        sess = requests.Session()
+        resp = sess.get('https://apibay.org/q.php?q=user%3Asmcgill1969', timeout=5)
+    except requests.RequestException as e:
+        raise FailedFetchingTorrents('Failed loading from https://apibay.org/q.php') from e
+
+    RACE_TYPES = {'Race', 'Qualifying', 'Sprint', 'Season.Review', 'Shootout'}
+
+    ret = False
+
+    for torrent in resp.json():
+        title = torrent['name']
+        info_hash = torrent['info_hash']
+
+        if 'Formula.1' in title and str(current_season) in title and 'SkyF1UHD' in title:
+            if not any(s in title for s in RACE_TYPES) or 'Teds' in title:
+                logger.debug('Skipped: %s', title)
+                continue
+
+            magnet = f'magnet:?xt=urn:btih:{info_hash}&dn={title}&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.bittor.pw%3A1337%2Fannounce&tr=udp%3A%2F%2Fpublic.popcorn-tracker.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce'
+
+            if save_magnet_as_download(state, title, magnet):
+                ret = True
+
+    return ret
+
+
 def check_torrentgalaxy(current_season: int, state: State) -> bool:
     torrent_url = 'https://torrentgalaxy.to/rss?magnet&user=48067'
 
@@ -256,26 +287,33 @@ def check_torrentgalaxy(current_season: int, state: State) -> bool:
                 logger.error('Failed extracting magnet: %s', entry.get('links', 'No key "links" on entry obj!'))
                 continue
 
-            # Race / Qualifying / Sprint etc
-            if 'Sprint' in title:
-                session_type = 'sq' if 'Qualifying' in title else 'sr'
-            elif 'Qualifying' in title:
-                session_type = 'qu'
-            elif 'Race' in title:
-                session_type = 'ra'
-            else:
-                session_type = 'rv'
-
-            logger.debug('Found: %s (%s)', title, session_type)
-
-            # Create a different key for each session type (eg. 2023x04ra)
-            key = f'{title[10:17]}{session_type}'
-
-            if key not in state.races:
-                state.races[key] = Download(key=key, title=title, magnet=magnet)
+            if save_magnet_as_download(state, title, magnet):
                 ret = True
 
     return ret
+
+
+def save_magnet_as_download(state: State, title: str, magnet: str) -> bool:
+    'Add title/magnet as Download object to state'
+    # Race / Qualifying / Sprint etc
+    if 'Sprint' in title:
+        session_type = 'sq' if 'Qualifying' in title else 'sr'
+    elif 'Qualifying' in title:
+        session_type = 'qu'
+    elif 'Race' in title:
+        session_type = 'ra'
+    else:
+        session_type = 'rv'
+
+    logger.debug('Found: %s (%s)', title, session_type)
+
+    # Create a different key for each session type (eg. 2023x04ra)
+    key = f'{title[10:17]}{session_type}'
+
+    if key not in state.races:
+        state.races[key] = Download(key=key, title=title, magnet=magnet)
+        return True
+    return False
 
 
 class RtorrentError(Exception):
