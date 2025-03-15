@@ -83,4 +83,4 @@ def _send(subject: str, template: str | None = None, content: str | dict[str, An
         timeout=10,
     )
     if not bool(resp.status_code >= 200 and resp.status_code < 300):  # noqa: PLR2004
-        raise MailgunSendFailed
+        raise MailgunSendFailed(resp.json().get('message', ''))
