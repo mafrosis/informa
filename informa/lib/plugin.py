@@ -24,7 +24,7 @@ from informa.lib import (
     _write_state,
     pass_plugin_name,
 )
-from informa.lib.utils import now_aest
+from informa.lib.utils import now_aest, raise_alarm
 
 
 @dataclass
@@ -132,12 +132,11 @@ def _load_run_persist(
         logger.debug('State persisted')
 
     except AppError as e:
-        logger.error(str(e))
+        raise_alarm(logger, e.__class__.__name__, e)
     except ValidationError as e:
-        logger.error('State ValidationError: %s', str(e))
-    except Exception:
-        # TODO send email
-        logger.exception('Unhandled exception')
+        raise_alarm(logger, 'State ValidationError, possible corruption', e)
+    except Exception as e:
+        raise_alarm(logger, f'Unhandled exception {e.__class__.__name__}', e)
 
 
 def publish_plugin_run_to_mqtt(plugin_name: str, state: StateBase):

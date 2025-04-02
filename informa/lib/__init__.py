@@ -35,7 +35,7 @@ class PluginAdapter(logging.LoggerAdapter):
 
         super().__init__(logger_, plugin_name.upper())
 
-    def process(self, msg, kwargs):
+    def process(self, msg, kwargs=None):
         return f'[{self.extra}] {msg}', kwargs
 
 

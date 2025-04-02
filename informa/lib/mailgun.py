@@ -14,7 +14,7 @@ def send(
     subject: str,
     template: str | None = None,
     content: str | dict[str, Any] | None = None,
-) -> bool:
+):
     '''
     Handle plugin loggers, and any exceptions raised during _send
     '''
@@ -22,12 +22,7 @@ def send(
         logger.debug('Skip Mailgun send due to DEBUG')
         return False
 
-    try:
-        _send(subject, template, content)
-    except (MailgunKeyMissing, MailgunSendFailed) as e:
-        logger.error(str(e))
-        return False
-    return True
+    _send(subject, template, content)
 
 
 def _send(subject: str, template: str | None = None, content: str | dict[str, Any] | None = None):
