@@ -1,5 +1,5 @@
 class AppError(Exception):
-    def __init__(self, message):
+    def __init__(self, message: str = ''):
         self.message = message
         super().__init__(message)
 
@@ -23,7 +23,3 @@ class MailgunTemplateFail(AppError):
 
 class MailgunSendFailed(AppError):
     'Mailgun email send failed!'
-
-
-class ReachedLastSeen(AppError):
-    'Reached a value already seen in previous run'

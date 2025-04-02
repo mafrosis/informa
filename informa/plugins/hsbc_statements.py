@@ -12,6 +12,7 @@ from gmsa import Gmail
 from gmsa.exceptions import AttachmentSaveError
 from informa.lib import PluginAdapter, StateBase, app, mailgun
 from informa.lib.plugin import load_run_persist
+from informa.lib.utils import raise_alarm
 from transto import hsbc
 from transto.exceptions import MissingEnvVar
 
@@ -91,8 +92,7 @@ def process_statement(msg) -> bool:
             msg.mark_as_read()
 
     except (AttachmentSaveError, OSError, MissingEnvVar) as e:
-        logger.error(e)
-        mailgun.send(logger, 'HSBC Statement imported failed!', content=str(e))
+        raise_alarm(logger, 'HSBC Statement imported failed!', e)
         return False
     else:
         return True

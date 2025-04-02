@@ -7,6 +7,7 @@ import requests
 
 from informa.lib import PluginAdapter, StateBase, app, mailgun
 from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -55,8 +56,7 @@ def fetch_ha_releases(last_release_seen: str | None) -> NewVersion | None:
         # Extract latest version
         version = soup.select('.release-date')[0].text.strip()
     except:  # noqa: E722 bare-except
-        logger.error('New HA version parse failed!')
-        mailgun.send(logger, 'New HA version parse failed!')
+        raise_alarm(logger, 'New HA version parse failed!')
         return None
 
     logger.info('Found %s', version)
