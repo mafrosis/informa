@@ -1,5 +1,6 @@
 import logging
 import os
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import List
 
@@ -36,6 +37,21 @@ def get_client() -> SlskdClient:
     return SlskdClient('https://slsk.mafro.net', slskd_api_key)
 
 
+def parse_xml_and_download(xml_path: str) -> None:
+    try:
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        
+        # Find the first directory in the XML
+        first_dir = root.find('.//directory')
+        if first_dir is not None:
+            path = first_dir.get('path')
+            if path:
+                download('username', path)  # Replace 'username' with actual username
+    except Exception as e:
+        logger.error('Failed parsing XML: %s', e)
+        raise
+
 def main(state: State) -> int:
     try:
         download('popeline', 'path')
@@ -47,12 +63,18 @@ def main(state: State) -> int:
         return 0
 
 
-def download(username: str, path: str):
-    download_response = get_client().downloads.enqueue_folder(
-        username=username,
-        remote_path="/path/to/remote/folder",
-        local_path="/Users/mafro/Music"
-    )
+def download(username: str, path: str) -> None:
+    try:
+        client = get_client()
+        download_response = client.downloads.enqueue_folder(
+            username=username,
+            remote_path=path,
+            local_path="/Users/mafro/Music"  # Update this path as needed
+        )
+        logger.info('Download started for %s: %s', path, download_response)
+    except Exception as e:
+        logger.error('Failed downloading %s: %s', path, e)
+        raise
 
 
 @click.group(name='slsk')
@@ -62,5 +84,10 @@ def cli():
 
 @cli.command
 def current():
-    'What is the current HA version?'
+    '''What is the current HA version?'''
     print(get_client().downloads.get_all())
+
+@cli.command
+def download_xml():
+    '''Download first directory from coldtea.xml'''
+    parse_xml_and_download('coldtea.xml')
