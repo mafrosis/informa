@@ -109,7 +109,8 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         )
         return {
             e.summary[16:-1]: e.start.astimezone(pytz.timezone('Australia/Melbourne'))
-            for e in events if e.summary.startswith('F1: Grand Prix')
+            for e in events
+            if e.summary.startswith('F1: Grand Prix')
         }
 
     except (httplib2.error.ServerNotFoundError, TimeoutError):
