@@ -11,7 +11,6 @@ from informa.lib import PluginAdapter, StateBase, app
 from informa.lib.plugin import load_run_persist
 from informa.lib.utils import raise_alarm
 
-
 logger = PluginAdapter(logging.getLogger('informa'))
 
 
@@ -41,7 +40,7 @@ def parse_xml_and_download(xml_path: str) -> None:
     try:
         tree = ET.parse(xml_path)
         root = tree.getroot()
-        
+
         # Find the first directory in the XML
         first_dir = root.find('.//directory')
         if first_dir is not None:
