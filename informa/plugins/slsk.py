@@ -54,13 +54,12 @@ def parse_xml_and_download(xml_path: str) -> None:
 
 def main(state: State) -> int:
     try:
-        download('popeline', 'path')
-
-
-    except Exception as e:
-        logger.error('Failed checking SLSK status: %s', e)
-        raise_alarm(logger, f'SLSK error: {e}')
+        parse_xml_and_download('coldtea.xml')
         return 0
+    except Exception as e:
+        logger.error('Failed processing SLSK download: %s', e)
+        raise_alarm(logger, f'SLSK error: {e}')
+        return 1
 
 
 def download(username: str, path: str) -> None:
