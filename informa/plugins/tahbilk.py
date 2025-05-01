@@ -20,6 +20,7 @@ class WineRelease:
     price: str
     url: str
 
+
 @dataclass
 class State(StateBase):
     products_seen: set[WineRelease] = field(default_factory=set)

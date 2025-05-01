@@ -74,8 +74,11 @@ def load_run_persist(
 
 
 def _load_run_persist(
-    plugin_name: str, logger: logging.Logger | logging.LoggerAdapter, state_cls: type[StateBase],
-    main_func: Callable, sync: bool
+    plugin_name: str,
+    logger: logging.Logger | logging.LoggerAdapter,
+    state_cls: type[StateBase],
+    main_func: Callable,
+    sync: bool,
 ):
     '''
     Load plugin state, run plugin main function via callback, persist state to disk.
@@ -135,7 +138,7 @@ def _load_run_persist(
         raise_alarm(logger, e.__class__.__name__, e)
     except ValidationError as e:
         raise_alarm(logger, 'State ValidationError, possible corruption', e)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise_alarm(logger, f'Unhandled exception {e.__class__.__name__}', e)
 
 
@@ -158,7 +161,7 @@ def publish_ha_mqtt_autodiscovery(plugin_name: str):
             'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
         }),
         hostname='locke',
-        retain=True
+        retain=True,
     )
 
     mqtt_publish.single(
@@ -170,7 +173,7 @@ def publish_ha_mqtt_autodiscovery(plugin_name: str):
             'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
         }),
         hostname='locke',
-        retain=True
+        retain=True,
     )
 
 
