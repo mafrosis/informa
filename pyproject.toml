@@ -32,6 +32,7 @@ dependencies = [
 	"paramiko>=3.4,<3.5",
 	"pydantic==1.10.16",
 	"pyyaml~=6.0",
+	"slskd_api",
 	"requests==2.31.0",
 	"rich==13.3.3",
 	"rocketry==2.5.1",
@@ -54,6 +55,7 @@ allow-direct-references = true
 
 
 [tool.hatch.envs.default]
+installer = "uv"
 dependencies = ["ipdb"]
 pre-install-commands = [
   "pip install -e transto",
@@ -61,6 +63,7 @@ pre-install-commands = [
 ]
 
 [tool.hatch.envs.test]
+installer = "uv"
 dependencies = [
 	"google-api-python-client-stubs",
 	"ipdb",
@@ -78,12 +81,3 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 test = "pytest --disable-pytest-warnings test"
 mypy = "pytest --mypy informa"
-
-[tool.hatch.envs.lint]
-detached = true  # do not install package
-dependencies = [
-	"pylint",
-]
-
-[tool.hatch.envs.lint.scripts]
-lint = "pylint informa"
