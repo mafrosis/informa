@@ -25,4 +25,4 @@ def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
         tb = '\n'.join(traceback.format_list(traceback.extract_tb(ex.__traceback__)))
 
     fmtd_msg, _ = logger.process(msg)
-    mailgun.send(logger, f'ERROR {fmtd_msg}', content=f'<pre>{tb}</pre>')
+    mailgun.send(logger, f'ERROR {fmtd_msg}', content=f'<pre>{tb}<br>{str(ex)}</pre>')
