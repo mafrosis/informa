@@ -26,7 +26,6 @@ services:
       locke: 192.168.1.198
       jorg: 192.168.1.104
     volumes:
-      - ./templates:/src/templates:ro
       - ./config:/src/config:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
       - /home/mafro/music:/music:ro
