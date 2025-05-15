@@ -64,6 +64,9 @@ def main(state: State) -> int:
         # Extract name & file count downloaded
         dl = next(iter([line[11:] for line in output if line.startswith('Downloaded ')]))
         count = next(iter([line[6:] for line in output if line.startswith('Count ')]))
+        error = next(iter([line[6:] for line in output if line.startswith('ERROR:')]))
+        if error:
+            logger.error(error)
         logger.info('Downloaded %s with %s files', dl.strip(), count.strip())
 
         # Persist something
