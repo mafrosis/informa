@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Kindle Calendar</title>
+<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+
+<style>
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i,dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, section, summary,
+time, audio {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+  font-family: 'Montserrat', sans-serif;
+  color: #D1D1D1;
+}
+
+#date-header {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.container {
+  margin-left: 4px;
+  display: inline-flex;
+}
+
+.timings {
+  text-align: right;
+  padding-right: 7px;
+  width: 96px;
+  height: 648px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: white;
+  font-size: 0.7em;
+  box-sizing: border-box;
+  margin-top: 18px;
+}
+
+.timings span {
+  font-size: 220%;
+  color: #696969;
+}
+
+.timings div {
+  margin-bottom: 14px;
+}
+
+.days {
+  height: 1425px;
+  width: 664px;
+  padding: 0px 7px;
+  background-color: #F0F0F0;
+  border-color: #D1D1D1;
+  border-style: solid;
+  border-width: 1px;
+  box-sizing: border-box;
+}
+
+.event {
+  background-color: white;
+  border-style: solid;
+  border-width: 1px;
+  border-left-width: 10px;
+  border-color: #D1D1D1;
+  border-left-color: #57b986;
+  padding-left: 10px;
+  padding-top: 5px;
+  position: absolute;
+  font-size: 0.7em;
+  box-sizing: border-box;
+}
+
+.event .title {
+  color: black;
+  font-size: 300%;
+  background-color: white;
+  padding: 4px;
+}
+
+.event .location {
+  color: black;
+  font-size: 150%;
+  font-weight: bold;
+  padding-left: 4px;
+}
+</style>
+</head>
+
+<body>
+
+<h1 id="date-header">{{ today }}</h1>
+
+<div class="container">
+
+  <div class="timings">
+    <div> All Day </div>
+    <div> <span> 8:00 </span> AM </div>
+    <div> -- </div>
+    <div> <span> 9:00 </span> AM </div>
+    <div> -- </div>
+    <div> <span> 10:00 </span>AM </div>
+    <div> -- </div>
+    <div> <span> 11:00 </span>AM </div>
+    <div> -- </div>
+    <div> <span> 12:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 1:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 2:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 3:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 4:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 5:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 6:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 7:00 </span>PM </div>
+    <div> -- </div>
+    <div> <span> 8:00 </span>PM </div>
+  </div>
+
+  <div class="days" id="events">
+    {% for event in events %}
+    {% include 'kindle_gcal_event.tmpl' %}
+    {% endfor %}
+  </div>
+</div>
+
+</body>
+</html>
