@@ -14,7 +14,10 @@ def now_aest() -> datetime.datetime:
 
 def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
     'Log an error and send an email'
-    logger.error(msg)
+    if ex and logger.getEffectiveLevel() == logging.DEBUG:
+        logger.exception(ex)
+    else:
+        logger.error(msg)
 
     # Send the traceback in the email body
     tb = None
