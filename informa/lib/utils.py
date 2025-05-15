@@ -14,7 +14,10 @@ def now_aest() -> datetime.datetime:
 
 def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
     'Log an error and send an email'
-    logger.error(msg)
+    if ex and logger.getEffectiveLevel() == logging.DEBUG:
+        logger.exception(ex)
+    else:
+        logger.error(msg)
 
     # Send the traceback in the email body
     tb = None
@@ -22,4 +25,4 @@ def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
         tb = '\n'.join(traceback.format_list(traceback.extract_tb(ex.__traceback__)))
 
     fmtd_msg, _ = logger.process(msg)
-    mailgun.send(logger, f'ERROR {fmtd_msg}', content=f'<pre>{tb}</pre>')
+    mailgun.send(logger, f'ERROR {fmtd_msg}', content=f'<pre>{tb}<br>{ex!s}</pre>')
