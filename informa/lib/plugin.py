@@ -125,7 +125,7 @@ def _load_run_persist(
         state.last_run = now_aest()
         state.last_count = ret
 
-        if sync is False:
+        if sync is False and logger.getEffectiveLevel() != logging.DEBUG:
             # Publish state to MQTT when running async
             publish_plugin_run_to_mqtt(plugin_name, state)
             logger.debug('Published to informa/%s via MQTT', plugin_name)
