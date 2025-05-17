@@ -37,9 +37,10 @@ app.configure_cli(plugin_)
 @cli.command
 @click.option('--host', help='Bind FastAPI server to hostname', default='127.0.0.1', type=str)
 @click.option('--port', help='Bind FastAPI server to port', default=3000, type=int)
-def start(host: str, port: int):
+@click.option('--plugin', help='Run async with a single plugin (useful for manual testing)', default=None)
+def start(host: str, port: int, plugin: str | None):
     'Start the async workers for each plugin, and the API server'
-    asyncio.run(start_app(host, port))
+    asyncio.run(start_app(host, port, plugin))
 
 
 @cli.command
