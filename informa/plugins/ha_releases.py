@@ -5,7 +5,8 @@ import bs4
 import click
 import requests
 
-from informa.lib import PluginAdapter, StateBase, app, mailgun
+from informa import app
+from informa.lib import PluginAdapter, StateBase, mailgun
 from informa.lib.plugin import load_run_persist, load_state
 from informa.lib.utils import raise_alarm
 
@@ -27,7 +28,7 @@ class State(StateBase):
     last_release_seen: str | None = None
 
 
-@app.task('every 24 hours', name=__name__)
+@app.task('every 24 hours')
 def run():
     load_run_persist(logger, State, main)
 

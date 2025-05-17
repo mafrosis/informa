@@ -12,7 +12,8 @@ with warnings.catch_warnings(action='ignore', category=CryptographyDeprecationWa
     import paramiko
 import yaml
 
-from informa.lib import PluginAdapter, StateBase, app
+from informa import app
+from informa.lib import PluginAdapter, StateBase
 from informa.lib.plugin import load_run_persist, load_state
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -23,7 +24,7 @@ class State(StateBase):
     completed: List[str] = field(default_factory=list)
 
 
-@app.task('every 1 hours', name=__name__)
+@app.task('every 1 hours')
 def run():
     load_run_persist(logger, State, main)
 
