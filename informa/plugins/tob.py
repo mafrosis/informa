@@ -18,7 +18,8 @@ from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
 from gmsa import Gmail
-from informa.lib import PluginAdapter, StateBase, app, pretty
+from informa import app
+from informa.lib import PluginAdapter, StateBase, pretty
 from informa.lib.plugin import load_run_persist, load_state
 from informa.lib.utils import raise_alarm
 
@@ -64,7 +65,7 @@ class State(StateBase):
     orders: List[Order] = field(default_factory=list)
 
 
-@app.task('every 12 hours', name=__name__)
+@app.task('every 12 hours')
 def run():
     load_run_persist(logger, State, main)
 

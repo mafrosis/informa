@@ -8,11 +8,11 @@ import click
 import pandas as pd
 import requests
 
+from informa import app
 from informa.lib import (
     ConfigBase,
     PluginAdapter,
     StateBase,
-    app,
     mailgun,
 )
 from informa.lib.plugin import load_run_persist, load_state, write_state
@@ -57,7 +57,7 @@ class ProductNeverAlerted(Exception):
     pass
 
 
-@app.task('every 12 hours', name=__name__)
+@app.task('every 12 hours')
 def run():
     load_run_persist(logger, State, main)
 
