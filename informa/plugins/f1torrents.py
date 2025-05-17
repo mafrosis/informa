@@ -16,13 +16,14 @@ import pytz
 import requests
 from gcsa.google_calendar import GoogleCalendar
 from google.oauth2.service_account import Credentials
+from rocketry.conditions import FuncCond
 from rocketry.conds import cron
 
+from informa import app
 from informa.lib import (
     ConfigBase,
     PluginAdapter,
     StateBase,
-    app,
     mailgun,
     pretty,
 )
@@ -69,7 +70,7 @@ class Config(ConfigBase):
     calendar: list[Race] | None = None
 
 
-@app.cond()
+@FuncCond
 def is_f1_weekend():
     cal = fetch_f1_calendar()
     if not cal:
@@ -118,7 +119,7 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         return None
 
 
-@app.task(cron('*/15 * * * *') & is_f1_weekend, name=__name__)
+@app.task(cron('*/15 * * * *') & is_f1_weekend)
 def run():
     load_run_persist(logger, State, main)
 

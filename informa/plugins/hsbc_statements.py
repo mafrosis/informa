@@ -10,7 +10,8 @@ from google.oauth2.service_account import Credentials
 
 from gmsa import Gmail
 from gmsa.exceptions import AttachmentSaveError
-from informa.lib import PluginAdapter, StateBase, app, mailgun
+from informa import app
+from informa.lib import PluginAdapter, StateBase, mailgun
 from informa.lib.plugin import load_run_persist
 from informa.lib.utils import raise_alarm
 from transto import hsbc
@@ -24,7 +25,7 @@ class State(StateBase):
     pass
 
 
-@app.task('every 24 hours', name=__name__)
+@app.task('every 24 hours')
 def run():
     load_run_persist(logger, State, main)
 
