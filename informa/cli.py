@@ -1,11 +1,10 @@
 import asyncio
-import inspect
 import logging
 import os
 
 import click
 
-from informa.main import init_plugins
+from informa import app
 from informa.main import start as start_app
 
 logger = logging.getLogger('informa')
@@ -30,14 +29,9 @@ def plugin_():
     'Invoke a plugin\'s CLI'
 
 
-# Load all the plugins at import time
-PLUGINS = init_plugins()
-
-# Iterate plugins, looking for Click Groups to include in the CLI
-for plugin_module in PLUGINS.values():
-    for _, member in inspect.getmembers(plugin_module):
-        if isinstance(member, click.core.Group):
-            plugin_.add_command(member)
+# Load all the plugins at import time, to populate the CLI
+app.init()
+app.configure_cli(plugin_)
 
 
 @cli.command
@@ -45,7 +39,6 @@ for plugin_module in PLUGINS.values():
 @click.option('--port', help='Bind FastAPI server to port', default=3000, type=int)
 def start(host: str, port: int):
     'Start the async workers for each plugin, and the API server'
-    logger.info('Starting FastAPI and Rocketry workers')
     asyncio.run(start_app(host, port))
 
 
@@ -54,5 +47,10 @@ def list_plugins():
     '''
     List configured plugins
     '''
-    for plug in PLUGINS:
-        print(plug)
+    for plugin_name, plugin in app.plugins.items():
+        print(plugin_name)
+        for task in plugin.tasks:
+            if isinstance(task.condition, str):
+                print(f'-> T: {task.func.__name__}, {task.condition}')
+            else:
+                print(f'-> T: {task.func.__name__}, <condition>')
