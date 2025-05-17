@@ -2,29 +2,104 @@ import abc
 import datetime
 import decimal
 import inspect
+import json
 import logging
 import os
-from dataclasses import dataclass
-from typing import cast
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from types import ModuleType
+from typing import Any, TypeVar, cast
 
+import click
 import orjson
 import yaml
 from dataclasses_json import DataClassJsonMixin
-from fastapi import FastAPI
-from rocketry import Rocketry
-from zoneinfo import ZoneInfo
+from fastapi import APIRouter
+from paho.mqtt import publish as mqtt_publish
 
 from informa.exceptions import StateJsonDecodeError
 
-app = Rocketry(
-    config={
-        'execution': 'thread',
-        'timezone': ZoneInfo('Australia/Melbourne'),
-        'cycle_sleep': 10,
-    }
-)
+F = TypeVar('F', bound=Callable[..., Any])
 
-fastapi = FastAPI()
+
+@dataclass
+class InformaTask:
+    func: F
+    condition: str
+
+
+@dataclass
+class InformaPlugin:
+    module: ModuleType
+    tasks: list[InformaTask] = field(default_factory=list)
+    api: APIRouter | None = None
+    _logger: logging.Logger | None = None
+    _state_cls: type | None = None
+    _config_cls: type | None = None
+    _main: Callable | None = None
+
+    @property
+    def name(self):
+        return self.module.__name__
+
+    @property
+    def cli(self):
+        for _, member in inspect.getmembers(self.module):
+            if isinstance(member, click.core.Group):
+                return member
+
+    @property
+    def logger(self):
+        def get_plugin_logger():
+            'Return the class attribute which is an instance of lib.PluginAdapter'
+            return next(iter([v for _, v in inspect.getmembers(self.module) if isinstance(v, PluginAdapter)]), None)
+
+        return get_plugin_logger()
+
+    @property
+    def state_cls(self):
+        return self.get_class_attr(StateBase)
+
+    @property
+    def config_cls(self):
+        return self.get_class_attr(ConfigBase)
+
+    @property
+    def main_func(self):
+        return self.module.main
+
+    def get_class_attr(self, type_):
+        'Return the class type defined in the plugin, which inherits from `type_`'
+        clss = [
+            v for _, v in inspect.getmembers(self.module, inspect.isclass) if issubclass(v, type_) and v is not type_
+        ]
+        return next(iter(clss), None)
+
+    def setup_mqtt(self):
+        'Publish an autodiscovery message for a HA sensor'
+        mqtt_publish.single(
+            f'homeassistant/sensor/informa/{self.name}_last_run/config',
+            json.dumps({
+                'name': f'Informa {self.name} Last Run',
+                'unique_id': f'informa.plugins.{self.name}.last_run',
+                'state_topic': f'informa/informa.plugins.{self.name}/last_run',
+                'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
+            }),
+            hostname='locke',
+            retain=True,
+        )
+
+        mqtt_publish.single(
+            f'homeassistant/sensor/informa/{self.name}_last_count/config',
+            json.dumps({
+                'name': f'Informa {self.name} Last Count',
+                'unique_id': f'informa.plugins.{self.name}.last_count',
+                'state_topic': f'informa/informa.plugins.{self.name}/last_count',
+                'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
+            }),
+            hostname='locke',
+            retain=True,
+        )
 
 
 class PluginAdapter(logging.LoggerAdapter):
@@ -91,12 +166,11 @@ def _load_state(
 
         # Inflate JSON into the State dataclass
         state = state_cls.from_dict(data)
+        logger.debug('Loaded state for %s', plugin_name)
 
     except (FileNotFoundError, orjson.JSONDecodeError):
         logger.debug('Empty state initialised for %s', plugin_name)
         state = state_cls()
-
-    logger.debug('Loaded state for %s', plugin_name)
 
     return cast(StateBase, state)
 
