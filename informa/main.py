@@ -31,7 +31,7 @@ class Informa:
         self.plugins: dict[str, InformaPlugin] = {}
         self.rocketry = Rocketry(
             config={
-                'execution': 'thread',
+                'execution': 'async',
                 'timezone': ZoneInfo('Australia/Melbourne'),
                 'cycle_sleep': 10,
             }
