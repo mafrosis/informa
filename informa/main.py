@@ -35,7 +35,7 @@ class Informa:
         self.plugins = {}
         self.rocketry = Rocketry(
             config={
-                'execution': 'thread',
+                'execution': 'async',
                 'timezone': ZoneInfo('Australia/Melbourne'),
                 'cycle_sleep': 10,
             }
