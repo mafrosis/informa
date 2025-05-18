@@ -47,6 +47,8 @@ def try_base64_decode(query: bytes) -> str:
 @router.get('/info/{query}')
 def get_mp3_album_info(query: bytes):
     path = find_album_path(try_base64_decode(query))
+    if path is None:
+        return {}
 
     def count_mp3s(path: Path):
         return sum(1 for x in list(path.glob('*.mp3')))
