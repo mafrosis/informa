@@ -177,4 +177,4 @@ def plugin_last_run(plugin: InformaPlugin):
 @click_pass_plugin
 def plugin_run_now(plugin: InformaPlugin):
     'Run the plugin now in the foreground'
-    _load_run_persist(plugin.name, plugin.logger, plugin.state_cls, plugin.main, sync=True)
+    _load_run_persist(plugin.name, plugin.logger, plugin.state_cls, plugin.main_func, sync=True)
