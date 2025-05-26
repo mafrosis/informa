@@ -68,6 +68,9 @@ def get_mp3_album_info(query: bytes):
 def get_mp3_album_art(query: bytes):
     path = find_album_path(try_base64_decode(query))
 
+    if path is None:
+        raise HTTPException(status_code=404, detail='Path not found')
+
     if (path / 'folder.jpg').exists():
         return FileResponse(path / 'folder.jpg', media_type='image/jpeg')
 
