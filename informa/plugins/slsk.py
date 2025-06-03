@@ -141,6 +141,12 @@ def fetch_user_file_listing(user: User) -> pd.DataFrame:
     try:
         client = get_client()
         browse_result = client.users.browse(user.username)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:  # noqa: PLR2004
+            logger.error('It appears user %s is offline', user.username)
+        else:
+            logger.error('A HTTP error occurred browsing %s (%s)', user.username, e.response.status_code)
+        return None
     except requests.exceptions.JSONDecodeError as e:
         logger.error('Failed to browse files for user %s: %s', user.username, e)
         return pd.DataFrame(columns=['folder_name', 'files'])
