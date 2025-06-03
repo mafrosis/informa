@@ -8,13 +8,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import click
-import pandas as pd
+import polars as pl
 import pytz
 import requests
 from slskd_api import SlskdClient
 
 from informa import app
-from informa.lib import ConfigBase, PluginAdapter, StateBase, pretty
+from informa.lib import ConfigBase, PluginAdapter, StateBase
 from informa.lib.plugin import load_run_persist, load_state
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -71,18 +71,22 @@ def main(state: State, config: Config) -> int:
         # browse and cache files for configured users
         df = fetch_user_file_listing(user)
 
+        if df is None:
+            continue
+
         # iterate each pattern
         for pattern in config.patterns:
             # Match and download 2 directories per run
-            matches = df[df['folder_name'].str.contains(pattern, regex=True)]
-            if matches.empty:
+            matches = df.filter(pl.col('folder_name').str.contains(pattern))
+
+            if matches.is_empty():
                 continue
 
             # Find first two albums
-            albums = matches.groupby('folder_name').head(1)['folder_name'].head(2).to_list()
+            albums = matches.group_by('folder_name').first().head(2).get_column('folder_name').to_list()
 
             # Queue all files from the two albums
-            to_download = matches[matches.folder_name.isin(albums)]['files'].to_list()
+            to_download = matches.filter(pl.col('folder_name').is_in(albums)).get_column('files').to_list()
             for file_set in to_download:
                 enqueue_download(user.username, json.loads(file_set))
 
@@ -119,7 +123,7 @@ def slskd_ca_context(func):
 
 
 @slskd_ca_context
-def fetch_user_file_listing(user: User) -> pd.DataFrame:
+def fetch_user_file_listing(user: User) -> pl.DataFrame | None:
     '''
     Fetch and process user's file listing from Soulseek using slskd API.
     Returns a DataFrame with individual audio files as rows.
@@ -133,7 +137,7 @@ def fetch_user_file_listing(user: User) -> pd.DataFrame:
         and Path(user.cached_path).exists()
     ):
         logger.info('Loading cached files for user: %s', user.username)
-        return pd.read_feather(user.cached_path)
+        return pl.read_ipc(user.cached_path)
 
     logger.info('Fetching files for user: %s', user.username)
     entries = []
@@ -149,7 +153,7 @@ def fetch_user_file_listing(user: User) -> pd.DataFrame:
         return None
     except requests.exceptions.JSONDecodeError as e:
         logger.error('Failed to browse files for user %s: %s', user.username, e)
-        return pd.DataFrame(columns=['folder_name', 'files'])
+        return None
 
     def process(directories):
         total = 0
@@ -169,13 +173,13 @@ def fetch_user_file_listing(user: User) -> pd.DataFrame:
 
     total_files = process(browse_result['directories'])
 
-    df = pd.DataFrame(entries)
-    if not df.empty:
-        df.to_feather(f'{user.username}.feather')
+    df = pl.DataFrame(entries)
+    if not df.is_empty():
+        df.write_ipc(f'{user.username}.feather')
         user.date_fetched = now_au
         user.cached_path = f'{user.username}.feather'
 
-    logger.debug('Found %d directories, %d files', len(df), total_files)
+    logger.debug('Found %d directories, %d files', df.height, total_files)
     return df
 
 
@@ -221,5 +225,10 @@ def view_files(user: str):
         print('Unknown user')
         return
 
-    df = pd.read_feather(state.users[user].cached_path)
-    pretty.dataframe(df)
+    # Hide polars DataFrame header, display all rows, display full text
+    pl.Config.set_tbl_hide_dataframe_shape(True)
+    pl.Config.set_tbl_rows(-1)
+    pl.Config.set_fmt_str_lengths(300)
+
+    df = pl.read_ipc(state.users[user].cached_path)
+    click.echo_via_pager(str(df.select('folder_name')))
