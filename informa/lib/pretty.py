@@ -3,7 +3,7 @@ from rich.console import Console
 from rich.table import Table
 
 
-def table(data: list[dict], columns: list[str], title: str | None = None):
+def table(data: list[dict], columns: list[str], title: str | None = None, pager: bool = False):
     tbl = Table(title=title)
 
     for c in columns:
@@ -12,10 +12,15 @@ def table(data: list[dict], columns: list[str], title: str | None = None):
     for item in data:
         tbl.add_row(*[item[c] for c in columns])
 
-    Console().print(tbl)
+    console = Console()
+    if pager:
+        with console.pager():
+            console.print(tbl)
+    else:
+        console.print(tbl)
 
 
-def dataframe(df: pd.DataFrame, title: str | None = None):
+def dataframe(df: pd.DataFrame, title: str | None = None, pager: bool = False):
     tbl = Table(title=title)
 
     if 'date' in df.columns:
@@ -27,4 +32,9 @@ def dataframe(df: pd.DataFrame, title: str | None = None):
     for _, item in df.iterrows():
         tbl.add_row(*[str(s) for s in list(item)])
 
-    Console().print(tbl)
+    console = Console()
+    if pager:
+        with console.pager():
+            console.print(tbl)
+    else:
+        console.print(tbl)
