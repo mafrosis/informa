@@ -72,11 +72,7 @@ def _load_run_persist(
 
         # Change current working directory to the state directory
         with contextlib.chdir(os.environ.get('STATE_DIR', './state')):
-            # Run plugin's decorated main function with or without config
-            if config is not None:
-                ret = main_func(state, config)
-            else:
-                ret = main_func(state)
+            ret = main_func(state, config)
 
         # Handle misbehaving plugins (when main does not return a value)
         if ret is None:
