@@ -137,10 +137,13 @@ def pass_plugin_name(func):
     return inner
 
 
-def _load_config(plugin_name: str, config_cls: type[ConfigBase]) -> DataClassJsonMixin | None:
+def _load_config(plugin_name: str, config_cls: type[ConfigBase] | None) -> DataClassJsonMixin | None:
     '''
     Load plugin config
     '''
+    if config_cls is None:
+        return None
+
     try:
         config_dir = os.environ.get('CONFIG_DIR', './config')
 
