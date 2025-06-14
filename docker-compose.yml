@@ -23,17 +23,19 @@ services:
       - JORG_SSH_KEY=/jorg.pky
       - SLSKD_CA_CERT=/step_ca.crt
       - TZ=Australia/Melbourne
+      - STATE_DIR=/state
+      - CONFIG_DIR=/config
     extra_hosts:
       locke: 192.168.1.198
       jorg: 192.168.1.104
       slsk.mafro.net: 192.168.1.198
     volumes:
-      - ./config:/src/config:ro
+      - ./config:/config:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
       - /home/mafro/music:/music:ro
       - /home/mafro/.ssh/jorg.pky:/jorg.pky
       - /home/mafro/.step/certs/root_ca.crt:/step_ca.crt
-      - informa-data:/src/state
+      - informa-data:/state
     env_file:
       - .secrets
     labels:
