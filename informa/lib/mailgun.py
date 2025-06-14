@@ -47,7 +47,7 @@ def _send(subject: str, template: str | None = None, content: str | dict[str, An
     except KeyError as e:
         raise MailgunKeyMissing from e
 
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
+    env = Environment(loader=FileSystemLoader(os.environ.get('TEMPLATE_DIR', './templates')), autoescape=True)
 
     if template:
         if not content:
@@ -56,8 +56,7 @@ def _send(subject: str, template: str | None = None, content: str | dict[str, An
         if not template.endswith('.tmpl'):
             template += '.tmpl'
 
-        with open(f'templates/{template}', encoding='utf-8') as f:
-            body = env.from_string(f.read()).render(**content)
+        body = env.get_template(template).render(**content)
 
     elif isinstance(content, str):
         body = content
