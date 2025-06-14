@@ -142,7 +142,9 @@ def _load_config(plugin_name: str, config_cls: type[ConfigBase]) -> DataClassJso
     Load plugin config
     '''
     try:
-        with open(f'config/{plugin_name}.yaml', encoding='utf8') as f:
+        config_dir = os.environ.get('CONFIG_DIR', './config')
+
+        with open(f'{config_dir}/{plugin_name}.yaml', encoding='utf8') as f:
             data = yaml.load(f, Loader=yaml.Loader)  # noqa: S506
             if not data:
                 return None
@@ -159,7 +161,9 @@ def _load_state(
     Load or initialise plugin state
     '''
     try:
-        with open(f'state/{plugin_name}.json', encoding='utf8') as f:
+        state_dir = os.environ.get('STATE_DIR', './state')
+
+        with open(f'{state_dir}/{plugin_name}.json', encoding='utf8') as f:
             data = orjson.loads(f.read())
             if not data:
                 raise StateJsonDecodeError
@@ -190,5 +194,7 @@ def _write_state(plugin_name: str, state_obj: StateBase):
             return list(obj)
         raise TypeError
 
-    with open(f'state/{plugin_name}.json', 'w', encoding='utf8') as f:
+    state_dir = os.environ.get('STATE_DIR', './state')
+
+    with open(f'{state_dir}/{plugin_name}.json', 'w', encoding='utf8') as f:
         f.write(orjson.dumps(state_obj, default=default).decode())
