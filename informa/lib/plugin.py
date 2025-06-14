@@ -1,5 +1,7 @@
+import contextlib
 import inspect
 import logging
+import os
 from collections.abc import Callable
 
 import arrow
@@ -65,15 +67,16 @@ def _load_run_persist(
 
         logger.info('Running, last run: %s', state.last_run or 'Never')
 
-        if plugin_config_class:
-            # Reload config each time plugin runs
-            config = _load_config(plugin_name, plugin_config_class)
+        # Reload config each time plugin runs
+        config = _load_config(plugin_name, plugin_config_class)
 
-            # Call plugin with config
-            ret = main_func(state, config)
-        else:
-            # Call plugin without config
-            ret = main_func(state)
+        # Change current working directory to the state directory
+        with contextlib.chdir(os.environ.get('STATE_DIR', './state')):
+            # Run plugin's decorated main function with or without config
+            if config is not None:
+                ret = main_func(state, config)
+            else:
+                ret = main_func(state)
 
         # Handle misbehaving plugins (when main does not return a value)
         if ret is None:
