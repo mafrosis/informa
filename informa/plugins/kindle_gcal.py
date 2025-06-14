@@ -170,7 +170,7 @@ def render(events: list[Event]):
     today = datetime.datetime.now(pytz.timezone('Australia/Melbourne')).strftime('%B %d, %Y')
 
     # Render events into Jinja template
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
+    env = Environment(loader=FileSystemLoader(os.environ.get('TEMPLATE_DIR', './templates')), autoescape=True)
     html = env.get_template('kindle_gcal.tmpl').render(events=[render_event(e) for e in events], today=today)
 
     tmpdir = get_tmpdir()

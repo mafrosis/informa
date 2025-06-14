@@ -25,12 +25,14 @@ services:
       - TZ=Australia/Melbourne
       - STATE_DIR=/state
       - CONFIG_DIR=/config
+      - TEMPLATE_DIR=/templates
     extra_hosts:
       locke: 192.168.1.198
       jorg: 192.168.1.104
       slsk.mafro.net: 192.168.1.198
     volumes:
       - ./config:/config:ro
+      - ./templates:/templates:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
       - /home/mafro/music:/music:ro
       - /home/mafro/.ssh/jorg.pky:/jorg.pky
