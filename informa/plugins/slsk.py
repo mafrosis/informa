@@ -44,7 +44,7 @@ class MissingSlskdApiKey(Exception):
     pass
 
 
-@app.task('every 12 hours')
+@app.task('every 6 hours')
 def run():
     load_run_persist(logger, State, main)
 
