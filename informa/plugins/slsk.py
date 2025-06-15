@@ -208,7 +208,7 @@ def fetch_user_file_listing(user: User) -> pl.DataFrame | None:
 
 
 @slskd_ca_context
-def enqueue_download(username: str, files: list) -> int | None:
+def enqueue_download(username: str, files: list) -> int:
     '''
     Enqueues downloads from a specific user using the slskd API.
 
@@ -223,7 +223,7 @@ def enqueue_download(username: str, files: list) -> int | None:
 
     except requests.exceptions.HTTPError as e:
         logger.error('500 error: %s', e.response.json())
-        return None
+        return 0
     else:
         logger.info('Enqueued %d files from %s', len(files), username)
         return len(files)
