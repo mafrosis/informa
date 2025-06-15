@@ -94,7 +94,7 @@ def _load_run_persist(
 
         # Persist plugin metadata
         _write_state(plugin_name, state)
-        logger.debug('State persisted')
+        logger.debug('Plugin returned %s. State persisted.', ret)
 
     except AppError as e:
         raise_alarm(logger, e.__class__.__name__, e)
@@ -173,7 +173,7 @@ def plugin_last_run(plugin: InformaPlugin):
     'When was the last run?'
     state = _load_state(plugin.name, plugin.logger, plugin.state_cls)
     last_run = arrow.get(state.last_run).humanize() if state.last_run else 'Never'
-    print(f'Last run: {last_run}')
+    print(f'Last run: {last_run} (returned {state.last_count})')
 
 
 @click.command('run')
