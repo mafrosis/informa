@@ -68,6 +68,8 @@ def main(state: State, config: Config) -> int:
         if username not in config.users:
             del state.users[username]
 
+    total = 0
+
     for user in state.users.values():
         # Browse and cache files for configured users
         df = fetch_user_file_listing(user)
@@ -96,7 +98,7 @@ def main(state: State, config: Config) -> int:
                 logger.info('Matched %s from %s', albums.row(i)[0], user.username)
 
                 # Queue all files from each album, by deserializing the JSON in the files column
-                if enqueue_download(user.username, json.loads(albums.row(i)[2])):
+                if count := enqueue_download(user.username, json.loads(albums.row(i)[2])):
                     # Record in state as done
                     if user.username not in state.completed:
                         state.completed[user.username] = []
@@ -104,6 +106,10 @@ def main(state: State, config: Config) -> int:
 
                     # Give slskd a moment
                     time.sleep(1)
+
+                total += count
+
+    return total
 
 
 def slskd_ca_context(func):
@@ -195,14 +201,14 @@ def fetch_user_file_listing(user: User) -> pl.DataFrame | None:
     if not df.is_empty():
         df.write_ipc(f'{user.username}.feather')
         user.date_fetched = now_au
-        user.cached_path = f'{user.username}.feather'
+        user.cached_path = str(Path(f'{user.username}.feather').absolute())
 
     logger.debug('Found %d directories, %d files', df.height, total_files)
     return df
 
 
 @slskd_ca_context
-def enqueue_download(username: str, files: list) -> bool:
+def enqueue_download(username: str, files: list) -> int | None:
     '''
     Enqueues downloads from a specific user using the slskd API.
 
@@ -217,10 +223,10 @@ def enqueue_download(username: str, files: list) -> bool:
 
     except requests.exceptions.HTTPError as e:
         logger.error('500 error: %s', e.response.json())
-        return False
+        return None
     else:
         logger.info('Enqueued %d files from %s', len(files), username)
-        return True
+        return len(files)
 
 
 @click.group(name='slsk')
