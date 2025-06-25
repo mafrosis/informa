@@ -16,7 +16,7 @@ from slskd_api import SlskdClient
 
 from informa import app
 from informa.lib import ConfigBase, PluginAdapter, StateBase, pretty
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import load_config, load_run_persist, load_state, write_state
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -275,3 +275,86 @@ def view_completed(user: str):
         return
 
     pretty.table(state.completed[user], columns=('album',))
+
+
+@cli.command
+@click.argument('user')
+@click.argument('album')
+def remove_completed(user: str, album: str):
+    '''
+    Remove an album from the completed downloads for a user
+
+    \b
+    USER   slsk username
+    ALBUM  album name (exact match) to remove
+    '''
+    state = load_state(logger, State)
+
+    if user not in state.users:
+        raise click.ClickException(f'Unknown user: {user}')
+
+    if user not in state.completed or not state.completed[user]:
+        raise click.ClickException(f'User {user} has no completed albums')
+
+    if album not in state.completed[user]:
+        raise click.ClickException(f'Album {album} not found in completed list for {user}')
+
+    # Remove the album
+    state.completed[user].remove(album)
+
+    # Remove user entry if no completed albums remain
+    if not state.completed[user]:
+        del state.completed[user]
+
+    # Persist changes
+    write_state(state)
+    click.echo(f'Removed {album} from {user}\'s completed list')
+
+
+@cli.command
+@click.argument('old_username')
+@click.argument('new_username')
+def rename_user(old_username: str, new_username: str):
+    '''
+    Rename a username in state
+
+    \b
+    OLD_USERNAME  current username in state
+    NEW_USERNAME  replacement username
+    '''
+    state = load_state(logger, State)
+
+    if old_username not in state.users:
+        raise click.ClickException(f'Unknown user: {old_username}')
+    if new_username in state.users:
+        raise click.ClickException(f'Username already exists: {new_username}')
+
+    # Rename the user, and clear the cached path
+    user_obj = state.users.pop(old_username)
+    user_obj.username = new_username
+    user_obj.cached_path = None
+    user_obj.date_fetched = None
+    state.users[new_username] = user_obj
+
+    # Update completed dict
+    if old_username in state.completed:
+        state.completed[new_username] = state.completed.pop(old_username)
+
+    # Persist changes
+    write_state(state)
+    click.echo(f'Renamed {old_username} to {new_username}')
+
+
+@cli.command
+def list_users():
+    '''
+    List all configured users without state details
+    '''
+    config = load_config(Config)
+    if not config.users:
+        click.echo('No users configured')
+        return
+
+    click.echo('Configured users:')
+    for user in config.users:
+        click.echo(f'  {user}')
