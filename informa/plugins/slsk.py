@@ -224,6 +224,9 @@ def enqueue_download(username: str, files: list) -> int:
     except requests.exceptions.HTTPError as e:
         logger.error('500 error: %s', e.response.json())
         return 0
+    except requests.exceptions.ConnectionError:
+        logger.error('SLSKD appears to be down!')
+        return 0
     else:
         logger.info('Enqueued %d files from %s', len(files), username)
         return len(files)
