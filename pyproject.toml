@@ -20,6 +20,7 @@ dependencies = [
 	"beautifulsoup4==4.11.1",
 	"click==8.2.0",
 	"dataclasses-json==0.6.7",
+	"eyeD3==0.9.8",
 	"fake-useragent==1.1.1",
 	"fastapi==0.109.1",
 	"feedparser==6.0.10",
