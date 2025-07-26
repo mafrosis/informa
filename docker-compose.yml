@@ -1,6 +1,8 @@
 ---
 volumes:
-  informa-data: {}
+  informa-data:
+    labels:
+      net.mafro.kopia: true
 
 networks:
   caddy:
