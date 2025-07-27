@@ -87,10 +87,7 @@ def get_mp3_album_art(query: bytes):
         return FileResponse(path / 'folder.jpg', media_type='image/jpeg')
     try:
         # Attempt extract image from first file
-        fn = next(iter(path.glob('*.mp3')))
-        if not fn:
-            raise IndexError
-        audiofile = eyed3.load(fn)
+        audiofile = eyed3.load(next(iter(path.glob('*.mp3'))))
 
         # Write to a temporary directory
         for img in audiofile.tag.images:
@@ -100,7 +97,7 @@ def get_mp3_album_art(query: bytes):
                         f.write(img.image_data)
 
                     return FileResponse(f'{tmpdir}/{img.makeFileName()}', media_type='image/jpeg')
-    except IndexError:
+    except StopIteration:
         pass
 
     raise HTTPException(status_code=404, detail='Artwork missing')
