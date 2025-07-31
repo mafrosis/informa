@@ -39,7 +39,7 @@ dependencies = [
 	"pytz",
 	"pyyaml~=6.0",
 	"slskd_api",
-	"requests==2.31.0",
+	"requests==2.32.4",
 	"rich==13.3.3",
 	"rocketry==2.5.1",
 	"uvicorn==0.24.0",
