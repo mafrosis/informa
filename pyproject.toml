@@ -64,8 +64,8 @@ allow-direct-references = true
 installer = "uv"
 dependencies = ["ipdb"]
 pre-install-commands = [
-  "pip install -e transto",
-  "pip install -e gmsa",
+  "uv pip install -e transto",
+  "uv pip install -e gmsa",
 ]
 
 [tool.hatch.envs.test]
