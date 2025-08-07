@@ -198,7 +198,7 @@ def add_magnet_to_rtorrent(races: dict[str, Download]) -> bool:
             except RtorrentError as e:
                 if 'No route to host' in str(e):
                     # Wake jorg via wol-sender running on 3001
-                    requests.get('http://locke:3001/wake/d0:50:99:c1:63:c9', timeout=3)
+                    requests.get('http://trevor:3001/wake/d0:50:99:c1:63:c9', timeout=3)
                     logger.info('WOL packet sent to wake rtorrent')
                     return False
 
