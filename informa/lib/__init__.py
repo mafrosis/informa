@@ -85,7 +85,7 @@ class InformaPlugin:
                 'state_topic': f'informa/informa.plugins.{self.name}/last_run',
                 'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
             }),
-            hostname='locke',
+            hostname='trevor',
             retain=True,
         )
 
@@ -97,7 +97,7 @@ class InformaPlugin:
                 'state_topic': f'informa/informa.plugins.{self.name}/last_count',
                 'device': {'identifiers': ['informa'], 'manufacturer': 'mafro'},
             }),
-            hostname='locke',
+            hostname='trevor',
             retain=True,
         )
 
