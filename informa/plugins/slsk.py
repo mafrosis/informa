@@ -70,6 +70,11 @@ def main(state: State, config: Config) -> int:
 
     total = 0
 
+    try:
+        num_albums = int(os.environ.get('SLSKD_NUM_ALBUMS', 1))
+    except ValueError:
+        num_albums = 2
+
     for user in state.users.values():
         # Browse and cache files for configured users
         df = fetch_user_file_listing(user)
@@ -78,7 +83,7 @@ def main(state: State, config: Config) -> int:
             continue
 
         for pattern in config.patterns:
-            # Match and download 2 directories per run
+            # Match and download $SLSKD_NUM_ALBUMS directories per run
             matches = df.filter(pl.col('dir_path').str.contains(pattern))
             if matches.is_empty():
                 matches = df.filter(pl.col('folder_name').str.contains(pattern))
@@ -88,21 +93,21 @@ def main(state: State, config: Config) -> int:
             # Add this filter to exclude completed folders
             matches = matches.filter(~pl.col('folder_name').is_in(state.completed.get(user.username, [])))
             if matches.is_empty():
-                logger.info('Nothing to download from %s', user.username)
+                logger.info('Nothing to download from %s with pattern %s', user.username, pattern)
                 continue
 
-            # Find first two albums
-            albums = matches.group_by('folder_name').first().sort(['dir_path', 'folder_name']).head(2)
+            # Find first $SLSKD_NUM_ALBUMS albums
+            albums = matches.group_by('folder_name').first().sort(['dir_path', 'folder_name']).head(num_albums)
 
-            for i in range(2):
-                logger.info('Matched %s from %s', albums.row(i)[0], user.username)
+            for row in albums.iter_rows(named=True):
+                logger.info('Matched %s from %s', row['folder_name'], user.username)
 
                 # Queue all files from each album, by deserializing the JSON in the files column
-                if count := enqueue_download(user.username, json.loads(albums.row(i)[2])):
+                if count := enqueue_download(user.username, json.loads(row['files'])):
                     # Record in state as done
                     if user.username not in state.completed:
                         state.completed[user.username] = []
-                    state.completed[user.username].append(albums.row(i)[0])
+                    state.completed[user.username].append(row['folder_name'])
 
                     # Give slskd a moment
                     time.sleep(1)
