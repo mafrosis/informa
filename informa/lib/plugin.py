@@ -2,6 +2,7 @@ import contextlib
 import inspect
 import logging
 import os
+import pathlib
 from collections.abc import Callable
 
 import arrow
@@ -70,8 +71,12 @@ def _load_run_persist(
         # Reload config each time plugin runs
         config = _load_config(plugin_name, plugin_config_class)
 
+        # Ensure state directory exists
+        state_dir = pathlib.Path(os.environ.get('STATE_DIR', './state'))
+        state_dir.mkdir(exist_ok=True)
+
         # Change current working directory to the state directory
-        with contextlib.chdir(os.environ.get('STATE_DIR', './state')):
+        with contextlib.chdir(state_dir):
             # Run plugin's decorated main function with or without config
             if config is not None:
                 ret = main_func(state, config)
