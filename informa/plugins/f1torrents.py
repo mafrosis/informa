@@ -114,7 +114,7 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
             if e.summary.startswith('F1: Grand Prix')
         }
 
-    except (httplib2.error.ServerNotFoundError, TimeoutError):
+    except (httplib2.error.ServerNotFoundError, TimeoutError, ConnectionError, socket.gaierror):
         logger.error('Failed fetching calendar data (timeout or server not found)')
         return None
 
