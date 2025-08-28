@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import time
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -363,3 +364,60 @@ def list_users():
     click.echo('Configured users:')
     for user in config.users:
         click.echo(f'  {user}')
+
+
+@functools.cache
+def _find_albums(root: Path) -> set[str]:
+    '''Return a set of album directories found under root'''
+    if not root.exists() or not root.is_dir():
+        return set()
+
+    return {unicodedata.normalize('NFC', child.name) for child in root.iterdir() if child.is_dir()}
+
+
+@cli.command
+@click.argument('username')
+@click.argument('pattern')
+@click.argument('directory', type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option('--dry-run', is_flag=True, default=False)
+def verify_completed(username: str, pattern: str, directory: Path, dry_run: bool):
+    '''
+    Verify completed albums exist on disk and remove missing entries from state
+
+    \b
+    USERNAME   slsk username
+    PATTERN    album search pattern
+    DIRECTORY  directory containing downloaded albums
+    '''
+    state = load_state(logger, State)
+    if username not in state.completed or not state.completed[username]:
+        raise click.ClickException(f'No completed albums found for {username}')
+
+    if pattern not in state.completed[username]:
+        click.echo(f'Valid patterns for {username}:')
+        for pat in state.completed[username]:
+            click.echo(f' - {pat}')
+        raise click.ClickException('Invalid pattern supplied')
+
+    # Find missing albums
+    missing = {
+        album
+        for album in state.completed[username][pattern]
+        if unicodedata.normalize('NFC', album) not in _find_albums(directory)
+    }
+
+    click.echo(
+        f"{'DRY RUN -- ' if dry_run else ''}Total: {len(state.completed[username][pattern])}, Missing: {len(missing)}"
+    )
+
+    if missing and dry_run is False:
+        state.completed[username][pattern] = list(set(state.completed[username][pattern]) - missing)
+        if not state.completed[username][pattern]:
+            del state.completed[username][pattern]
+
+        # Persist changes
+        write_state(state)
+
+        click.echo('Removed missing albums:')
+        for album in sorted(missing):
+            click.echo(f'  {album}')
