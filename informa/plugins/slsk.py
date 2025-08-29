@@ -37,7 +37,7 @@ class User:
 
 @dataclass
 class State(StateBase):
-    completed: dict[str, list[str]] = field(default_factory=dict)
+    completed: dict[str, dict[str, list[str]]] = field(default_factory=dict)  # username -> pattern -> list[albums]
     users: dict[str, User] = field(default_factory=dict)
 
 
@@ -92,7 +92,9 @@ def main(state: State, config: Config) -> int:
                     continue
 
             # Add this filter to exclude completed folders
-            matches = matches.filter(~pl.col('folder_name').is_in(state.completed.get(user.username, [])))
+            matches = matches.filter(
+                ~pl.col('folder_name').is_in(state.completed.get(user.username, {}).get(pattern, []))
+            )
             if matches.is_empty():
                 logger.info('Nothing to download from %s with pattern %s', user.username, pattern)
                 continue
@@ -107,8 +109,12 @@ def main(state: State, config: Config) -> int:
                 if count := enqueue_download(user.username, json.loads(row['files'])):
                     # Record in state as done
                     if user.username not in state.completed:
-                        state.completed[user.username] = []
-                    state.completed[user.username].append(row['folder_name'])
+                        state.completed[user.username] = {}
+
+                    if pattern not in state.completed[user.username]:
+                        state.completed[user.username][pattern] = []
+
+                    state.completed[user.username][pattern].append(row['folder_name'])
 
                     # Give slskd a moment
                     time.sleep(1)
@@ -280,7 +286,8 @@ def view_completed(user: str):
         print('Unknown user')
         return
 
-    pretty.table(state.completed[user], columns=('album',))
+    for pattern, albums in state.completed[user].items():
+        pretty.table(albums, title=pattern, columns=('album',))
 
 
 @cli.command
