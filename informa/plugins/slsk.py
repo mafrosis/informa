@@ -359,6 +359,37 @@ def rename_user(old_username: str, new_username: str):
 
 
 @cli.command
+@click.argument('username')
+@click.argument('old_pattern')
+@click.argument('new_pattern')
+def rename_user_pattern(username: str, old_pattern: str, new_pattern: str):
+    '''
+    Rename a search pattern on completed downloads for a user
+
+    \b
+    USERNAME     slsk username
+    OLD_PATTERN  current pattern with completed albums
+    NEW_PATTERN  replacement pattern
+    '''
+    state = load_state(logger, State)
+    if username not in state.completed or not state.completed[username]:
+        raise click.ClickException(f'No completed albums found for {username}')
+
+    if old_pattern not in state.completed[username]:
+        click.echo(f'Valid patterns for {username}:')
+        for pat in state.completed[username]:
+            click.echo(f' - {pat}')
+        raise click.ClickException('Invalid pattern supplied')
+
+    # Pull the completed albums for old_pattern and reinsert with new_pattern
+    state.users[new_pattern] = state.completed[username].pop(old_pattern)
+
+    # Persist changes
+    write_state(state)
+    click.echo(f'Renamed {old_pattern} to {new_pattern} for {username}')
+
+
+@cli.command
 def list_users():
     '''
     List all configured users without state details
