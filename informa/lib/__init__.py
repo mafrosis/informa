@@ -32,6 +32,7 @@ class InformaTask:
 class InformaPlugin:
     module: ModuleType
     tasks: list[InformaTask] = field(default_factory=list)
+    enabled: bool | None = None
     api: APIRouter | None = None
     _logger: logging.Logger | None = None
     _state_cls: type | None = None
