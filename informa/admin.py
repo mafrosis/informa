@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from informa import app
+from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
 
 router = APIRouter(prefix='/admin')
 
@@ -30,14 +31,18 @@ def plugin_list():
 
 
 @router.post('/plugins/{plugin_name}')
-async def plugin_enable(plugin_name: str):
+def plugin_enable(plugin_name: str, persist: bool = False):
     'Enable a plugin'
-    app.enable_plugin(plugin_name)
-    # app.plugins[plugin_name].enable_plugin = True
+    try:
+        app.enable_plugin(plugin_name, persist)
+    except PluginAlreadyEnabled as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.delete('/plugins/{plugin_name}')
-async def plugin_disable(plugin_name: str):
+def plugin_disable(plugin_name: str, persist: bool = False):
     'Disable a plugin'
-    app.disable_plugin(plugin_name)
-    # app.plugins[plugin_name].is_enabled = False
+    try:
+        app.disable_plugin(plugin_name, persist)
+    except PluginAlreadyDisabled as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e

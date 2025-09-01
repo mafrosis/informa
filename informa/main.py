@@ -13,7 +13,9 @@ from fastapi import APIRouter, FastAPI
 from rocketry import Rocketry
 from zoneinfo import ZoneInfo
 
+from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
 from informa.lib import F, InformaPlugin, InformaTask
+from informa.lib.config import AppConfig, load_app_config, save_app_config
 from informa.lib.plugin import plugin_last_run, plugin_run_now
 
 logger = logging.getLogger('informa')
@@ -30,6 +32,7 @@ class Informa:
     plugins: dict[str, InformaPlugin]
     rocketry: Rocketry
     fastapi: FastAPI
+    config: AppConfig
 
     def __init__(self):
         self.plugins = {}
@@ -41,6 +44,7 @@ class Informa:
             }
         )
         self.fastapi = FastAPI()
+        self.config = load_app_config()
 
     def init(self):  # noqa: PLR6301
         plugin_path = pathlib.Path(inspect.getfile(inspect.currentframe())).parent / 'plugins'
@@ -69,6 +73,7 @@ class Informa:
             plugin.module.cli.context_settings = {'obj': plugin}
             plugin.module.cli.add_command(plugin_last_run)
             plugin.module.cli.add_command(plugin_run_now)
+
 
     def task(self, condition: str) -> Callable[[F], F]:
         '''
@@ -115,6 +120,67 @@ class Informa:
         return decorator
 
 
+    def enable_plugin(self, plugin_name: str, persist: bool = False):
+        'Enable plugin by adding its tasks and API router'
+        plugin = self.plugins[plugin_name]
+        if plugin.enabled is True:
+            raise PluginAlreadyEnabled(plugin_name)
+        plugin.enabled = True
+
+        # Register Rocketry tasks
+        for task in plugin.tasks:
+            task_name = f'{plugin_name}.{task.func.__name__}'
+
+            self.rocketry.session.create_task(
+                func=task.func,
+                start_cond=task.condition,
+                name=task_name,
+            )
+            logger.info('Started task %s', task_name)
+
+        if plugin.api:
+            # Register FastAPI routers
+            self.fastapi.include_router(plugin.api)
+            logger.info('Added FastAPI router %s from %s', plugin.api.prefix, plugin_name)
+
+        if persist:
+            # Persist plugin enabled state to disk for next restart
+            config = load_app_config()
+            if plugin_name in config.disabled_plugins:
+                config.disabled_plugins.remove(plugin_name)
+                save_app_config(config)
+
+    def disable_plugin(self, plugin_name: str, persist: bool = False):
+        'Disable plugin by removing its tasks and API router'
+        plugin = self.plugins[plugin_name]
+        if plugin.enabled is False:
+            raise PluginAlreadyDisabled(plugin_name)
+        plugin.enabled = False
+
+        # Remove tasks from rocketry scheduler
+        for task in plugin.tasks:
+            try:
+                task_name = f'{plugin_name}.{task.func.__name__}'
+                self.rocketry.session.remove_task(task_name)
+                logger.info('Removed task %s', task_name)
+            except KeyError:
+                pass
+
+        if plugin.api:
+            # Remove API router if present
+            for i, route in enumerate(self.fastapi.routes):
+                if route.path.startswith(plugin.api.prefix):
+                    self.fastapi.routes.pop(i)
+                    logger.info('Removed router %s from %s', plugin.api.prefix, plugin_name)
+
+        if persist:
+            # Persist plugin disabled state to disk for next restart
+            config = load_app_config()
+            if plugin_name not in config.disabled_plugins:
+                config.disabled_plugins.add(plugin_name)
+                save_app_config(config)
+
+
 app = Informa()
 
 
@@ -134,21 +200,18 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
 
     for plugin_name, plugin in app.plugins.items():
         if only_run_plugins and plugin.name not in only_run_plugins:
+            # Mark plugin as disabled in-memory; and do not enable
+            plugin.enabled = False
             continue
 
-        # Register Rocketry tasks
-        for task in plugin.tasks:
-            logger.info('Started task %s from %s', task.func.__name__, plugin_name)
-            app.rocketry.session.create_task(
-                func=task.func,
-                start_cond=task.condition,
-                name=f'{plugin_name}.{task.func.__name__}',
-            )
+        if plugin.name in app.config.disabled_plugins:
+            # Plugin is disabled in config; do not enable
+            logger.info('Plugin %s is disabled, not starting tasks or API', plugin.name)
+            plugin.enabled = False
+            continue
 
-        # Register FastAPI routers
-        if plugin.api:
-            logger.info('Added FastAPI router %s from %s', plugin.api.prefix, plugin_name)
-            app.fastapi.include_router(plugin.api)
+        # Activate plugin
+        app.enable_plugin(plugin_name)
 
     # Include admin routes
     from informa.admin import router as admin_api  # noqa: PLC0415
