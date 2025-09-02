@@ -258,9 +258,12 @@ def startup_event():
 @app.fastapi.on_event('shutdown')
 def shutdown_event():
     'Cleanup the temp directory'
-    tmpdir = app.fastapi.state.data[__name__]['tmpdir']
-    tmpdir.cleanup()
-    logger.debug('Temporary directory cleaned up %s', tmpdir.name)
+    try:
+        tmpdir = app.fastapi.state.data[__name__]['tmpdir']
+        tmpdir.cleanup()
+        logger.debug('Temporary directory cleaned up %s', tmpdir.name)
+    except AttributeError:
+        pass
 
 
 @router.get('/html')
