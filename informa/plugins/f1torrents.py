@@ -70,7 +70,11 @@ class Config(ConfigBase):
     calendar: list[Race] | None = None
 
 
-@FuncCond
+class F1WeekendCond(FuncCond):
+    def __str__(self):
+        return f"F1WeekendCond({self.func.__name__})"
+
+@F1WeekendCond
 def is_f1_weekend():
     cal = fetch_f1_calendar()
     if not cal:
