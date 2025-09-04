@@ -37,10 +37,22 @@ app.configure_cli(plugin_)
 @cli.command
 @click.option('--host', help='Bind FastAPI server to hostname', default='127.0.0.1', type=str)
 @click.option('--port', help='Bind FastAPI server to port', default=3000, type=int)
-@click.option('--plugin', help='Run async with a single plugin (useful for manual testing)', default=None)
-def start(host: str, port: int, plugin: str | None):
+@click.option('--plugins', help='Start informa with a subset of plugins enabled (comma-separated)', default=None)
+def start(host: str, port: int, plugins: str | None):
     'Start the async workers for each plugin, and the API server'
-    asyncio.run(start_app(host, port, plugin))
+    if plugins:
+        plugins = plugins.replace('-', '_').split(',')
+
+        for i, pn in enumerate(plugins):
+            if not pn.startswith('informa.plugins.'):
+                plugin_name = f'informa.plugins.{pn}'
+                plugins[i] = plugin_name
+
+            if plugin_name not in app.plugins:
+                logger.error('Plugin %s not found', plugin_name)
+                return
+
+    asyncio.run(start_app(host, port, plugins))
 
 
 @cli.command
