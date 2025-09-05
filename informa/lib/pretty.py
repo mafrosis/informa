@@ -3,7 +3,7 @@ from rich.console import Console
 from rich.table import Table
 
 
-def table(data: list[dict | str], columns: list[str], title: str | None = None, pager: bool = False):
+def table(data: list[dict | str | tuple], columns: list[str], title: str | None = None, pager: bool = False):
     tbl = Table(title=title)
 
     for c in columns:
@@ -12,6 +12,9 @@ def table(data: list[dict | str], columns: list[str], title: str | None = None, 
     if isinstance(data[0], str):
         for item in data:
             tbl.add_row(item)
+    elif isinstance(data[0], tuple):
+        for item in data:
+            tbl.add_row(*[str(s) for s in item])
     else:
         for item in data:
             tbl.add_row(*[item[c] for c in columns])

@@ -27,7 +27,7 @@ dataclasses_json.cfg.global_config.decoders[datetime.datetime] = datetime.dateti
 
 
 class Informa:
-    def __init__(self) -> None:
+    def __init__(self):
         self.plugins: dict[str, InformaPlugin] = {}
         self.rocketry = Rocketry(
             config={
@@ -145,6 +145,10 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
         if plugin.api:
             logger.info('Added FastAPI router %s from %s', plugin.api.prefix, plugin_name)
             app.fastapi.include_router(plugin.api)
+
+    # Include admin routes
+    from informa.admin import router as admin_api
+    app.fastapi.include_router(admin_api)
 
     await asyncio.wait([
         asyncio.create_task(server.serve()),
