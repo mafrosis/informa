@@ -150,6 +150,10 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
             logger.info('Added FastAPI router %s from %s', plugin.api.prefix, plugin_name)
             app.fastapi.include_router(plugin.api)
 
+    # Include admin routes
+    from informa.admin import router as admin_api  # noqa: PLC0415
+    app.fastapi.include_router(admin_api)
+
     await asyncio.wait([
         asyncio.create_task(server.serve()),
         asyncio.create_task(app.rocketry.serve()),

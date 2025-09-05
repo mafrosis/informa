@@ -37,6 +37,15 @@ class InformaPlugin:
     _state_cls: type | None = None
     _config_cls: type | None = None
     _main: Callable | None = None
+    last_run: datetime.datetime | None = None
+    last_count: int | None = None
+
+    def __post_init__(self):
+        'Load plugin state on startup to populate last_run, last_count'
+        if self.state_cls:
+            state = _load_state(self.name, self.logger, self.state_cls)
+            self.last_run = state.last_run
+            self.last_count = state.last_count
 
     @property
     def name(self):
