@@ -98,7 +98,7 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         return None
 
     try:
-        gc = GoogleCalendar(credentials=Credentials.from_service_account_file(os.environ.get('GSUITE_OAUTH_CREDS')))
+        gc = GoogleCalendar(credentials=Credentials.from_service_account_file(gsuite_creds))
     except googleapiclient.errors.HttpError:
         logger.error('Failed to authenticate to Google Calendar API')
         return None

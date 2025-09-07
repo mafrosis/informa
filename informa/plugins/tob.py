@@ -71,7 +71,12 @@ def run():
 
 
 def main(state: State) -> int:
-    gc = gspread.service_account(filename=os.environ.get('GSUITE_OAUTH_CREDS'))
+    gsuite_creds = os.environ.get('GSUITE_OAUTH_CREDS')
+    if not gsuite_creds:
+        logger.error('No Google service account credentials')
+        return 0
+
+    gc = gspread.service_account(filename=gsuite_creds)
 
     sheet = gc.open_by_key(SPREADO_ID).worksheet('raw')
 
