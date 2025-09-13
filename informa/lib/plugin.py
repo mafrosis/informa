@@ -102,7 +102,7 @@ def _load_run_persist(
         logger.debug('Plugin returned %s. State persisted.', ret)
 
     except AppError as e:
-        raise_alarm(logger, e.__class__.__name__, e)
+        raise_alarm(logger, str(e), e)
     except ValidationError as e:
         raise_alarm(logger, 'State ValidationError, possible corruption', e)
     except Exception as e:  # noqa: BLE001
