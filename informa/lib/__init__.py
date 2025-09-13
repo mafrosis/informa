@@ -17,7 +17,7 @@ from dataclasses_json import DataClassJsonMixin
 from fastapi import APIRouter
 from paho.mqtt import publish as mqtt_publish
 
-from informa.exceptions import StateJsonDecodeError
+from informa.exceptions import PluginRequiresConfigError, StateJsonDecodeError
 
 F = TypeVar('F', bound=Callable[..., Any])
 
@@ -161,8 +161,8 @@ def _load_config(plugin_name: str, config_cls: type[ConfigBase] | None) -> DataC
             data = yaml.load(f, Loader=yaml.Loader)  # noqa: S506
             if not data:
                 return None
-    except FileNotFoundError:
-        return None
+    except FileNotFoundError as e:
+        raise PluginRequiresConfigError(plugin_name) from e
 
     return cast(ConfigBase, config_cls.from_dict(data))
 
