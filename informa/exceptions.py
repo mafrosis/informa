@@ -6,7 +6,9 @@ class AppError(Exception):
     def __str__(self):
         if self.message:
             return f'{self.__doc__} ({self.message})'
-        return str(self.__doc__)
+        if self.__doc__ is not None:
+            return str(self.__doc__)
+        return self.__class__.__name__
 
 
 class StateJsonDecodeError(AppError):
