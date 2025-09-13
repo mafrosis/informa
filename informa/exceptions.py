@@ -39,3 +39,7 @@ class MailgunTemplateFail(AppError):
 
 class MailgunSendFailed(AppError):
     'Mailgun email send failed!'
+
+
+class PluginRequiresConfigError(PluginError):
+    'Plugin {} requires a config file to be used'
