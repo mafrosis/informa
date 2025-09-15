@@ -211,9 +211,10 @@ def fetch_user_file_listing(user: User) -> pl.DataFrame | None:
 
     df = pl.DataFrame(entries)
     if not df.is_empty():
-        df.write_ipc(f'{user.username}.feather')
+        if not user.cached_path:
+            user.cached_path = str(Path(f'{user.username}.feather').absolute())
+        df.write_ipc(user.cached_path)
         user.date_fetched = now_au
-        user.cached_path = str(Path(f'{user.username}.feather').absolute())
 
     logger.debug('Found %d directories, %d files', df.height, total_files)
     return df
@@ -268,7 +269,13 @@ def view_files(user: str):
     pl.Config.set_tbl_rows(-1)
     pl.Config.set_fmt_str_lengths(300)
 
-    df = pl.read_ipc(state.users[user].cached_path)
+    try:
+        df = pl.read_ipc('state/hinoteku2.feather')
+    except FileNotFoundError:
+        print(f'File is missing, fetching.. ({state.users[user].cached_path})')
+        #df = fetch_user_file_listing(state.users[user])
+
+    import ipdb; ipdb.set_trace()
     print(df.select(['folder_name', 'dir_path']))
 
 
