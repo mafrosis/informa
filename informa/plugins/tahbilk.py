@@ -7,7 +7,7 @@ import requests
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase, mailgun
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -28,8 +28,8 @@ class State(StateBase):
 
 
 @app.task('every 12 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State) -> int:
@@ -84,7 +84,8 @@ def cli():
 
 
 @cli.command
-def seen():
+@click_pass_plugin
+def seen(plugin: InformaPlugin):
     'What products have been seen already?'
-    state = load_state(logger, State)
+    state = plugin.load_state()
     print('\n'.join([f'{wr.title} @ {wr.price}' for wr in state.products_seen]))
