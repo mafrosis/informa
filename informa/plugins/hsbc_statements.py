@@ -12,7 +12,6 @@ from gmsa import Gmail
 from gmsa.exceptions import AttachmentSaveError
 from informa import app
 from informa.lib import PluginAdapter, StateBase, mailgun
-from informa.lib.plugin import load_run_persist
 from informa.lib.utils import raise_alarm
 from transto import hsbc
 from transto.exceptions import MissingEnvVar
@@ -26,8 +25,8 @@ class State(StateBase):
 
 
 @app.task('every 24 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(_) -> int:

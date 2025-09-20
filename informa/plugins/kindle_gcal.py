@@ -26,7 +26,7 @@ from informa.lib import (
     PluginAdapter,
     StateBase,
 )
-from informa.lib.plugin import load_config, load_run_persist
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -74,8 +74,8 @@ class Event:
     (every('15 mins') & time_of_day.between('07:00', '17:00'))
     | (every('2 hours') & time_of_day.between('17:00', '07:00'))
 )
-def run():
-    load_run_persist(logger, StateBase, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(_: State, config: Config) -> int:
@@ -294,8 +294,9 @@ def cli():
 
 
 @cli.command('render')
-def render_():
-    config = load_config(Config)
+@click_pass_plugin
+def render_(plugin: InformaPlugin):
+    config = plugin.load_config()
     events = fetch_calendar(config.gcal_id)
     if events is not None:
         render(events)

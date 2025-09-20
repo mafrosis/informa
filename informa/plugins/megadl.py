@@ -14,7 +14,7 @@ import yaml
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -25,8 +25,8 @@ class State(StateBase):
 
 
 @app.task('every 1 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State) -> int:
@@ -86,7 +86,8 @@ def cli():
 
 
 @cli.command
-def completed():
+@click_pass_plugin
+def completed(plugin: InformaPlugin):
     'Print completed MEGA downloads'
-    state = load_state(logger, State)
+    state = plugin.load_state()
     print(yaml.dump(state.completed))
