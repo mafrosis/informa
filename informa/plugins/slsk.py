@@ -404,21 +404,12 @@ def list_users():
         click.echo(f'  {user}')
 
 
-@functools.cache
-def _find_albums(root: Path) -> set[str]:
-    '''Return a set of album directories found under root'''
-    if not root.exists() or not root.is_dir():
-        return set()
-
-    return {unicodedata.normalize('NFC', child.name) for child in root.iterdir() if child.is_dir()}
-
-
 @cli.command
 @click.argument('username')
 @click.argument('pattern')
-@click.argument('directory', type=click.Path(exists=True, file_okay=False, path_type=Path))
-@click.option('--dry-run', is_flag=True, default=False)
-def verify_completed(username: str, pattern: str, directory: Path, dry_run: bool):
+@click.argument('directory', type=click.Path(exists=True, file_okay=False, path_type=pathlib.Path))
+@click.option('--dry-run', is_flag=True, default=False, help='Non destructive dry run to see stats')
+def verify_completed(username: str, pattern: str, directory: pathlib.Path, dry_run: bool):
     '''
     Verify completed albums exist on disk and remove missing entries from state
 
@@ -437,12 +428,20 @@ def verify_completed(username: str, pattern: str, directory: Path, dry_run: bool
             click.echo(f' - {pat}')
         raise click.ClickException('Invalid pattern supplied')
 
-    # Find missing albums
-    missing = {
-        album
-        for album in state.completed[username][pattern]
-        if unicodedata.normalize('NFC', album) not in _find_albums(directory)
-    }
+    # Find albums marked completed which have tracks missing from the filesystem
+    missing = set()
+
+    # Filter the user's library, for albums matching pattern
+    df = pl.read_ipc(state.users[username].cached_path)
+    df = df.filter(pl.col('dir_path').str.contains(pattern))
+
+    for album in state.completed[username][pattern]:
+        files = json.loads(df.filter(pl.col('folder_name') == album)['files'][0])
+
+        for fn in [pathlib.Path(f['filename']).name for f in files]:
+            if not (directory / album / fn).exists():
+                missing.add(album)
+                break
 
     click.echo(
         f"{'DRY RUN -- ' if dry_run else ''}Total: {len(state.completed[username][pattern])}, Missing: {len(missing)}"
