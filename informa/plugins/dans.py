@@ -15,7 +15,7 @@ from informa.lib import (
     StateBase,
     mailgun,
 )
-from informa.lib.plugin import load_run_persist, load_state, write_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 from informa.lib.utils import now_aest
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -58,8 +58,8 @@ class ProductNeverAlerted(Exception):
 
 
 @app.task('every 12 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State, config: Config):
@@ -172,8 +172,8 @@ def cli():
     'Dan Murphy\'s product tracker'
 
 
-def get_history() -> pd.DataFrame:
-    state = load_state(logger, State)
+def get_history(plugin: InformaPlugin) -> pd.DataFrame:
+    state = plugin.load_state()
     df = pd.DataFrame([
         {
             'id': h.product.id,
@@ -219,9 +219,10 @@ def stats():
 
 @cli.command
 @click.option('--fix', is_flag=True, default=False)
-def validate(fix: bool):
+@click_pass_plugin
+def validate(plugin: InformaPlugin, fix: bool):
     'Validate and fix state'
-    state = load_state(logger, State)
+    state = plugin.load_state()
 
     for entry in state.history:
         init = entry.price
@@ -230,18 +231,19 @@ def validate(fix: bool):
             print(entry.product.name, init, entry.price)
 
     if fix:
-        write_state(state)
+        plugin.write_state(state)
 
 
 @cli.command
 @click.argument('product_name')
-def delete(product_name: str):
+@click_pass_plugin
+def delete(plugin: InformaPlugin, product_name: str):
     '''
     Delete a product from the history
     \b
     PRODUCT_NAME: Product name shown in stats command
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
 
     state.history = [entry for entry in state.history if entry.product.name != product_name]
-    write_state(state)
+    plugin.write_state(state)

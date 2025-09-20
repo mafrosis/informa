@@ -14,9 +14,8 @@ from rocketry import Rocketry
 from zoneinfo import ZoneInfo
 
 from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
-from informa.lib import F, InformaPlugin, InformaTask
 from informa.lib.config import AppConfig, load_app_config, save_app_config
-from informa.lib.plugin import plugin_last_run, plugin_run_now
+from informa.lib.plugin import F, InformaPlugin, InformaTask, plugin_last_run, plugin_run_now
 
 logger = logging.getLogger('informa')
 
@@ -135,6 +134,7 @@ class Informa:
                 func=task.func,
                 start_cond=task.condition,
                 name=task_name,
+                parameters={'plugin': plugin},
             )
             logger.info('Started task %s', task_name)
 

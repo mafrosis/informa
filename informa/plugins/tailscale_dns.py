@@ -7,7 +7,7 @@ import requests
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -25,9 +25,8 @@ class State(StateBase):
 
 
 @app.task('every 10 minutes')
-def run():
-    'Run the scheduled task to update DNS records'
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State) -> int:
@@ -107,8 +106,9 @@ def cli():
 
 
 @cli.command
-def current():
+@click_pass_plugin
+def current(plugin: InformaPlugin):
     'Show current DNS mappings'
-    state = load_state(logger, State)
+    state = plugin.load_state()
     for hostname, ip in state.last_ips.items():
         click.echo(f'{hostname}.mafro.net: {ip}')

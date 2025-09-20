@@ -7,7 +7,7 @@ import requests
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase, mailgun
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -29,8 +29,8 @@ class State(StateBase):
 
 
 @app.task('every 24 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State) -> int:
@@ -87,7 +87,8 @@ def cli():
 
 
 @cli.command
-def current():
+@click_pass_plugin
+def current(plugin: InformaPlugin):
     'What is the current HA version?'
-    state = load_state(logger, State)
+    state = plugin.load_state()
     click.echo(state.last_release_seen or 'Never queried')

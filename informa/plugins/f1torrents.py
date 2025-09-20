@@ -26,7 +26,7 @@ from informa.lib import (
     mailgun,
     pretty,
 )
-from informa.lib.plugin import load_config, load_run_persist, load_state, write_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -69,7 +69,7 @@ class Config(ConfigBase):
     calendar: list[Race] | None = None
 
 
-def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
+def fetch_f1_calendar(plugin: InformaPlugin) -> dict[str, datetime.datetime] | None:
     'Fetch current F1 calendar'
     gsuite_creds = os.environ.get('GSUITE_OAUTH_CREDS')
     if not gsuite_creds:
@@ -82,7 +82,7 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         logger.error('Failed to authenticate to Google Calendar API')
         return None
 
-    config = load_config(Config)
+    config = plugin.load_config()
 
     try:
         events = gc.get_events(
@@ -103,8 +103,8 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
 
 
 @app.task(cron('*/15 * * * *'))
-def run():
-    cal = fetch_f1_calendar()
+def run(plugin):
+    cal = fetch_f1_calendar(plugin)
     if not cal:
         return
 
@@ -112,7 +112,7 @@ def run():
 
     for race in [Race(k, v) for k, v in cal.items()]:
         if race.start.date() - datetime.timedelta(days=3) < today < race.start.date() + datetime.timedelta(days=3):
-            load_run_persist(logger, State, main)
+            plugin.execute()
 
     logger.debug('Today not within F1 weekend range')
 
@@ -133,7 +133,7 @@ def main(state: State, config: Config) -> int:
 
 
 @app.task('every 5 minute')
-def set_torrent_file_priorities():
+def set_torrent_file_priorities(plugin):
     '''
     Set priority high on the 02.Race.Session or 02.Qualifying.Session torrent parts
     '''
@@ -171,10 +171,10 @@ def set_torrent_file_priorities():
 
 
 @app.task('every 15 minutes')
-def add_torrents():
-    state = load_state(logger, State)
+def add_torrents(plugin):
+    state = plugin.load_state(logger, State)
     if add_magnet_to_rtorrent(state.races):
-        write_state(state)
+        plugin.write_state(state)
 
 
 def add_magnet_to_rtorrent(races: dict[str, Download]) -> bool:
@@ -562,9 +562,10 @@ def cli():
 
 
 @cli.command
-def found():
+@click_pass_plugin
+def found(plugin: InformaPlugin):
     'What races have we found already?'
-    state = load_state(logger, State)
+    state = plugin.load_state()
     for race in state.races.values():
         added = 'added  ' if race.added_to_rtorrent is True else 'pending'
         print(f'{added} {race.title}')
@@ -579,16 +580,3 @@ def get_torrents():
         pretty.table([t for t in torrents.values() if 'Formula.1' in t['name']], columns=('progress', 'name'))
     except RtorrentError as e:
         logger.error(e)
-
-
-@cli.command
-def calendar():
-    'Fetch F1 calendar for the current configured year, and write to config'
-    cal = fetch_f1_calendar()
-    if not cal:
-        print('Calendar fetch and read failed somewhere')
-        return False
-
-    for r in [Race(k, v) for k, v in cal.items()]:
-        print(f'{r.title}')
-        print(f'   {r.start}')
