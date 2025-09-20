@@ -6,7 +6,6 @@ import logging
 import os
 import pathlib
 import time
-import unicodedata
 from dataclasses import dataclass, field
 
 import click
@@ -17,7 +16,7 @@ from slskd_api import SlskdClient
 
 from informa import app
 from informa.lib import ConfigBase, PluginAdapter, StateBase, pretty
-from informa.lib.plugin import load_config, load_run_persist, load_state, write_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -46,8 +45,8 @@ class MissingSlskdApiKey(Exception):
 
 
 @app.task('every 6 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def get_client() -> SlskdClient:
@@ -251,14 +250,15 @@ def cli():
 
 @cli.command
 @click.argument('user')
-def view_files(user: str):
+@click_pass_plugin
+def view_files(plugin: InformaPlugin, user: str):
     '''
     List a user\'s files in the terminal
 
     \b
     USER  slsk username
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
     if user not in state.users:
         print('Unknown user')
         return
@@ -274,14 +274,15 @@ def view_files(user: str):
 
 @cli.command
 @click.argument('user')
-def view_completed(user: str):
+@click_pass_plugin
+def view_completed(plugin: InformaPlugin, user: str):
     '''
     List completed downloads for a user
 
     \b
     USER  slsk username
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
     if user not in state.users:
         print('Unknown user')
         return
@@ -293,7 +294,8 @@ def view_completed(user: str):
 @cli.command
 @click.argument('user')
 @click.argument('album')
-def remove_completed(user: str, album: str):
+@click_pass_plugin
+def remove_completed(plugin: InformaPlugin, user: str, album: str):
     '''
     Remove an album from the completed downloads for a user
 
@@ -301,7 +303,7 @@ def remove_completed(user: str, album: str):
     USER   slsk username
     ALBUM  album name (exact match) to remove
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
 
     if user not in state.users:
         raise click.ClickException(f'Unknown user: {user}')
@@ -320,14 +322,15 @@ def remove_completed(user: str, album: str):
         del state.completed[user]
 
     # Persist changes
-    write_state(state)
+    plugin.write_state(state)
     click.echo(f'Removed {album} from {user}\'s completed list')
 
 
 @cli.command
 @click.argument('old_username')
 @click.argument('new_username')
-def rename_user(old_username: str, new_username: str):
+@click_pass_plugin
+def rename_user(plugin: InformaPlugin, old_username: str, new_username: str):
     '''
     Rename a username in state
 
@@ -335,7 +338,7 @@ def rename_user(old_username: str, new_username: str):
     OLD_USERNAME  current username in state
     NEW_USERNAME  replacement username
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
 
     if old_username not in state.users:
         raise click.ClickException(f'Unknown user: {old_username}')
@@ -354,7 +357,7 @@ def rename_user(old_username: str, new_username: str):
         state.completed[new_username] = state.completed.pop(old_username)
 
     # Persist changes
-    write_state(state)
+    plugin.write_state(state)
     click.echo(f'Renamed {old_username} to {new_username}')
 
 
@@ -362,7 +365,8 @@ def rename_user(old_username: str, new_username: str):
 @click.argument('username')
 @click.argument('old_pattern')
 @click.argument('new_pattern')
-def rename_user_pattern(username: str, old_pattern: str, new_pattern: str):
+@click_pass_plugin
+def rename_user_pattern(plugin: InformaPlugin, username: str, old_pattern: str, new_pattern: str):
     '''
     Rename a search pattern on completed downloads for a user
 
@@ -371,7 +375,7 @@ def rename_user_pattern(username: str, old_pattern: str, new_pattern: str):
     OLD_PATTERN  current pattern with completed albums
     NEW_PATTERN  replacement pattern
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
     if username not in state.completed or not state.completed[username]:
         raise click.ClickException(f'No completed albums found for {username}')
 
@@ -385,16 +389,17 @@ def rename_user_pattern(username: str, old_pattern: str, new_pattern: str):
     state.users[new_pattern] = state.completed[username].pop(old_pattern)
 
     # Persist changes
-    write_state(state)
+    plugin.write_state(state)
     click.echo(f'Renamed {old_pattern} to {new_pattern} for {username}')
 
 
 @cli.command
-def list_users():
+@click_pass_plugin
+def list_users(plugin: InformaPlugin):
     '''
     List all configured users without state details
     '''
-    config = load_config(Config)
+    config = plugin.load_config()
     if not config.users:
         click.echo('No users configured')
         return
@@ -409,7 +414,8 @@ def list_users():
 @click.argument('pattern')
 @click.argument('directory', type=click.Path(exists=True, file_okay=False, path_type=pathlib.Path))
 @click.option('--dry-run', is_flag=True, default=False, help='Non destructive dry run to see stats')
-def verify_completed(username: str, pattern: str, directory: pathlib.Path, dry_run: bool):
+@click_pass_plugin
+def verify_completed(plugin: InformaPlugin, username: str, pattern: str, directory: pathlib.Path, dry_run: bool):
     '''
     Verify completed albums exist on disk and remove missing entries from state
 
@@ -418,7 +424,7 @@ def verify_completed(username: str, pattern: str, directory: pathlib.Path, dry_r
     PATTERN    album search pattern
     DIRECTORY  directory containing downloaded albums
     '''
-    state = load_state(logger, State)
+    state = plugin.load_state()
     if username not in state.completed or not state.completed[username]:
         raise click.ClickException(f'No completed albums found for {username}')
 
@@ -453,7 +459,7 @@ def verify_completed(username: str, pattern: str, directory: pathlib.Path, dry_r
             del state.completed[username][pattern]
 
         # Persist changes
-        write_state(state)
+        plugin.write_state(state)
 
         click.echo('Removed missing albums:')
         for album in sorted(missing):

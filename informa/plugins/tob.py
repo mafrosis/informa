@@ -20,7 +20,7 @@ from gspread_dataframe import get_as_dataframe, set_with_dataframe
 from gmsa import Gmail
 from informa import app
 from informa.lib import PluginAdapter, StateBase, pretty
-from informa.lib.plugin import load_run_persist, load_state
+from informa.lib.plugin import InformaPlugin, click_pass_plugin
 from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -66,8 +66,8 @@ class State(StateBase):
 
 
 @app.task('every 12 hours')
-def run():
-    load_run_persist(logger, State, main)
+def run(plugin):
+    plugin.execute()
 
 
 def main(state: State) -> int:
@@ -421,10 +421,7 @@ def _flatten(order: Order):
     ]
 
 
-def get_history(state: State | None = None) -> pd.DataFrame:
-    if state is None:
-        state = load_state(logger, State)
-
+def get_history(state: State) -> pd.DataFrame:
     data = []
     for o in state.orders:
         data.extend(_flatten(o))
@@ -433,11 +430,12 @@ def get_history(state: State | None = None) -> pd.DataFrame:
 
 
 @cli.command
-def history():
+@click_pass_plugin
+def history(plugin: InformaPlugin):
     '''
     Show product stats
     '''
-    df = get_history()
+    df = get_history(plugin.load_state())
     df['date'] = pd.to_datetime(df['date'])
     pretty.dataframe(df)
 
