@@ -26,7 +26,7 @@ from informa.lib import (
     mailgun,
     pretty,
 )
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -562,7 +562,6 @@ def cli():
 
 
 @cli.command
-@click_pass_plugin
 def found(plugin: InformaPlugin):
     'What races have we found already?'
     state = plugin.load_state()

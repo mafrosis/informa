@@ -2,6 +2,7 @@ import contextlib
 import datetime
 import decimal
 import inspect
+import io
 import json
 import logging
 import os
@@ -15,6 +16,7 @@ from typing import Any, TypeVar, cast
 import arrow
 import click
 import orjson
+import requests
 import yaml
 from dataclasses_json import DataClassJsonMixin
 from fastapi import APIRouter
@@ -22,6 +24,7 @@ from marshmallow.exceptions import ValidationError
 from paho.mqtt import client as mqtt
 from paho.mqtt import publish as mqtt_publish
 from paho.mqtt.enums import CallbackAPIVersion
+from pydantic import BaseModel
 
 from informa.exceptions import AppError, PluginRequiresConfigError, StateJsonDecodeError
 from informa.lib import ConfigBase, PluginAdapter, StateBase
@@ -36,6 +39,10 @@ class InformaTask:
     condition: str
 
 
+class CliResponse(BaseModel):
+    output: str
+
+
 @dataclass
 class InformaPlugin:
     module: ModuleType
@@ -44,6 +51,7 @@ class InformaPlugin:
     api: APIRouter | None = None
     last_run: datetime.datetime | None = None
     last_count: int | None = None
+    commands: dict[str, click.core.Command] | None = None
 
     def __post_init__(self):
         'Load plugin state on startup to populate last_run, last_count'
@@ -88,6 +96,41 @@ class InformaPlugin:
             v for _, v in inspect.getmembers(self.module, inspect.isclass) if issubclass(v, type_) and v is not type_
         ]
         return next(iter(clss), None)
+
+
+    def wrap_cli(self, cli_command: click.core.Command):
+        'Wrap CLI functions with dispatcher'
+        def dispatch(**kwargs):
+            try:
+                # POST the CLI kwargs to Informa server
+                resp = requests.post(
+                    f'https://informa.mafro.net/cli/{self.name}/{cli_command.name}',
+                    json=kwargs,
+                    timeout=2,
+                    verify=os.environ.get('CA_CERT'),
+                )
+                resp.raise_for_status()
+                print(resp.json()['output'].strip())
+
+            except TypeError as e:
+                raise click.ClickException(f'Plugin CLI commands must include InformaPlugin as their first parameter ({self.name}.{cli_command.name})') from e
+            except requests.exceptions.ConnectionError as e:
+                raise click.ClickException('It appears that Informa is currently down') from e
+            except requests.RequestException as e:
+                raise click.ClickException(str(e)) from e
+
+        cli_command.callback = dispatch
+        return cli_command
+
+
+    def cli_handler(self, cli_command: click.core.Command):
+        'Handle HTTP requests by an Informa client CLI (calls originate in function `wrap_cli`)'
+        def inner(kwargs: dict) -> CliResponse:
+            # Capture stdout from the CLI function and send in HTTP response
+            with contextlib.redirect_stdout(io.StringIO()) as f:
+                cli_command.inner_callback(self, **kwargs)
+            return CliResponse(output=f.getvalue())
+        return inner
 
 
     def load_config(self) -> DataClassJsonMixin | None:
@@ -237,11 +280,11 @@ def publish_plugin_run_to_mqtt(plugin_name: str, state: StateBase):
     client.publish(f'informa/{plugin_name}/last_count', state.last_count, retain=True)
 
 
-click_pass_plugin = click.make_pass_decorator(InformaPlugin)
+_click_pass_plugin = click.make_pass_decorator(InformaPlugin)
 
 
 @click.command('last-run')
-@click_pass_plugin
+@_click_pass_plugin
 def plugin_last_run(plugin: InformaPlugin):
     'When was the last run?'
     state = plugin.load_state()
@@ -250,7 +293,7 @@ def plugin_last_run(plugin: InformaPlugin):
 
 
 @click.command('run')
-@click_pass_plugin
+@_click_pass_plugin
 def plugin_run_now(plugin: InformaPlugin):
     'Run the plugin now in the foreground'
     plugin.execute(sync=True)
