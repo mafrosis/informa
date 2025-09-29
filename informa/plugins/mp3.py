@@ -25,8 +25,7 @@ router = APIRouter(prefix='/mp3')
 
 @app.api(router)
 def fastapi():
-    # Register the APIRouter with Informa
-    pass
+    'Register the APIRouter with Informa'
 
 
 def find_album_path(query: str) -> Path:
