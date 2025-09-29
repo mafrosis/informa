@@ -15,7 +15,7 @@ from informa.lib import (
     StateBase,
     mailgun,
 )
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 from informa.lib.utils import now_aest
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -219,7 +219,6 @@ def stats():
 
 @cli.command
 @click.option('--fix', is_flag=True, default=False)
-@click_pass_plugin
 def validate(plugin: InformaPlugin, fix: bool):
     'Validate and fix state'
     state = plugin.load_state()
@@ -236,7 +235,6 @@ def validate(plugin: InformaPlugin, fix: bool):
 
 @cli.command
 @click.argument('product_name')
-@click_pass_plugin
 def delete(plugin: InformaPlugin, product_name: str):
     '''
     Delete a product from the history

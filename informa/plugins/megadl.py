@@ -14,7 +14,7 @@ import yaml
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -86,7 +86,6 @@ def cli():
 
 
 @cli.command
-@click_pass_plugin
 def completed(plugin: InformaPlugin):
     'Print completed MEGA downloads'
     state = plugin.load_state()

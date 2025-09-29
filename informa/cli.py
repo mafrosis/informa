@@ -31,6 +31,11 @@ def cli(debug):
 def plugin_():
     'Invoke a plugin\'s CLI'
 
+    for plugin in app.plugins.values():
+        # Set every plugin's CLI to accept their InformaPlugin object via context
+        plugin.module.cli.context_settings = {'obj': plugin}
+
+
 # Load all the plugins at import time, to populate the CLI
 app.init()
 app.configure_cli(plugin_)

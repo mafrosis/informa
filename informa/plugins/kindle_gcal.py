@@ -26,7 +26,7 @@ from informa.lib import (
     PluginAdapter,
     StateBase,
 )
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -293,7 +293,6 @@ def cli():
 
 
 @cli.command('render')
-@click_pass_plugin
 def render_(plugin: InformaPlugin):
     config = plugin.load_config()
     events = fetch_calendar(config.gcal_id)

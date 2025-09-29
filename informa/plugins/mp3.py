@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse
 
 from informa import app
 from informa.lib import PluginAdapter
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -84,6 +85,7 @@ def get_mp3_album_art(query: bytes):
 
     if (path / 'folder.jpg').exists():
         return FileResponse(path / 'folder.jpg', media_type='image/jpeg')
+
     try:
         # Attempt extract image from first file
         audiofile = eyed3.load(next(iter(path.glob('*.mp3'))))
@@ -109,9 +111,9 @@ def cli():
 
 @cli.command
 @click.argument('query')
-def art(query: str):
+def art(plugin: InformaPlugin, query: str):  # noqa: ARG001
     '''
-    What is the current HA version?
+    Fetch album art for a given artist/album name
 
     \b
     QUERY  Artist & album name to lookup

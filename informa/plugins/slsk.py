@@ -16,7 +16,7 @@ from slskd_api import SlskdClient
 
 from informa import app
 from informa.lib import ConfigBase, PluginAdapter, StateBase, pretty
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -250,7 +250,6 @@ def cli():
 
 @cli.command
 @click.argument('user')
-@click_pass_plugin
 def view_files(plugin: InformaPlugin, user: str):
     '''
     List a user\'s files in the terminal
@@ -274,7 +273,6 @@ def view_files(plugin: InformaPlugin, user: str):
 
 @cli.command
 @click.argument('user')
-@click_pass_plugin
 def view_completed(plugin: InformaPlugin, user: str):
     '''
     List completed downloads for a user
@@ -294,7 +292,6 @@ def view_completed(plugin: InformaPlugin, user: str):
 @cli.command
 @click.argument('user')
 @click.argument('album')
-@click_pass_plugin
 def remove_completed(plugin: InformaPlugin, user: str, album: str):
     '''
     Remove an album from the completed downloads for a user
@@ -329,7 +326,6 @@ def remove_completed(plugin: InformaPlugin, user: str, album: str):
 @cli.command
 @click.argument('old_username')
 @click.argument('new_username')
-@click_pass_plugin
 def rename_user(plugin: InformaPlugin, old_username: str, new_username: str):
     '''
     Rename a username in state
@@ -365,7 +361,6 @@ def rename_user(plugin: InformaPlugin, old_username: str, new_username: str):
 @click.argument('username')
 @click.argument('old_pattern')
 @click.argument('new_pattern')
-@click_pass_plugin
 def rename_user_pattern(plugin: InformaPlugin, username: str, old_pattern: str, new_pattern: str):
     '''
     Rename a search pattern on completed downloads for a user
@@ -394,7 +389,6 @@ def rename_user_pattern(plugin: InformaPlugin, username: str, old_pattern: str, 
 
 
 @cli.command
-@click_pass_plugin
 def list_users(plugin: InformaPlugin):
     '''
     List all configured users without state details
@@ -412,9 +406,8 @@ def list_users(plugin: InformaPlugin):
 @cli.command
 @click.argument('username')
 @click.argument('pattern')
-@click.argument('directory', type=click.Path(exists=True, file_okay=False, path_type=pathlib.Path))
+@click.argument('directory', type=click.Path(file_okay=False, path_type=pathlib.Path))
 @click.option('--dry-run', is_flag=True, default=False, help='Non destructive dry run to see stats')
-@click_pass_plugin
 def verify_completed(plugin: InformaPlugin, username: str, pattern: str, directory: pathlib.Path, dry_run: bool):
     '''
     Verify completed albums exist on disk and remove missing entries from state

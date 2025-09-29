@@ -66,8 +66,20 @@ class Informa:
                 logger.debug('No CLI defined on plugin %s', plugin.name)
                 continue
 
+            # CLI commands are marshalled to a remote Informa server via HTTP.
+            # This code wraps each CLI function callback, and modifies the Click handler code to
+            # point to a HTTP dispatcher.
+
+            for name, cmd in plugin.cli.commands.items():
+                # Track the underlying function for calling during the HTTP handler
+                plugin.cli.commands[name].inner_callback = cmd.callback
+
+                # Wrap each CLI command with HTTP request dispatcher
+                plugin.cli.commands[name] = plugin.wrap_cli(cmd)
+
             # Setup plugin CLI subcommand
             informa_cli.add_command(plugin.cli)
+
             # Add common commands to plugin CLI
             plugin.module.cli.context_settings = {'obj': plugin}
             plugin.module.cli.add_command(plugin_last_run)
@@ -142,6 +154,15 @@ class Informa:
             # Register FastAPI routers
             self.fastapi.include_router(plugin.api)
             logger.info('Added FastAPI router %s from %s', plugin.api.prefix, plugin_name)
+
+        if plugin.cli:
+            # Create a router to serve the function behind each CLI command as an API endpoint
+            plugin_cli_router = APIRouter(prefix=f'/cli/{plugin_name}')
+            logger.debug('Added FastAPI router %s', plugin_cli_router.prefix)
+            # Add an API route for every CLI command
+            for name, cmd in plugin.cli.commands.items():
+                plugin_cli_router.add_api_route(f'/{name}', plugin.cli_handler(cmd), methods=['POST'])
+            self.fastapi.include_router(plugin_cli_router)
 
         if persist:
             # Persist plugin enabled state to disk for next restart
