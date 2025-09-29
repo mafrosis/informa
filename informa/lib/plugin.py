@@ -49,6 +49,7 @@ class InformaPlugin:
     tasks: list[InformaTask] = field(default_factory=list)
     enabled: bool | None = None
     api: APIRouter | None = None
+    informa_hostname: str | None = None
     last_run: datetime.datetime | None = None
     last_count: int | None = None
     commands: dict[str, click.core.Command] | None = None
@@ -104,7 +105,7 @@ class InformaPlugin:
             try:
                 # POST the CLI kwargs to Informa server
                 resp = requests.post(
-                    f'https://informa.mafro.net/cli/{self.name}/{cli_command.name}',
+                    f'{self.informa_hostname}/cli/{self.name}/{cli_command.name}',
                     json=kwargs,
                     timeout=2,
                     verify=os.environ.get('CA_CERT'),

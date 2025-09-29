@@ -7,7 +7,7 @@ import click
 import requests
 
 from informa import app
-from informa.lib import pretty
+from informa.lib import CliOpts, pretty
 from informa.main import start as start_app
 
 logger = logging.getLogger('informa')
@@ -21,17 +21,25 @@ if os.environ.get('DEBUG'):
 
 @click.group()
 @click.option('--debug', is_flag=True, default=False)
-def cli(debug):
+@click.option('--server', help='Connect to an Informa at hostname', default='https://informa.mafro.net/', type=str)
+@click.pass_context
+def cli(ctx, debug: bool, server: str):
     # Set DEBUG logging based on ENV or --debug CLI flag
     if debug or os.environ.get('DEBUG'):
         logger.setLevel(logging.DEBUG)
 
+    ctx.obj = CliOpts(server)
+
 
 @cli.group('plugin')
-def plugin_():
+@click.pass_obj
+def plugin_(opts: CliOpts):
     'Invoke a plugin\'s CLI'
 
     for plugin in app.plugins.values():
+        # Ensure the --server param is available within each InformaPlugin
+        plugin.informa_hostname = opts.server
+
         # Set every plugin's CLI to accept their InformaPlugin object via context
         plugin.module.cli.context_settings = {'obj': plugin}
 
@@ -42,8 +50,8 @@ app.configure_cli(plugin_)
 
 
 @cli.command
-@click.option('--host', help='Bind FastAPI server to hostname', default='127.0.0.1', type=str)
-@click.option('--port', help='Bind FastAPI server to port', default=3000, type=int)
+@click.option('--host', help='Start Informa on host', default='127.0.0.1', type=str)
+@click.option('--port', help='Start Informa on port', default=3000, type=int)
 @click.option('--plugins', help='Start informa with a subset of plugins enabled (comma-separated)', default=None)
 def start(host: str, port: int, plugins: str | None):
     'Start the async workers for each plugin, and the API server'
@@ -81,16 +89,15 @@ def verify_plugin_or_raise(plugin_name: str):
 @admin_.command
 @click.argument('plugin_name')
 @click.option('--persist', is_flag=True, default=False)
-@click.option('--host', help='Connect to Informa at hostname', default='127.0.0.1', type=str)
-@click.option('--port', help='Connect to Informa on port', default=3000, type=int)
-def enable(plugin_name: str, persist: bool, host: str, port: int):
+@click.pass_obj
+def enable(opts: CliOpts, plugin_name: str, persist: bool):
     'Enable a plugin'
     plugin_name = verify_plugin_or_raise(plugin_name)
 
     resp: requests.Response
 
     try:
-        resp = requests.post(f'http://{host}:{port}/admin/plugins/{plugin_name}', timeout=1, params={'persist': persist})
+        resp = requests.post(f'{opts.server}/admin/plugins/{plugin_name}', timeout=1, params={'persist': persist})
         resp.raise_for_status()
 
         print(f'Plugin {plugin_name} enabled')
@@ -106,16 +113,15 @@ def enable(plugin_name: str, persist: bool, host: str, port: int):
 @admin_.command
 @click.argument('plugin_name')
 @click.option('--persist', is_flag=True, default=False)
-@click.option('--host', help='Connect to Informa at hostname', default='127.0.0.1', type=str)
-@click.option('--port', help='Connect to Informa on port', default=3000, type=int)
-def disable(plugin_name: str, persist: bool, host: str, port: int):
+@click.pass_obj
+def disable(opts: CliOpts, plugin_name: str, persist: bool):
     'Disable a plugin'
     plugin_name = verify_plugin_or_raise(plugin_name)
 
     resp: requests.Response
 
     try:
-        resp = requests.delete(f'http://{host}:{port}/admin/plugins/{plugin_name}', timeout=1, params={'persist': persist})
+        resp = requests.delete(f'{opts.server}/admin/plugins/{plugin_name}', timeout=1, params={'persist': persist})
         resp.raise_for_status()
 
         print(f'Plugin {plugin_name} disabled')
@@ -129,14 +135,11 @@ def disable(plugin_name: str, persist: bool, host: str, port: int):
 
 
 @admin_.command('list')
-@click.option('--host', help='Connect to Informa at hostname', default='127.0.0.1', type=str)
-@click.option('--port', help='Connect to Informa on port', default=3000, type=int)
-def list_plugins(host: str, port: int):
-    '''
-    List configured plugins by fetching from API
-    '''
+@click.pass_obj
+def list_plugins(opts: CliOpts):
+    'List configured plugins by fetching from API'
     try:
-        resp = requests.get(f'http://{host}:{port}/admin/plugins', timeout=1)
+        resp = requests.get(f'{opts.server}/admin/plugins', timeout=1)
         resp.raise_for_status()
 
     except requests.exceptions.ConnectionError as e:
