@@ -23,7 +23,7 @@ services:
       - MP3HOME=/music
       - GSUITE_OAUTH_CREDS=/src/gcp_oauth_secret.json
       - JORG_SSH_KEY=/jorg.pky
-      - SLSKD_CA_CERT=/step_ca.crt
+      - CA_CERT=/step_ca.crt
       - SLSKD_NUM_ALBUMS=4
       - TZ=Australia/Melbourne
       - STATE_DIR=/state
