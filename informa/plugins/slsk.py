@@ -125,22 +125,22 @@ def main(state: State, config: Config) -> int:
 
 def slskd_ca_context(func):
     '''
-    Decorator which temporarily sets REQUESTS_CA_BUNDLE from SLSKD_CA_CERT environment variable.
+    Decorator which temporarily sets REQUESTS_CA_BUNDLE from CA_CERT environment variable.
     Restores original environment setting on exit.
     '''
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         original_ca = os.environ.get('REQUESTS_CA_BUNDLE')
-        slskd_ca = os.environ.get('SLSKD_CA_CERT')
+        slskd_ca = os.environ.get('CA_CERT')
 
         if not slskd_ca:
-            logger.warning('SLSKD_CA_CERT not set, skipping certificate override')
+            logger.warning('CA_CERT not set, skipping certificate override')
             return func(*args, **kwargs)
 
         try:
             os.environ['REQUESTS_CA_BUNDLE'] = slskd_ca
-            logger.debug('Temporarily set REQUESTS_CA_BUNDLE to SLSKD_CA_CERT: %s', slskd_ca)
+            logger.debug('Temporarily set REQUESTS_CA_BUNDLE to CA_CERT: %s', slskd_ca)
             return func(*args, **kwargs)
         finally:
             if original_ca is not None:
