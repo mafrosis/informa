@@ -20,7 +20,7 @@ from gspread_dataframe import get_as_dataframe, set_with_dataframe
 from gmsa import Gmail
 from informa import app
 from informa.lib import PluginAdapter, StateBase, pretty
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -430,7 +430,6 @@ def get_history(state: State) -> pd.DataFrame:
 
 
 @cli.command
-@click_pass_plugin
 def history(plugin: InformaPlugin):
     '''
     Show product stats
