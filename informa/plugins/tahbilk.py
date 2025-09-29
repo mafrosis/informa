@@ -7,7 +7,7 @@ import requests
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase, mailgun
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 
 logger = PluginAdapter(logging.getLogger('informa'))
 
@@ -84,7 +84,6 @@ def cli():
 
 
 @cli.command
-@click_pass_plugin
 def seen(plugin: InformaPlugin):
     'What products have been seen already?'
     state = plugin.load_state()

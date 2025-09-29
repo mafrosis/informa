@@ -7,7 +7,7 @@ import requests
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase
-from informa.lib.plugin import InformaPlugin, click_pass_plugin
+from informa.lib.plugin import InformaPlugin
 from informa.lib.utils import raise_alarm
 
 logger = PluginAdapter(logging.getLogger('informa'))
@@ -106,7 +106,6 @@ def cli():
 
 
 @cli.command
-@click_pass_plugin
 def current(plugin: InformaPlugin):
     'Show current DNS mappings'
     state = plugin.load_state()
