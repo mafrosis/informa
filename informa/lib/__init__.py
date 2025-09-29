@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
 
 
+@dataclass
+class CliOpts:
+    server: str
+    plugin: str | None = None
+
+
 class ConfigBase(DataClassJsonMixin, abc.ABC):
     'Base class from which plugin Config classes must inherit'
 
