@@ -36,8 +36,7 @@ router = APIRouter(prefix='/kindle-gcal')
 
 @app.api(router)
 def fastapi():
-    # Register the APIRouter with Informa
-    pass
+    'Register the APIRouter with Informa'
 
 
 class Offset(Enum):
