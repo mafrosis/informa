@@ -81,7 +81,7 @@ class InformaPlugin:
 
     @cached_property
     def state_cls(self):
-        return self.get_class_attr(StateBase)
+        return self.get_class_attr(StateBase) or StateBase
 
     @cached_property
     def config_cls(self):
