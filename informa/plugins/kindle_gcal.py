@@ -45,11 +45,6 @@ class Offset(Enum):
 
 
 @dataclass
-class State(StateBase):
-    pass
-
-
-@dataclass
 class Config(ConfigBase):
     gcal_id: str
 
@@ -77,7 +72,7 @@ def run(plugin):
     plugin.execute()
 
 
-def main(_: State, config: Config) -> int:
+def main(_: StateBase, config: Config) -> int:
     tasks = set()
 
     # Fetch events
