@@ -14,7 +14,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir /dist .
 # ---
 
 # Playwright for kindle-gcal
-FROM mcr.microsoft.com/playwright/python:v1.54.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.55.0-noble
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	curl \
