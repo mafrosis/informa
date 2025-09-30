@@ -16,7 +16,6 @@ import pytz
 import requests
 from gcsa.google_calendar import GoogleCalendar
 from google.oauth2.service_account import Credentials
-from rocketry.conditions import FuncCond
 from rocketry.conds import cron
 
 from informa import app
@@ -70,26 +69,6 @@ class Config(ConfigBase):
     calendar: list[Race] | None = None
 
 
-class F1WeekendCond(FuncCond):
-    def __str__(self):
-        return f"F1WeekendCond({self.func.__name__})"
-
-@F1WeekendCond
-def is_f1_weekend():
-    cal = fetch_f1_calendar()
-    if not cal:
-        return False
-
-    today = datetime.datetime.now(tz=datetime.UTC).date()
-
-    for race in [Race(k, v) for k, v in cal.items()]:
-        if race.start.date() - datetime.timedelta(days=3) < today < race.start.date() + datetime.timedelta(days=3):
-            return True
-
-    logger.debug('Today not within F1 weekend range')
-    return False
-
-
 def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
     'Fetch current F1 calendar'
     gsuite_creds = os.environ.get('GSUITE_OAUTH_CREDS')
@@ -123,9 +102,19 @@ def fetch_f1_calendar() -> dict[str, datetime.datetime] | None:
         return None
 
 
-@app.task(cron('*/15 * * * *') & is_f1_weekend)
+@app.task(cron('*/15 * * * *'))
 def run():
-    load_run_persist(logger, State, main)
+    cal = fetch_f1_calendar()
+    if not cal:
+        return
+
+    today = datetime.datetime.now(tz=datetime.UTC).date()
+
+    for race in [Race(k, v) for k, v in cal.items()]:
+        if race.start.date() - datetime.timedelta(days=3) < today < race.start.date() + datetime.timedelta(days=3):
+            load_run_persist(logger, State, main)
+
+    logger.debug('Today not within F1 weekend range')
 
 
 def main(state: State, config: Config) -> int:
