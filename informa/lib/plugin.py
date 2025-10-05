@@ -103,6 +103,13 @@ class InformaPlugin:
         'Wrap CLI functions with dispatcher'
         def dispatch(**kwargs):
             try:
+                # Handle pathlib objects before JSON serialization
+                for k,v in kwargs.items():
+                    if isinstance(v, pathlib.Path):
+                        kwargs[k] = str(v)
+                    else:
+                        kwargs[k] = v
+
                 # POST the CLI kwargs to Informa server
                 resp = requests.post(
                     f'{self.informa_hostname}/cli/{self.name}/{cli_command.name}',
@@ -127,6 +134,11 @@ class InformaPlugin:
     def cli_handler(self, cli_command: click.core.Command):
         'Handle HTTP requests by an Informa client CLI (calls originate in function `wrap_cli`)'
         def inner(kwargs: dict) -> CliResponse:
+            # Handle pathlib objects serialized in the JSON request body
+            for p in cli_command.params:
+                if isinstance(p.type, click.types.Path):
+                    kwargs[p.name] = pathlib.Path(kwargs[p.name])
+
             # Capture stdout from the CLI function and send in HTTP response
             with contextlib.redirect_stdout(io.StringIO()) as f:
                 cli_command.inner_callback(self, **kwargs)
