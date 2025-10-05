@@ -24,7 +24,7 @@ class State(StateBase):
     tailnet: dict[str, str] = field(default_factory=dict)
 
 
-@app.task('every 10 minutes')
+@app.task('every 30 minutes')
 def run(plugin):
     plugin.execute()
 
