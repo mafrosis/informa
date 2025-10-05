@@ -2,14 +2,17 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /src
 
-RUN pip install wheel
+RUN apt-get update && apt-get install -y --no-install-recommends git
+
+# Install python build backends & wheel
+RUN pip install hatchling setuptools wheel
 
 # Fetch/build wheels for dependencies
 COPY pyproject.toml /src
 COPY informa /src/informa
 
 # Build application wheel
-RUN python -m pip wheel --no-cache-dir --wheel-dir /dist .
+RUN python -m pip wheel --no-cache-dir --no-build-isolation --wheel-dir /dist .
 
 # ---
 
@@ -27,13 +30,8 @@ WORKDIR /src
 # Copy in the built wheels
 COPY --from=builder /dist /dist
 
-COPY transto /src/transto
-RUN pip install -e /src/transto
-COPY gmsa /src/gmsa
-RUN pip install -e /src/gmsa
-
 # Install
-RUN python -m pip install --no-cache-dir --no-index --find-links=/dist --no-cache informa
+RUN python -m pip install --no-cache-dir --no-index --find-links=/dist --only-binary :all: --no-deps /dist/*
 
 COPY ./templates /src/templates
 
