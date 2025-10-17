@@ -33,7 +33,7 @@ services:
       - ./config:/config:ro
       - ./templates:/templates:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
-      - /home/mafro/music:/music:ro
+      - /media/storage/music:/music:ro
       - /home/mafro/.ssh/jorg.pky:/jorg.pky
       - /etc/step_root_ca.crt:/step_ca.crt
       - informa-data:/state
