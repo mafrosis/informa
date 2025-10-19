@@ -113,6 +113,7 @@ def run(plugin):
     for race in [Race(k, v) for k, v in cal.items()]:
         if race.start.date() - datetime.timedelta(days=3) < today < race.start.date() + datetime.timedelta(days=3):
             plugin.execute()
+            return
 
     logger.debug('Today not within F1 weekend range')
 
