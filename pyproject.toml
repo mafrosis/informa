@@ -24,6 +24,7 @@ dependencies = [
 	"fake-useragent~=2.0",
 	"fastapi==0.116.1",
 	"feedparser==6.0.10",
+	"google-api-python-client==2.185.0",
 	"gcsa==2.3.0",
 	"gmsa @ git+https://github.com/mafrosis/gmsa.git",
 	"Jinja2~=3.1.3",
