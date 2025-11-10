@@ -172,7 +172,7 @@ def set_torrent_file_priorities(plugin):
 
 @app.task('every 15 minutes')
 def add_torrents(plugin):
-    state = plugin.load_state(logger, State)
+    state = plugin.load_state()
     if add_magnet_to_rtorrent(state.races):
         plugin.write_state(state)
 
