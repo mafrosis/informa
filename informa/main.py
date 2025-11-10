@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
 from informa.lib.config import AppConfig, load_app_config, save_app_config
 from informa.lib.plugin import F, InformaPlugin, InformaTask, plugin_last_run, plugin_run_now
+from informa.lib.utils import raise_alarm
 
 logger = logging.getLogger('informa')
 
@@ -44,6 +45,9 @@ class Informa:
         )
         self.fastapi = FastAPI()
         self.config = load_app_config()
+
+        # Set up global task failure handler
+        self._setup_task_failure_handler()
 
     def init(self):  # noqa: PLR6301
         plugin_path = pathlib.Path(inspect.getfile(inspect.currentframe())).parent / 'plugins'
@@ -85,6 +89,63 @@ class Informa:
             plugin.module.cli.add_command(plugin_last_run)
             plugin.module.cli.add_command(plugin_run_now)
 
+    def _setup_task_failure_handler(self):
+        '''
+        Configure Rocketry to call our error handler when tasks fail.
+        This wraps task registration to add error handling.
+        '''
+        # Store original create_task method
+        original_create_task = self.rocketry.session.create_task
+
+        def wrapped_create_task(*args, **kwargs):
+            # Get the original function
+            original_func = kwargs.get('func')
+            if not original_func:
+                # fallback to positional arg
+                original_func = args[0] if args else None
+
+            if original_func:
+                # Wrap the function with error handling
+                def error_handled_func(*func_args, **func_kwargs):
+                    try:
+                        return original_func(*func_args, **func_kwargs)
+                    except Exception as e:
+                        # Get task name from kwargs or construct it
+                        task_name = kwargs.get('name', f'{original_func.__module__}.{original_func.__name__}')
+                        self._handle_task_failure(task_name, e)
+                        raise  # Re-raise so Rocketry knows the task failed
+
+                # Replace the func with our wrapped version
+                if 'func' in kwargs:
+                    kwargs['func'] = error_handled_func
+                elif args:
+                    args = (error_handled_func,) + args[1:]
+
+            # Call original create_task
+            return original_create_task(*args, **kwargs)
+
+        # Replace create_task with our wrapped version
+        self.rocketry.session.create_task = wrapped_create_task
+
+    def _handle_task_failure(self, task_name: str, exception: Exception):
+        '''
+        Handle Rocketry task failures by logging and sending alerts
+
+        Args:
+            task_name: Name of the task that failed
+            exception: The exception that was raised
+        '''
+        error_msg = f'Task {task_name} failed: {exception.__class__.__name__}: {exception}'
+
+        # Log the error
+        logger.error(error_msg)
+
+        # Send alarm email with full traceback
+        try:
+            raise_alarm(logger, f'Rocketry task failure: {task_name}', exception)
+        except Exception as e:  # noqa: BLE001
+            # Don't let alarm failures crash the handler
+            logger.error('Failed to send alarm for task failure: %s', e)
 
     def task(self, condition: str) -> Callable[[F], F]:
         '''
