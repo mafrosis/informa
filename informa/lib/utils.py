@@ -24,5 +24,10 @@ def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
     if ex:
         tb = '\n'.join(traceback.format_list(traceback.extract_tb(ex.__traceback__)))
 
-    fmtd_msg, _ = logger.process(msg)
+    # Format message using PluginAdapter if available, otherwise use raw message
+    if hasattr(logger, 'process'):
+        fmtd_msg, _ = logger.process(msg)
+    else:
+        fmtd_msg = msg
+
     mailgun.send(logger, f'ERROR {fmtd_msg}', content=f'<pre>{tb}<br>{ex!s}</pre>')
