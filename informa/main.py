@@ -277,7 +277,16 @@ class Server(uvicorn.Server):
 
 async def start(host: str, port: int, only_run_plugins: list[str] | None = None):
     'Run Rocketry and FastAPI'
-    server = Server(config=uvicorn.Config(app.fastapi, loop='asyncio', host=host, port=port))
+    server = Server(
+        config=uvicorn.Config(
+            app.fastapi,
+            loop='asyncio',
+            host=host,
+            port=port,
+            proxy_headers=True,
+            forwarded_allow_ips='*',
+        )
+    )
 
     for plugin_name, plugin in app.plugins.items():
         if only_run_plugins and plugin.name not in only_run_plugins:
