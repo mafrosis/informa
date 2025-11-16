@@ -198,11 +198,13 @@ def fetch_user_file_listing(user: User) -> pl.DataFrame | None:
                 for file in directory['files']:
                     file['filename'] = str(dir_path / file['filename'])
 
-                entries.append({
-                    'dir_path': str(dir_path.parent),
-                    'folder_name': dir_path.name,
-                    'files': json.dumps(directory['files']),
-                })
+                entries.append(
+                    {
+                        'dir_path': str(dir_path.parent),
+                        'folder_name': dir_path.name,
+                        'files': json.dumps(directory['files']),
+                    }
+                )
                 total += len(directory['files'])
         return total
 
@@ -401,6 +403,36 @@ def list_users(plugin: InformaPlugin):
     click.echo('Configured users:')
     for user in config.users:
         click.echo(f'  {user}')
+
+
+@cli.command
+@click.argument('username')
+def delete_cache(plugin: InformaPlugin, username: str):
+    '''
+    Delete cached feather file for a user (will be re-fetched on next run)
+
+    \b
+    USERNAME  slsk username
+    '''
+    state = plugin.load_state()
+    if username not in state.users:
+        raise click.ClickException(f'Unknown user: {username}')
+
+    user = state.users[username]
+    if not user.cached_path or not pathlib.Path(user.cached_path).exists():
+        raise click.ClickException(f'No cached file found for {username}')
+
+    # Delete the cached feather file
+    cached_file = pathlib.Path(user.cached_path)
+    cached_file.unlink()
+
+    # Clear cache metadata in state
+    user.cached_path = None
+    user.date_fetched = None
+
+    # Persist changes
+    plugin.write_state(state)
+    click.echo(f'Deleted cache for {username}')
 
 
 @cli.command
