@@ -288,6 +288,7 @@ class Server(uvicorn.Server):
 async def start(host: str, port: int, only_run_plugins: list[str] | None = None):
     'Run Rocketry and FastAPI'
     logger.info('Starting Informa server on %s:%s', host, port)
+    logger.info('FastAPI app has %d routes registered', len(app.fastapi.routes))
 
     server = Server(
         config=uvicorn.Config(
@@ -299,6 +300,8 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
             forwarded_allow_ips='*',
         )
     )
+
+    logger.info('Uvicorn server configured, enabling plugins...')
 
     for plugin_name, plugin in app.plugins.items():
         if only_run_plugins and plugin.name not in only_run_plugins:
@@ -319,6 +322,9 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
     from informa.admin import router as admin_api  # noqa: PLC0415
 
     app.fastapi.include_router(admin_api)
+
+    logger.info('All routes registered, starting servers...')
+    logger.info('Total routes: %d', len(app.fastapi.routes))
 
     await asyncio.gather(
         server.serve(),
