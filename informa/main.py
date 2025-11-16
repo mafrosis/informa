@@ -191,7 +191,6 @@ class Informa:
 
         return decorator
 
-
     def enable_plugin(self, plugin_name: str, persist: bool = False):
         'Enable plugin by adding its tasks and API router'
         plugin = self.plugins[plugin_name]
@@ -297,9 +296,10 @@ async def start(host: str, port: int, only_run_plugins: list[str] | None = None)
 
     # Include admin routes
     from informa.admin import router as admin_api  # noqa: PLC0415
+
     app.fastapi.include_router(admin_api)
 
-    await asyncio.wait([
-        asyncio.create_task(server.serve()),
-        asyncio.create_task(app.rocketry.serve()),
-    ])
+    await asyncio.gather(
+        server.serve(),
+        app.rocketry.serve(),
+    )
