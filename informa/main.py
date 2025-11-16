@@ -13,6 +13,7 @@ from fastapi import APIRouter, FastAPI
 from rocketry import Rocketry
 from zoneinfo import ZoneInfo
 
+from informa import __version__
 from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
 from informa.lib.config import AppConfig, load_app_config, save_app_config
 from informa.lib.plugin import F, InformaPlugin, InformaTask, plugin_last_run, plugin_run_now
@@ -48,6 +49,15 @@ class Informa:
 
         # Set up global task failure handler
         self._setup_task_failure_handler()
+
+        # Add root health check endpoint
+        @self.fastapi.get('/')
+        def health_check():
+            return {'status': 'ok', 'version': __version__}
+
+        @self.fastapi.get('/health')
+        def health():
+            return {'status': 'healthy'}
 
     def init(self):  # noqa: PLR6301
         plugin_path = pathlib.Path(inspect.getfile(inspect.currentframe())).parent / 'plugins'
@@ -277,6 +287,8 @@ class Server(uvicorn.Server):
 
 async def start(host: str, port: int, only_run_plugins: list[str] | None = None):
     'Run Rocketry and FastAPI'
+    logger.info('Starting Informa server on %s:%s', host, port)
+
     server = Server(
         config=uvicorn.Config(
             app.fastapi,
