@@ -442,7 +442,8 @@ def delete_cache(plugin: InformaPlugin, username: str):
 @click.option('--dry-run', is_flag=True, default=False, help='Non destructive dry run to see stats')
 def verify_completed(plugin: InformaPlugin, username: str, pattern: str, directory: pathlib.Path, dry_run: bool):
     '''
-    Verify completed albums exist on disk and remove missing entries from state
+    Verify completed albums exist on disk and sync state accordingly.
+    Removes missing entries from state and adds albums found on disk.
 
     \b
     USERNAME   slsk username
@@ -450,42 +451,87 @@ def verify_completed(plugin: InformaPlugin, username: str, pattern: str, directo
     DIRECTORY  directory containing downloaded albums
     '''
     state = plugin.load_state()
-    if username not in state.completed or not state.completed[username]:
-        raise click.ClickException(f'No completed albums found for {username}')
 
+    # Ensure user exists in state
+    if username not in state.users:
+        raise click.ClickException(f'Unknown user: {username}')
+
+    # Initialize completed structure if needed
+    if username not in state.completed:
+        state.completed[username] = {}
     if pattern not in state.completed[username]:
-        click.echo(f'Valid patterns for {username}:')
-        for pat in state.completed[username]:
-            click.echo(f' - {pat}')
-        raise click.ClickException('Invalid pattern supplied')
+        state.completed[username][pattern] = []
 
-    # Find albums marked completed which have tracks missing from the filesystem
-    missing = set()
-
-    # Filter the user's library, for albums matching pattern
+    # Filter the user's library for albums matching pattern
     df = pl.read_ipc(state.users[username].cached_path)
     df = df.filter(pl.col('dir_path').str.contains(pattern))
 
+    # Track missing and found albums
+    missing = set()
+    found_on_disk = set()
+
+    # Check albums in state that are missing from disk
     for album in state.completed[username][pattern]:
-        files = json.loads(df.filter(pl.col('folder_name') == album)['files'][0])
+        album_rows = df.filter(pl.col('folder_name') == album)
+        if album_rows.is_empty():
+            # Album not in user's library anymore
+            missing.add(album)
+            continue
+
+        files = json.loads(album_rows['files'][0])
 
         for fn in [pathlib.Path(f['filename']).name for f in files]:
             if not (directory / album / fn).exists():
                 missing.add(album)
                 break
 
+    # Check for albums on disk that are not in state
+    current_completed = set(state.completed[username][pattern])
+    all_albums_in_library = set(df['folder_name'].unique().to_list())
+
+    for album in all_albums_in_library:
+        if album in current_completed:
+            continue
+
+        # Check if this album exists fully on disk
+        album_dir = directory / album
+        if not album_dir.exists():
+            continue
+
+        files = json.loads(df.filter(pl.col('folder_name') == album)['files'][0])
+        all_files_present = all((directory / album / pathlib.Path(f['filename']).name).exists() for f in files)
+
+        if all_files_present:
+            found_on_disk.add(album)
+
+    # Display summary
     click.echo(
-        f"{'DRY RUN -- ' if dry_run else ''}Total: {len(state.completed[username][pattern])}, Missing: {len(missing)}"
+        f"{'DRY RUN -- ' if dry_run else ''}Total in state: {len(state.completed[username][pattern])}, "
+        f'Missing: {len(missing)}, Found on disk: {len(found_on_disk)}'
     )
 
-    if missing and dry_run is False:
-        state.completed[username][pattern] = list(set(state.completed[username][pattern]) - missing)
+    if not dry_run and (missing or found_on_disk):
+        # Remove missing albums
+        if missing:
+            state.completed[username][pattern] = list(set(state.completed[username][pattern]) - missing)
+
+        # Add found albums
+        if found_on_disk:
+            state.completed[username][pattern].extend(list(found_on_disk))
+
+        # Clean up empty pattern
         if not state.completed[username][pattern]:
             del state.completed[username][pattern]
 
         # Persist changes
         plugin.write_state(state)
 
-        click.echo('Removed missing albums:')
-        for album in sorted(missing):
-            click.echo(f'  {album}')
+        if missing:
+            click.echo('Removed missing albums:')
+            for album in sorted(missing):
+                click.echo(f'  {album}')
+
+        if found_on_disk:
+            click.echo('Added albums found on disk:')
+            for album in sorted(found_on_disk):
+                click.echo(f'  {album}')
