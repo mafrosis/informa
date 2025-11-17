@@ -36,7 +36,7 @@ dependencies = [
 	"pillow",
 	"polars~=1.30.0",
 	"pyarrow==21.0.0",
-	"playwright",
+	"playwright==1.55.0",
 	"pydantic==1.10.16",
 	"pytz",
 	"pyyaml~=6.0",

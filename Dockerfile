@@ -1,3 +1,5 @@
+ARG PLAYWRIGHT_VERSION=v1.55.0
+
 # --- Stage 1: Build Wheels ---
 FROM python:3.12-slim AS builder
 
@@ -21,7 +23,7 @@ RUN python -m pip wheel --no-cache-dir --wheel-dir /dist . --no-build-isolation
 
 # --- Stage 2: Minimal Runtime Environment ---
 # Make Playwright available via baseimage
-FROM mcr.microsoft.com/playwright/python:v1.55.0-noble
+FROM mcr.microsoft.com/playwright/python:${PLAYWRIGHT_VERSION}-noble
 
 # Install necessary runtime utilities
 RUN apt-get update && apt-get install -y --no-install-recommends \
