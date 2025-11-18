@@ -43,6 +43,8 @@ services:
       - .secrets
     labels:
       caddy: informa.mafro.net
+      caddy.encode: "zstd gzip"
+      caddy.bind: "172.16.2.2 tailscale/trevor"
       caddy.tls.ca: https://ca.mafro.net:4433/acme/acme/directory
       caddy.tls.ca_root: /root/step_ca.crt
       caddy.reverse_proxy: "{{upstreams 3000}}"
