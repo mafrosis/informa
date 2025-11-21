@@ -104,7 +104,7 @@ class InformaPlugin:
         def dispatch(**kwargs):
             try:
                 # Handle pathlib objects before JSON serialization
-                for k,v in kwargs.items():
+                for k, v in kwargs.items():
                     if isinstance(v, pathlib.Path):
                         kwargs[k] = str(v)
                     else:
@@ -120,6 +120,9 @@ class InformaPlugin:
                 resp.raise_for_status()
                 print(resp.json()['output'].strip())
 
+            except requests.exceptions.JSONDecodeError as e:
+                if not resp.text:
+                    raise click.ClickException('Empty response from the server') from e
             except TypeError as e:
                 raise click.ClickException(f'Plugin CLI commands must include InformaPlugin as their first parameter ({self.name}.{cli_command.name})') from e
             except requests.exceptions.ConnectionError as e:
