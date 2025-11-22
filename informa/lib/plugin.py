@@ -232,15 +232,12 @@ class InformaPlugin:
         )
 
 
-    def execute(self, sync: bool = False):
+    def execute(self):
         '''
         Load plugin state, run plugin main function via callback, persist state to disk.
 
         Dynamically inspects the parameter `main_func` to determine if it has a parameter derived from
         `ConfigBase`, and if so, loads a plugin's config into an instance of this `ConfigBase` class.
-
-        Params:
-            sync:  False if this function was invoked asynchronously from a Rocketry task
         '''
         try:
             state = self.load_state()
@@ -271,7 +268,7 @@ class InformaPlugin:
             state.last_run = now_aest()
             state.last_count = ret
 
-            if sync is False and self.logger.getEffectiveLevel() != logging.DEBUG:
+            if self.logger.getEffectiveLevel() != logging.DEBUG:
                 # Publish state to MQTT when running async
                 publish_plugin_run_to_mqtt(self.name, state)
                 self.logger.debug('Published to informa/%s via MQTT', self.name)
@@ -312,4 +309,4 @@ def plugin_last_run(plugin: InformaPlugin):
 @_click_pass_plugin
 def plugin_run_now(plugin: InformaPlugin):
     'Run the plugin now in the foreground'
-    plugin.execute(sync=True)
+    plugin.execute()

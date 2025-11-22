@@ -209,7 +209,7 @@ class TestPluginExecution:
 
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', None):
-                test_plugin.execute(sync=True)
+                test_plugin.execute()
 
         assert call_count == 1
 
@@ -237,7 +237,7 @@ class TestPluginExecution:
 
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', TestConfig):
-                test_plugin.execute(sync=True)
+                test_plugin.execute()
 
         assert received_config is not None
         assert received_config.value == 42
@@ -250,7 +250,7 @@ class TestPluginExecution:
 
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', None):
-                test_plugin.execute(sync=True)
+                test_plugin.execute()
 
         # Should default to 1 when None is returned
         state = test_plugin.load_state()
@@ -265,7 +265,7 @@ class TestPluginExecution:
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', None):
                 with patch('informa.lib.plugin.raise_alarm') as mock_alarm:
-                    test_plugin.execute(sync=True)
+                    test_plugin.execute()
 
                     mock_alarm.assert_called_once()
 
@@ -282,7 +282,7 @@ class TestPluginExecution:
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', None):
                 with patch('informa.lib.plugin.publish_plugin_run_to_mqtt') as mock_mqtt:
-                    test_plugin.execute(sync=False)
+                    test_plugin.execute()
 
                     mock_mqtt.assert_called_once()
 
@@ -295,7 +295,7 @@ class TestPluginExecution:
         with patch.object(test_plugin, 'main_func', main_func):
             with patch.object(test_plugin, 'config_cls', None):
                 with patch('informa.lib.plugin.publish_plugin_run_to_mqtt') as mock_mqtt:
-                    test_plugin.execute(sync=True)
+                    test_plugin.execute()
 
                     mock_mqtt.assert_not_called()
 
