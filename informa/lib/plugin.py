@@ -285,28 +285,42 @@ class InformaPlugin:
             raise_alarm(self.logger, f'Unhandled exception {e.__class__.__name__}', e)
 
 
+    def _last_run_impl(self):
+        'When was the last run?'
+        state = self.load_state()
+        last_run = arrow.get(state.last_run).humanize() if state.last_run else 'Never'
+        print(f'Last run: {last_run} (returned {state.last_count})')
+
+    def _run_now_impl(self):
+        'Run the plugin now in the foreground'
+        self.execute()
+
+    @cached_property
+    def command_last_run(self):
+        'Create a Click command for last-run that is bound to this plugin instance'
+
+        @click.command('last-run')
+        def last_run_cmd():
+            self._last_run_impl()
+
+        last_run_cmd.callback.__doc__ = self._last_run_impl.__doc__
+        return last_run_cmd
+
+    @cached_property
+    def command_run_now(self):
+        'Create a Click command for run that is bound to this plugin instance'
+
+        @click.command('run')
+        def run_cmd():
+            self._run_now_impl()
+
+        run_cmd.callback.__doc__ = self._run_now_impl.__doc__
+        return run_cmd
+
+
 def publish_plugin_run_to_mqtt(plugin_name: str, state: StateBase):
     'Write plugin\'s output to a MQTT topic'
     client = mqtt.Client(CallbackAPIVersion.VERSION2)
     client.connect('trevor', 1883)
     client.publish(f'informa/{plugin_name}/last_run', state.last_run.isoformat(), retain=True)
     client.publish(f'informa/{plugin_name}/last_count', state.last_count, retain=True)
-
-
-_click_pass_plugin = click.make_pass_decorator(InformaPlugin)
-
-
-@click.command('last-run')
-@_click_pass_plugin
-def plugin_last_run(plugin: InformaPlugin):
-    'When was the last run?'
-    state = plugin.load_state()
-    last_run = arrow.get(state.last_run).humanize() if state.last_run else 'Never'
-    print(f'Last run: {last_run} (returned {state.last_count})')
-
-
-@click.command('run')
-@_click_pass_plugin
-def plugin_run_now(plugin: InformaPlugin):
-    'Run the plugin now in the foreground'
-    plugin.execute()

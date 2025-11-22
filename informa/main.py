@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 from informa import __version__
 from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
 from informa.lib.config import AppConfig, load_app_config, save_app_config
-from informa.lib.plugin import F, InformaPlugin, InformaTask, plugin_last_run, plugin_run_now
+from informa.lib.plugin import F, InformaPlugin, InformaTask
 from informa.lib.utils import raise_alarm
 
 logger = logging.getLogger('informa')
@@ -96,8 +96,14 @@ class Informa:
 
             # Add common commands to plugin CLI
             plugin.module.cli.context_settings = {'obj': plugin}
-            plugin.module.cli.add_command(plugin_last_run)
-            plugin.module.cli.add_command(plugin_run_now)
+            plugin.module.cli.add_command(plugin.command_last_run)
+            plugin.module.cli.add_command(plugin.command_run_now)
+
+            # Redirect core plugin commands via HTTP callback also
+            plugin.cli.commands['last-run'].inner_callback = InformaPlugin._last_run_impl
+            plugin.cli.commands['last-run'] = plugin.wrap_cli(plugin.command_last_run)
+            plugin.cli.commands['run'].inner_callback = InformaPlugin._run_now_impl
+            plugin.cli.commands['run'] = plugin.wrap_cli(plugin.command_run_now)
 
     def _setup_task_failure_handler(self):
         '''
