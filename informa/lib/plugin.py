@@ -102,6 +102,10 @@ class InformaPlugin:
     def wrap_cli(self, cli_command: click.core.Command):
         'Wrap CLI functions with dispatcher'
         def dispatch(**kwargs):
+            if bool(os.getenv('LOCAL')):
+                cli_command.inner_callback(self, **kwargs)
+                return
+
             try:
                 # Handle pathlib objects before JSON serialization
                 for k, v in kwargs.items():
