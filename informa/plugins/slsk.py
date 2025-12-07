@@ -510,6 +510,11 @@ def verify_completed(plugin: InformaPlugin, username: str, pattern: str, directo
         f'Missing: {len(missing)}, Found on disk: {len(found_on_disk)}'
     )
 
+    if dry_run and missing:
+        click.echo('Missing albums:')
+        for album in sorted(missing):
+            click.echo(f'  {album}')
+
     if not dry_run and (missing or found_on_disk):
         # Remove missing albums
         if missing:
