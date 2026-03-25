@@ -5,6 +5,7 @@ import os
 import arrow
 import click
 import requests
+from fastapi import HTTPException
 
 from informa import app
 from informa.lib import CliOpts, pretty
@@ -94,6 +95,16 @@ def enable(opts: CliOpts, plugin_name: str, persist: bool):
     'Enable a plugin'
     plugin_name = verify_plugin_or_raise(plugin_name)
 
+    if os.getenv('LOCAL'):
+        from informa.admin import plugin_enable
+
+        try:
+            plugin_enable(plugin_name, persist)
+            print(f'Plugin {plugin_name} enabled')
+        except HTTPException as e:
+            raise click.ClickException(e.detail) from e
+        return
+
     resp: requests.Response
 
     try:
@@ -118,6 +129,16 @@ def disable(opts: CliOpts, plugin_name: str, persist: bool):
     'Disable a plugin'
     plugin_name = verify_plugin_or_raise(plugin_name)
 
+    if os.getenv('LOCAL'):
+        from informa.admin import plugin_disable
+
+        try:
+            plugin_disable(plugin_name, persist)
+            print(f'Plugin {plugin_name} disabled')
+        except HTTPException as e:
+            raise click.ClickException(e.detail) from e
+        return
+
     resp: requests.Response
 
     try:
@@ -138,14 +159,21 @@ def disable(opts: CliOpts, plugin_name: str, persist: bool):
 @click.pass_obj
 def list_plugins(opts: CliOpts):
     'List configured plugins by fetching from API'
-    try:
-        resp = requests.get(f'{opts.server}/admin/plugins', timeout=1)
-        resp.raise_for_status()
 
-    except requests.exceptions.ConnectionError as e:
-        raise click.ClickException('It appears that Informa is currently down') from e
-    except requests.RequestException as e:
-        raise click.ClickException('Failed to fetch plugins') from e
+    if os.getenv('LOCAL'):
+        from informa.admin import plugin_list
+
+        plugins = plugin_list()
+    else:
+        try:
+            resp = requests.get(f'{opts.server}/admin/plugins', timeout=1)
+            resp.raise_for_status()
+            plugins = resp.json()
+
+        except requests.exceptions.ConnectionError as e:
+            raise click.ClickException('It appears that Informa is currently down') from e
+        except requests.RequestException as e:
+            raise click.ClickException('Failed to fetch plugins') from e
 
     table_data = [
         (
@@ -155,7 +183,7 @@ def list_plugins(opts: CliOpts):
             'Enabled' if plugin['enabled'] else 'Disabled',
             '\n'.join(plugin['tasks']),
         )
-        for plugin in resp.json()
+        for plugin in plugins
     ]
 
     pretty.table(table_data, columns=['name', 'last_run', 'last_count', 'status', 'tasks'])

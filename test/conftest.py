@@ -1,4 +1,7 @@
+import os
+
 import pytest
+from click.testing import CliRunner
 
 
 @pytest.fixture
@@ -8,3 +11,8 @@ def http_response():
             return f.read()
 
     return _http_response
+
+
+@pytest.fixture
+def runner():
+    return CliRunner(env={**os.environ, 'LOCAL': ''})

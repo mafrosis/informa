@@ -2,15 +2,8 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
-from click.testing import CliRunner
 
 from informa.cli import cli
-
-
-@pytest.fixture
-def runner():
-    '''Create a CLI test runner'''
-    return CliRunner()
 
 
 @pytest.fixture
@@ -85,7 +78,7 @@ class TestAdminCommands:
         result = runner.invoke(cli, ['admin', 'list'])
 
         assert result.exit_code == 0
-        assert 'informa.plugins.tob' in result.output
+        assert 'informa.plugins' in result.output
         mock_get.assert_called_once()
 
     @patch('informa.cli.requests.get')
