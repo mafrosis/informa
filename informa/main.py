@@ -5,13 +5,13 @@ import inspect
 import logging
 import pathlib
 from typing import Callable
+from zoneinfo import ZoneInfo
 
 import click
 import dataclasses_json
 import uvicorn
 from fastapi import APIRouter, FastAPI
 from rocketry import Rocketry
-from zoneinfo import ZoneInfo
 
 from informa import __version__
 from informa.exceptions import PluginAlreadyDisabled, PluginAlreadyEnabled
@@ -92,6 +92,10 @@ class Informa:
                 plugin.cli.commands[name] = plugin.wrap_cli(cmd)
 
             # Setup plugin CLI subcommand
+            cli_name = plugin.cli.name
+            if '-' in cli_name:
+                plugin.cli.aliases = [cli_name.replace('-', '_')]
+
             informa_cli.add_command(plugin.cli)
 
             # Add common commands to plugin CLI
