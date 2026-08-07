@@ -256,3 +256,25 @@ def test_tob_parse_email_20405(mock_extract_wines, http_response):
     assert order.discount == decimal.Decimal(50)
     assert order.wines[0].paid is not None and order.wines[0].paid > 0
     assert divmod(sum([w.paid for w in order.wines]), 1)[0] == decimal.Decimal(465)
+
+
+@patch('informa.plugins.tob.extract_wines')
+def test_tob_parse_email_38073(mock_extract_wines, http_response):
+    '''
+    Test parsing a single pack email with order-totals table, order 38073 (2026-06-04)
+    '''
+    mock_extract_wines.return_value = (
+        [
+            Wine(tag='Powerhouse Bordeaux', price=decimal.Decimal('29.95'),
+                 title='Powerhouse Bordeaux 2023.'),
+        ]
+    )
+
+    order = parse_email(http_response('tob_email_38073'))
+
+    assert order.number == 38073
+    assert order.date == datetime.date(2026, 6, 4)
+    assert order.total == decimal.Decimal('179.70')
+    assert order.discount == 0
+    assert order.wines[0].paid is not None and order.wines[0].paid > 0
+    assert divmod(sum([w.paid for w in order.wines]), 1)[0] == decimal.Decimal(179)

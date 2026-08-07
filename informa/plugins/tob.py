@@ -152,19 +152,28 @@ def parse_email(html: str) -> Order:
     'Parse the email for the order details'
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
+    order = None
+
     try:
         body = soup.select_one('#body_content_inner')
 
         # Parse total, and attempt to parse discount
         discount = 0
-        for tr in body.select('tfoot tr'):
-            text = tr.select_one('th').text
+        total = None
+        for tr in body.select('tfoot tr, tr.order-totals'):
+            th = tr.select_one('th')
+            if th is None:
+                continue
+            text = th.text
 
             if text.strip().startswith('Discount'):
                 discount = decimal.Decimal(tr.select_one('td').text.strip().replace('$', '')) * -1
 
             if text.strip().startswith('Total'):
                 total = decimal.Decimal(tr.select_one('td').text.strip().replace('$', ''))
+
+        if total is None:
+            raise NoExtractionError('No total found in email')
 
         # Parse order table header
         header = body.select_one('h2').text.strip()
@@ -177,7 +186,7 @@ def parse_email(html: str) -> Order:
         )
 
     except (IndexError, TypeError) as e:
-        logger.error('Failed to parse order items from email: %s (%s)', order.number, e)
+        logger.error('Failed to parse order items from email: %s (%s)', order.number if order else '?', e)
         return None
 
     singles = []
@@ -188,8 +197,7 @@ def parse_email(html: str) -> Order:
             url = row.select_one('a').attrs['href']
             quantity = int(row.select('td')[1].text.strip())
             price = row.select('td')[2].text.strip()
-            if price.startswith('$'):
-                price = price[1:]
+            price = price.removeprefix('$')
             price = decimal.Decimal(price)
 
             wines = extract_wines(url, order_line=OrderLine(price, quantity))
@@ -256,17 +264,15 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
             if line == 'Description':
                 title = email_text[i + 1].strip()
                 price = soup.select_one('.price').text
-                if price.startswith('$'):
-                    price = price[1:]
+                price = price.removeprefix('$')
                 tag = soup.select_one('h1').text
                 image_url = soup.select_one('div.single-product-main-image img').attrs['src']
                 wine = Wine(title=title, tag=tag, url=item_url, price=decimal.Decimal(price), image_url=image_url)
 
             # If this a pre-departure, overwrite price with value from body text
             if re.search('pre-departure(.*)price', line):
-                paid = email_text[i][email_text[i].index('$') + 1 :]
-                if paid.endswith('.'):
-                    paid = paid[:-1]
+                paid = line[line.index('$') + 1 :]
+                paid = paid.removesuffix('.')
 
                 wine.paid = decimal.Decimal(paid)
 
@@ -292,15 +298,13 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
                 paid = price = None
 
                 tag = line[4:].strip()
-                if tag.endswith('.'):
-                    tag = tag[:-1]
+                tag = tag.removesuffix('.')
 
                 for offset in range(4):
                     try:
                         if re.search('pre-departure(.*)price', email_text[i + offset]):
                             paid = email_text[i + offset][email_text[i + offset].index('$') + 1 :]
-                            if paid.endswith('.'):
-                                paid = paid[:-1]
+                            paid = paid.removesuffix('.')
                             continue
 
                         if 'Post arrival price' in email_text[i + offset]:
