@@ -336,6 +336,8 @@ class TestConfigureCli:
         def test_command():
             pass
 
+        mock_plugin_module.cli = cli_group
+
         with patch.object(plugin, 'cli', cli_group):
             with patch.object(plugin, 'wrap_cli', return_value=test_command):
                 informa_app.plugins[mock_plugin_module.__name__] = plugin
