@@ -81,6 +81,18 @@ def test_tob_extract_single_wine_powerhouse(mock_requests_get, http_response):
 
 
 @patch('requests.get')
+def test_tob_extract_single_wine_meaty(mock_requests_get, http_response):
+    '''
+    Test parsing a current single wine page with an h2 description title.
+    '''
+    mock_requests_get.return_value = Mock(text=http_response('tob_site_single_meaty'))
+
+    wines = extract_wines('fakeurl')
+
+    assert wines[0].title == 'Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.'
+
+
+@patch('requests.get')
 def test_tob_extract_wines_25751(mock_requests_get, http_response):
     '''
     Test parsing a ready-to-ship mixed 6 pack in 25751 (2024-12-31)

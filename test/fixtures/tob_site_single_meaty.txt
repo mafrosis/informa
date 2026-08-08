@@ -1,0 +1,13 @@
+<html>
+<body>
+<h1>Meaty Bordeaux Merlot</h1>
+<p class="price">$24.95</p>
+<div class="woocommerce-product-gallery"><img src="https://example.test/rouzerol.jpg"></div>
+<div id="tab-description">
+<h2>Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.</h2>
+<p>Appellation Castillon Côtes-de-Bordeaux</p>
+<p>Post arrival price will be $34.95</p>
+<p>Today's pre-departure price is $24.95</p>
+</div>
+</body>
+</html>

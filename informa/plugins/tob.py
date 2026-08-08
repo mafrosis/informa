@@ -273,10 +273,15 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
         # newer ChatGPT-generated pages have it as the first h1 in the description
         description_index = next((i for i, line in enumerate(email_text) if line == 'Description'), None)
         if description_index is not None:
-            title = email_text[description_index + 1].strip()
+            title = next((line for line in email_text[description_index + 1 :] if line), '')
         else:
-            desc_title = body.select_one('h1')
-            title = desc_title.text.strip() if desc_title else email_text[0]
+            desc_title = next(
+                (heading for heading in body.select('h1, h2') if heading.get_text(strip=True) != 'Description'),
+                None,
+            )
+            title = (
+                desc_title.get_text(' ', strip=True) if desc_title else next((line for line in email_text if line), '')
+            )
 
         price = soup.select_one('.price').text
         price = price.removeprefix('$')
