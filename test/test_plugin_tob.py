@@ -308,8 +308,12 @@ def test_tob_parse_email_38073(mock_extract_wines, http_response):
     '''
     mock_extract_wines.return_value = (
         [
-            Wine(tag='Powerhouse Bordeaux', price=decimal.Decimal('29.95'),
-                 title='Powerhouse Bordeaux 2023.'),
+            Wine(
+                tag='Powerhouse Bordeaux',
+                price=decimal.Decimal('29.95'),
+                paid=decimal.Decimal('33.95'),
+                title='Powerhouse Bordeaux 2023.',
+            ),
         ]
     )
 
@@ -320,6 +324,7 @@ def test_tob_parse_email_38073(mock_extract_wines, http_response):
     assert order.total == decimal.Decimal('179.70')
     assert order.discount == 0
     assert order.wines[0].paid is not None and order.wines[0].paid > 0
+    assert order.wines[0].paid == decimal.Decimal('29.95')
     assert divmod(sum([w.paid for w in order.wines]), 1)[0] == decimal.Decimal(179)
 
 

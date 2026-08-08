@@ -210,9 +210,8 @@ def parse_email(html: str) -> Order:
                 raise IndexError
 
             if len(wines) == 1:
-                if wines[0].paid is None:
-                    # If the product page does not have the discounted paid price, calculate from order line item
-                    wines[0].paid = round(price / quantity, 2)
+                # The order email is authoritative when the product page price has since changed.
+                wines[0].paid = round(price / quantity, 2)
 
                 # Append quantity of a single wine to order
                 for _ in range(quantity):
@@ -232,7 +231,7 @@ def parse_email(html: str) -> Order:
                 wine.paid = round(coef * wine.paid, 2)
 
         if divmod(sum(w.paid for w in order.wines), 1)[0] != divmod(order.total, 1)[0]:
-            raise_alarm(logger, 'Divmod fail on order: %s', order.number)
+            raise_alarm(logger, f'Divmod fail on order: {order.number}')
 
         create_indentifiers(order)
 
