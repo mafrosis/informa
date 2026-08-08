@@ -281,8 +281,11 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
                 desc_title.get_text(' ', strip=True) if desc_title else next((line for line in email_text if line), '')
             )
 
-        price = soup.select_one('.price').text
-        price = price.removeprefix('$')
+        price_text = soup.select_one('.summary .price') or soup.select_one('.price')
+        prices = re.findall(r'\$\s*([\d,]+(?:\.\d+)?)', price_text.get_text(' ', strip=True)) if price_text else []
+        if not prices:
+            raise NoExtractionError(f'No numeric product price found on {item_url}')
+        price = decimal.Decimal(prices[-1].replace(',', ''))
         tag = soup.select_one('h1').text
         image = soup.select_one('div.single-product-main-image img') or soup.select_one(
             'div.woocommerce-product-gallery img'
@@ -291,7 +294,7 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
             title=title,
             tag=tag,
             url=item_url,
-            price=decimal.Decimal(price),
+            price=price,
             image_url=image.attrs['src'] if image else None,
         )
 

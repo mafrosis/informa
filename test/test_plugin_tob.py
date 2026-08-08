@@ -95,6 +95,23 @@ def test_tob_extract_single_wine_meaty(mock_requests_get, http_response):
 
 
 @patch('requests.get')
+def test_tob_extract_single_wine_sale_price(mock_requests_get):
+    mock_requests_get.return_value = Mock(
+        text='''
+        <html><body>
+        <h1>Peachy Chardonnay</h1>
+        <div class="summary"><p class="price">$ 47.95 Original price was: $47.95. $ 26.37 Current price is: $26.37.</p></div>
+        <div id="tab-description"><h2>Peachy Chardonnay 2024</h2></div>
+        </body></html>
+        '''
+    )
+
+    wines = extract_wines('fakeurl')
+
+    assert wines[0].price == decimal.Decimal('26.37')
+
+
+@patch('requests.get')
 def test_tob_extract_wines_25751(mock_requests_get, http_response):
     '''
     Test parsing a ready-to-ship mixed 6 pack in 25751 (2024-12-31)
