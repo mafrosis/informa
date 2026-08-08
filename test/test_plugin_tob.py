@@ -62,6 +62,25 @@ def test_tob_extract_single_wine_26876(mock_requests_get, http_response):
 
 
 @patch('requests.get')
+def test_tob_extract_single_wine_powerhouse(mock_requests_get, http_response):
+    '''
+    Test parsing the ChatGPT-generated single wine page for Powerhouse Bordeaux (2026-06-04)
+    https://theotherbordeaux.com/shop/pre-departure-offers/powerhouse-bordeaux/
+    '''
+    mock_requests_get.return_value = Mock(text=http_response('tob_site_single_powerhouse'))
+
+    wines = extract_wines('fakeurl')
+    assert wines[0] == Wine(
+        title='“Enclos de Virginie” Bordeaux 2022, by JL Thunevin.',
+        tag='Powerhouse Bordeaux',
+        url='fakeurl',
+        price=decimal.Decimal('45.95'),
+        paid=decimal.Decimal('33.95'),
+        image_url='https://theotherbordeaux.com/wp-content/uploads/enclos-virg-up.jpg',
+    )
+
+
+@patch('requests.get')
 def test_tob_extract_wines_25751(mock_requests_get, http_response):
     '''
     Test parsing a ready-to-ship mixed 6 pack in 25751 (2024-12-31)
@@ -170,6 +189,18 @@ def test_tob_extract_wines_21867(mock_requests_get, http_response):
              price=decimal.Decimal('107.95'), paid=decimal.Decimal('79.95'),
              image_url='https://mcusercontent.com/1df7f0c4203a2fe37d91154b0/images/553f8420-7a8a-938c-1ce7-9116ac26e93e.png'),
     ]
+
+
+@patch('requests.get')
+def test_tob_extract_wines_uses_user_agent(mock_requests_get, http_response):
+    '''
+    Test extract_wines sends a User-Agent header (the site blocks headerless requests)
+    '''
+    mock_requests_get.return_value = Mock(text=http_response('tob_site_single_23025'))
+
+    extract_wines('fakeurl')
+
+    assert mock_requests_get.call_args.kwargs.get('headers', {}).get('User-Agent')
 
 
 @patch('informa.plugins.tob.extract_wines')

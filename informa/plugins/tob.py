@@ -249,10 +249,19 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
         List of Wine objects
         Pack price
     '''
-    resp = requests.get(item_url, timeout=5)
+    resp = requests.get(
+        item_url,
+        timeout=5,
+        headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
+        },
+    )
     soup = bs4.BeautifulSoup(resp.text, 'html.parser')
     body = soup.select_one('#tab-description')
     logger.debug('Extracting: %s', item_url)
+
+    if body is None:
+        raise NoExtractionError(f'No #tab-description found on {item_url}')
 
     # Clean up email text into an array
     email_text = [line.replace('\xa0', ' ').strip() for line in body.text.splitlines()]
@@ -260,15 +269,30 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
     wines = []
 
     def extract_single():
-        for i, line in enumerate(email_text):
-            if line == 'Description':
-                title = email_text[i + 1].strip()
-                price = soup.select_one('.price').text
-                price = price.removeprefix('$')
-                tag = soup.select_one('h1').text
-                image_url = soup.select_one('div.single-product-main-image img').attrs['src']
-                wine = Wine(title=title, tag=tag, url=item_url, price=decimal.Decimal(price), image_url=image_url)
+        # The wine title follows the 'Description' heading in the legacy format;
+        # newer ChatGPT-generated pages have it as the first h1 in the description
+        description_index = next((i for i, line in enumerate(email_text) if line == 'Description'), None)
+        if description_index is not None:
+            title = email_text[description_index + 1].strip()
+        else:
+            desc_title = body.select_one('h1')
+            title = desc_title.text.strip() if desc_title else email_text[0]
 
+        price = soup.select_one('.price').text
+        price = price.removeprefix('$')
+        tag = soup.select_one('h1').text
+        image = soup.select_one('div.single-product-main-image img') or soup.select_one(
+            'div.woocommerce-product-gallery img'
+        )
+        wine = Wine(
+            title=title,
+            tag=tag,
+            url=item_url,
+            price=decimal.Decimal(price),
+            image_url=image.attrs['src'] if image else None,
+        )
+
+        for i, line in enumerate(email_text):
             # If this a pre-departure, overwrite price with value from body text
             if re.search('pre-departure(.*)price', line):
                 paid = line[line.index('$') + 1 :]
@@ -276,10 +300,11 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
 
                 wine.paid = decimal.Decimal(paid)
 
-                # In this instance, switch the tag and title fields
-                title = wine.tag
-                wine.tag = wine.title
-                wine.title = title
+                if description_index is not None:
+                    # In the legacy format, switch the tag and title fields
+                    title = wine.tag
+                    wine.tag = wine.title
+                    wine.title = title
                 continue
 
             if 'Post arrival price' in line:
