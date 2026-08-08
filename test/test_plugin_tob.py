@@ -2,7 +2,7 @@ import datetime
 import decimal
 from unittest.mock import Mock, patch
 
-from informa.plugins.tob import OrderLine, Wine, extract_wines, parse_email
+from informa.plugins.tob import Order, OrderLine, Wine, extract_wines, merge_missing_titles, parse_email
 
 
 @patch('requests.get')
@@ -321,3 +321,31 @@ def test_tob_parse_email_38073(mock_extract_wines, http_response):
     assert order.discount == 0
     assert order.wines[0].paid is not None and order.wines[0].paid > 0
     assert divmod(sum([w.paid for w in order.wines]), 1)[0] == decimal.Decimal(179)
+
+
+def test_tob_merge_missing_titles():
+    existing = Order(
+        number=38048,
+        date=datetime.date(2026, 6, 2),
+        total=decimal.Decimal('175.70'),
+        discount=decimal.Decimal(0),
+        wines=[Wine(tag='Meaty Bordeaux Merlot', price=decimal.Decimal('34.95'), identifier='wine-1')],
+    )
+    parsed = Order(
+        number=38048,
+        date=datetime.date(2026, 6, 2),
+        total=decimal.Decimal('175.70'),
+        discount=decimal.Decimal(0),
+        wines=[
+            Wine(
+                tag='Meaty Bordeaux Merlot',
+                price=decimal.Decimal('34.95'),
+                title='Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.',
+                identifier='wine-1',
+            )
+        ],
+    )
+
+    merge_missing_titles(existing, parsed)
+
+    assert existing.wines[0].title == 'Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.'

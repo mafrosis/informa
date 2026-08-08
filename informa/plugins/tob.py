@@ -100,9 +100,13 @@ def main(state: State) -> int:
         raise_alarm(logger, f'Email dated {msg.date} failed extraction')
         return 0
 
-    # If the order is new, add it to the state
-    if order and order.number not in (o.number for o in state.orders):
-        state.orders.append(order)
+    # Add new orders, or fill missing titles on an order being reparsed.
+    if order:
+        existing_order = next((o for o in state.orders if o.number == order.number), None)
+        if existing_order is None:
+            state.orders.append(order)
+        else:
+            merge_missing_titles(existing_order, order)
 
     if state.orders:
         # Write to Google Sheets
@@ -396,6 +400,14 @@ def create_indentifiers(order: Order):
         wn.identifier = hashlib.sha256(f'{order.number}{wn.tag}{wn.index}'.encode()).hexdigest()
 
 
+def merge_missing_titles(order: Order, parsed_order: Order) -> None:
+    'Fill empty titles from a newly parsed copy of an existing order'
+    for parsed_wine in parsed_order.wines:
+        wine = next((w for w in order.wines if w.identifier == parsed_wine.identifier), None)
+        if wine and not wine.title and parsed_wine.title:
+            wine.title = parsed_wine.title
+
+
 def merge_upstream(df: pd.DataFrame, orders: List[Order]) -> pd.DataFrame:
     'Merge any changes made in the Google Sheet back into local state'
 
@@ -405,7 +417,8 @@ def merge_upstream(df: pd.DataFrame, orders: List[Order]) -> pd.DataFrame:
         if order:
             wine = next((w for w in order.wines if w.identifier == row['wine.identifier']), None)
             if wine:
-                wine.title = row['wine.title']
+                if pd.notna(row['wine.title']) and str(row['wine.title']).strip():
+                    wine.title = row['wine.title']
                 wine.paid = row['wine.paid']
             else:
                 raise ValueError('Invalid wine identifier in upstream data')
