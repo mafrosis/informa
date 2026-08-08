@@ -80,10 +80,9 @@ def main(state: State) -> int:
 
     sheet = gc.open_by_key(SPREADO_ID).worksheet('raw')
 
-    # Fetch from Google Sheets, and overwrite the state.orders
-    if state.orders:
-        df = get_as_dataframe(sheet)
-        merge_upstream(df, state.orders)
+    # The spreadsheet is the source of truth for persisted order history.
+    df = get_as_dataframe(sheet)
+    merge_upstream(df, state.orders)
 
     msgs = check_for_email()
     if msgs is None:
@@ -100,13 +99,9 @@ def main(state: State) -> int:
         raise_alarm(logger, f'Email dated {msg.date} failed extraction')
         return 0
 
-    # Add new orders, or fill missing titles on an order being reparsed.
-    if order:
-        existing_order = next((o for o in state.orders if o.number == order.number), None)
-        if existing_order is None:
-            state.orders.append(order)
-        else:
-            merge_missing_titles(existing_order, order)
+    # Add a newly parsed order to the upstream history.
+    if order and order.number not in (o.number for o in state.orders):
+        state.orders.append(order)
 
     if state.orders:
         # Write to Google Sheets
@@ -399,48 +394,46 @@ def create_indentifiers(order: Order):
         wn.identifier = hashlib.sha256(f'{order.number}{wn.tag}{wn.index}'.encode()).hexdigest()
 
 
-def merge_missing_titles(order: Order, parsed_order: Order) -> None:
-    'Fill empty titles from a newly parsed copy of an existing order'
-    for parsed_wine in parsed_order.wines:
-        wine = next((w for w in order.wines if w.identifier == parsed_wine.identifier), None)
-        if wine and not wine.title and parsed_wine.title:
-            wine.title = parsed_wine.title
+def merge_upstream(df: pd.DataFrame, orders: List[Order]) -> None:
+    'Replace local order history with the Google Sheet order history'
 
+    orders.clear()
+    if df.empty:
+        return
 
-def merge_upstream(df: pd.DataFrame, orders: List[Order]) -> pd.DataFrame:
-    'Merge any changes made in the Google Sheet back into local state'
+    rows = df[df['number'].notna()]
+    for number, order_rows in rows.groupby('number', sort=False):
+        first = order_rows.iloc[0]
+        order = Order(
+            number=int(number),
+            date=pd.to_datetime(first['date']).date(),
+            total=decimal.Decimal(str(first['total'])),
+            discount=decimal.Decimal(str(first['discount'])),
+        )
 
-    # Import wine.title, wine.paid from upstream
-    for _, row in df[~df['wine.identifier'].isnull()].iterrows():
-        order = next((o for o in orders if o.number == row['number']), None)
-        if order:
-            wine = next((w for w in order.wines if w.identifier == row['wine.identifier']), None)
-            if wine:
-                if pd.notna(row['wine.title']) and str(row['wine.title']).strip():
-                    wine.title = row['wine.title']
-                wine.paid = row['wine.paid']
-            else:
-                raise ValueError('Invalid wine identifier in upstream data')
-        else:
-            raise ValueError('Invalid order number in upstream data')
-
-    # Add new wines to respective orders
-    for _, row in df[df['wine.identifier'].isnull()].iterrows():
-        order = next((o for o in orders if o.number == row['number']), None)
-        if order:
+        for _, row in order_rows.iterrows():
+            paid = None if pd.isna(row['wine.paid']) else decimal.Decimal(str(row['wine.paid']))
+            identifier = None if pd.isna(row['wine.identifier']) else str(row['wine.identifier'])
             order.wines.append(
                 Wine(
-                    title=row['wine.title'],
-                    url=row['wine.url'],
-                    tag=row['wine.tag'],
-                    price=row['wine.price'],
-                    paid=row['wine.paid'],
-                    image_url=row['wine.image_url'],
+                    title=None if pd.isna(row['wine.title']) else str(row['wine.title']),
+                    url=None if pd.isna(row['wine.url']) else str(row['wine.url']),
+                    tag=None if pd.isna(row['wine.tag']) else str(row['wine.tag']),
+                    price=decimal.Decimal(str(row['wine.price'])),
+                    paid=paid,
+                    image_url=None if pd.isna(row['wine.image_url']) else str(row['wine.image_url']),
+                    identifier=identifier,
                 )
             )
+
+        provided_identifiers = [wine.identifier for wine in order.wines]
+        if any(identifier is None for identifier in provided_identifiers):
             create_indentifiers(order)
-        else:
-            raise ValueError('Invalid order number in upstream data')
+            for wine, identifier in zip(order.wines, provided_identifiers):
+                if identifier is not None:
+                    wine.identifier = identifier
+
+        orders.append(order)
 
 
 @click.group(name='tob')

@@ -2,7 +2,9 @@ import datetime
 import decimal
 from unittest.mock import Mock, patch
 
-from informa.plugins.tob import Order, OrderLine, Wine, extract_wines, merge_missing_titles, parse_email
+import pandas as pd
+
+from informa.plugins.tob import Order, OrderLine, Wine, extract_wines, merge_upstream, parse_email
 
 
 @patch('requests.get')
@@ -328,29 +330,28 @@ def test_tob_parse_email_38073(mock_extract_wines, http_response):
     assert divmod(sum([w.paid for w in order.wines]), 1)[0] == decimal.Decimal(179)
 
 
-def test_tob_merge_missing_titles():
-    existing = Order(
-        number=38048,
-        date=datetime.date(2026, 6, 2),
-        total=decimal.Decimal('175.70'),
-        discount=decimal.Decimal(0),
-        wines=[Wine(tag='Meaty Bordeaux Merlot', price=decimal.Decimal('34.95'), identifier='wine-1')],
-    )
-    parsed = Order(
-        number=38048,
-        date=datetime.date(2026, 6, 2),
-        total=decimal.Decimal('175.70'),
-        discount=decimal.Decimal(0),
-        wines=[
-            Wine(
-                tag='Meaty Bordeaux Merlot',
-                price=decimal.Decimal('34.95'),
-                title='Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.',
-                identifier='wine-1',
-            )
-        ],
+def test_tob_merge_upstream_replaces_state_with_sheet_history():
+    existing = [Order(number=1, date=datetime.date(2020, 1, 1), total=decimal.Decimal(1), discount=decimal.Decimal(0))]
+    sheet = pd.DataFrame(
+        [
+            {
+                'number': 38048,
+                'date': datetime.date(2026, 6, 2),
+                'total': decimal.Decimal('175.70'),
+                'discount': decimal.Decimal(0),
+                'wine.title': 'Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.',
+                'wine.url': 'https://example.test/rouzerol',
+                'wine.tag': 'Meaty Bordeaux Merlot',
+                'wine.price': decimal.Decimal('34.95'),
+                'wine.paid': decimal.Decimal('24.95'),
+                'wine.image_url': 'https://example.test/rouzerol.jpg',
+                'wine.identifier': 'wine-1',
+            }
+        ]
     )
 
-    merge_missing_titles(existing, parsed)
+    merge_upstream(sheet, existing)
 
-    assert existing.wines[0].title == 'Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.'
+    assert len(existing) == 1
+    assert existing[0].number == 38048
+    assert existing[0].wines[0].title == 'Château Rouzerol, Castillon Côtes-de-Bordeaux 2022.'
