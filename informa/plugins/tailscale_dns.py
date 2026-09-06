@@ -43,6 +43,11 @@ def main(state: State) -> int:
             updated += 1
             logger.info('Updated %s.mafro.net -> %s', device.hostname, device.ip)
 
+            # Special case where ca.mafro.net must track trevor device IP
+            # CNAME will not work either because DNS on Android
+            if device.hostname == 'trevor':
+                update_dns_record('ca', device.ip)
+
     return updated
 
 
