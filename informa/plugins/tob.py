@@ -301,10 +301,11 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
         for i, line in enumerate(email_text):
             # If this a pre-departure, overwrite price with value from body text
             if re.search('pre-departure(.*)price', line):
-                paid = line[line.index('$') + 1 :]
-                paid = paid.removesuffix('.')
+                paid = next(iter(re.findall(r'\$\s*([\d,]+(?:\.\d+)?)', line)), None)
+                if not paid:
+                    continue
 
-                wine.paid = decimal.Decimal(paid)
+                wine.paid = decimal.Decimal(paid.replace(',', ''))
 
                 if description_index is not None:
                     # In the legacy format, switch the tag and title fields
@@ -334,8 +335,9 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
                 for offset in range(4):
                     try:
                         if re.search('pre-departure(.*)price', email_text[i + offset]):
-                            paid = email_text[i + offset][email_text[i + offset].index('$') + 1 :]
-                            paid = paid.removesuffix('.')
+                            match = re.search(r'\$\s*([\d,]+(?:\.\d+)?)', email_text[i + offset])
+                            if match:
+                                paid = match.group(1).replace(',', '')
                             continue
 
                         if 'Post arrival price' in email_text[i + offset]:
