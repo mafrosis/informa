@@ -13,3 +13,7 @@ test:
 .PHONY: dist
 dist:
 	hatch build
+
+.PHONY: build
+build:
+	docker compose build informa
