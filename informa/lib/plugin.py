@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import pathlib
+import socket
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -31,6 +32,8 @@ from informa.lib import ConfigBase, PluginAdapter, StateBase
 from informa.lib.utils import now_aest, raise_alarm
 
 F = TypeVar('F', bound=Callable[..., Any])
+
+logger = PluginAdapter(logging.getLogger('informa'))
 
 
 @dataclass
@@ -325,6 +328,13 @@ class InformaPlugin:
 def publish_plugin_run_to_mqtt(plugin_name: str, state: StateBase):
     'Write plugin\'s output to a MQTT topic'
     client = mqtt.Client(CallbackAPIVersion.VERSION2)
-    client.connect('trevor', 1883)
+
+    try:
+        client.connect('trevor', 1883)
+    except socket.gaierror:
+        # Broker hostname is only resolvable on the home LAN
+        logger.warning('Unable to connect to MQTT broker')
+        return
+
     client.publish(f'informa/{plugin_name}/last_run', state.last_run.isoformat(), retain=True)
     client.publish(f'informa/{plugin_name}/last_count', state.last_count, retain=True)
