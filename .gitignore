@@ -18,3 +18,7 @@ informa/plugins/c*8*.py
 informa/plugins/t*ly.py
 
 *.feather
+
+# Never commit bank statement PDFs
+/*.pdf
+transto/test/*.pdf

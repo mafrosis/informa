@@ -31,9 +31,12 @@ services:
       - STATE_DIR=/state
       - CONFIG_DIR=/config
       - TEMPLATE_DIR=/templates
+      - WESTPAC_STATEMENTS_DIR=/statements
     volumes:
       - ./config:/config:ro
       - ./templates:/templates:ro
+      # Westpac statement PDFs, copied in manually (no email delivery)
+      - ./statements:/statements:ro
       - ./mafro-oauth-abad62e69e8d.json:/src/gcp_oauth_secret.json:ro
       - /media/storage/music:/music:ro
       - /home/mafro/.ssh/jorg.pky:/jorg.pky
