@@ -1,6 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass, field
+from typing import cast
 
 import click
 import requests
@@ -108,6 +109,6 @@ def cli():
 @cli.command
 def current(plugin: InformaPlugin):
     'Show current DNS mappings'
-    state = plugin.load_state()
-    for hostname, ip in state.last_ips.items():
+    state = cast(State, plugin.load_state())
+    for hostname, ip in state.tailnet.items():
         click.echo(f'{hostname}.mafro.net: {ip}')
