@@ -22,3 +22,6 @@ informa/plugins/t*ly.py
 # Never commit bank statement PDFs
 /*.pdf
 transto/test/*.pdf
+
+# uv lockfile (project uses Hatch)
+uv.lock
