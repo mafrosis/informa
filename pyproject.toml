@@ -91,3 +91,15 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 test = "pytest --disable-pytest-warnings test"
 mypy = "pytest --mypy informa"
+
+[tool.mypy]
+[[tool.mypy.overrides]]
+module = [
+	'eyed3.*',
+	'feedparser.*',
+	'gcsa.*',
+	'gspread_dataframe.*',
+	'rocketry.*',
+	'slskd_api.*',
+]
+ignore_missing_imports = true
