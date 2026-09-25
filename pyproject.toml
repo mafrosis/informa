@@ -85,6 +85,7 @@ dependencies = [
 	"types-click",
 	"types-paramiko",
 	"types-PyYAML",
+	"types-pytz",
 	"types-requests",
 ]
 
