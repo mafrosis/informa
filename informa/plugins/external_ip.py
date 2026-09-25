@@ -1,10 +1,10 @@
 import logging
 import os
+from dataclasses import dataclass
+from typing import cast
 
 import click
 import requests
-from dataclasses import dataclass
-from typing import cast
 
 from informa import app
 from informa.lib import PluginAdapter, StateBase
@@ -91,5 +91,5 @@ def cli():
 @cli.command
 def current(plugin: InformaPlugin):
     'Show the last known external IP'
-    state = cast(State, plugin.load_state())
+    state = cast('State', plugin.load_state())
     click.echo(f'ca.{DOMAIN}: {state.ip or "never set"}')

@@ -300,7 +300,7 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
 
         for i, line in enumerate(email_text):
             # If this a pre-departure, overwrite price with value from body text
-            if re.search('pre-departure(.*)price', line):
+            if re.search(r'pre-departure(.*)price', line):
                 paid = next(iter(re.findall(r'\$\s*([\d,]+(?:\.\d+)?)', line)), None)
                 if not paid:
                     continue
@@ -334,7 +334,7 @@ def extract_wines(item_url: str, order_line: OrderLine | None = None) -> List[Wi
 
                 for offset in range(4):
                     try:
-                        if re.search('pre-departure(.*)price', email_text[i + offset]):
+                        if re.search(r'pre-departure(.*)price', email_text[i + offset]):
                             match = re.search(r'\$\s*([\d,]+(?:\.\d+)?)', email_text[i + offset])
                             if match:
                                 paid = match.group(1).replace(',', '')

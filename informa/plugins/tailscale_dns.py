@@ -109,6 +109,6 @@ def cli():
 @cli.command
 def current(plugin: InformaPlugin):
     'Show current DNS mappings'
-    state = cast(State, plugin.load_state())
+    state = cast('State', plugin.load_state())
     for hostname, ip in state.tailnet.items():
         click.echo(f'{hostname}.mafro.net: {ip}')

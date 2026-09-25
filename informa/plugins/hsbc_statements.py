@@ -6,15 +6,15 @@ from dataclasses import dataclass
 
 import click
 import googleapiclient
+from gmsa.exceptions import AttachmentSaveError
 from google.oauth2.service_account import Credentials
+from transto.exceptions import MissingEnvVar
 
 from gmsa import Gmail
-from gmsa.exceptions import AttachmentSaveError
 from informa import app
 from informa.lib import PluginAdapter, StateBase, mailgun
 from informa.lib.utils import raise_alarm
 from transto import hsbc
-from transto.exceptions import MissingEnvVar
 
 logger = PluginAdapter(logging.getLogger('informa'))
 

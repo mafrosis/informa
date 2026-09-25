@@ -171,7 +171,7 @@ class InformaPlugin:
         except FileNotFoundError as e:
             raise PluginRequiresConfigError(self.name) from e
 
-        return cast(ConfigBase, self.config_cls.from_dict(data))
+        return cast('ConfigBase', self.config_cls.from_dict(data))
 
     def load_state(self) -> StateBase:
         'Load or initialise plugin state'
@@ -191,7 +191,7 @@ class InformaPlugin:
             self.logger.debug('Empty state initialised for %s', self.name)
             state = self.state_cls()
 
-        return cast(StateBase, state)
+        return cast('StateBase', state)
 
     def write_state(self, state: StateBase):
         'Persist plugin state to the filesystem'
