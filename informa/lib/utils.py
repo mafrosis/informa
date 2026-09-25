@@ -1,7 +1,6 @@
 import datetime
 import logging
 import traceback
-
 from zoneinfo import ZoneInfo
 
 from informa.lib import mailgun
@@ -12,7 +11,7 @@ def now_aest() -> datetime.datetime:
     return datetime.datetime.now(ZoneInfo('Australia/Melbourne'))
 
 
-def raise_alarm(logger: logging.Logger, msg: str, ex: Exception | None = None):
+def raise_alarm(logger: logging.Logger | logging.LoggerAdapter, msg: str, ex: Exception | None = None):
     'Log an error and send an email'
     if ex and logger.getEffectiveLevel() == logging.DEBUG:
         logger.exception(ex)
